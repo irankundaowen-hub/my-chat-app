@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>My Chat App</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #e5ddd5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #075e54;
+      color: white;
+      padding: 14px 16px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    #messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .msg {
+      max-width: 75%;
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: white;
+      align-self: flex-start;
+      word-wrap: break-word;
+    }
+    .msg.mine { background: #dcf8c6; align-self: flex-end; }
+    .msg .name { font-size: 12px; font-weight: 600; color: #075e54; }
+    .msg .time { font-size: 10px; color: #888; text-align: right; }
+    form { display: flex; gap: 8px; padding: 10px; background: #f0f0f0; }
+    input[type="text"] {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 20px;
+      font-size: 16px;
+      outline: none;
+    }
+    button {
+      background: #075e54;
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 0 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span>💬 My Chat App</span>
+    <span id="who"></span>
+  </header>
+
+  <div id="messages"></div>
+
+  <form id="form">
+    <input id="input" type="text" placeholder="Type a message" autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+
+  <!-- This line loads the real-time connection library -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+
+    // Ask for a username once, and remember it
+    let username = localStorage.getItem("username");
+    if (!username) {
+      username = prompt("Pick a username:") || "Anonymous";
+      localStorage.setItem("username", username);
+    }
+    document.getElementById("who").textContent = username;
+
+    const messagesDiv = document.getElementById("messages");
+    const form = document.getElementById("form");
+    const input = document.getElementById("input");
+
+    // Draw one message on the screen
+    function addMessage(msg) {
+      const div = document.createElement("div");
+      div.className = "msg" + (msg.user === username ? " mine" : "");
+
+      const name = document.createElement("div");
+      name.className = "name";
+      name.textContent = msg.user;
+
+      const text = document.createElement("div");
+      text.textContent = msg.text;
+
+      const time = document.createElement("div");
+      time.className = "time";
+      time.textContent = new Date(msg.time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      div.append(name, text, time);
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // When the server sends old messages
+    socket.on("history", (list) => list.forEach(addMessage));
+
+    // When a new message arrives
+    socket.on("chat message", addMessage);
+
+    // When you press Send
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      if (!input.value.trim()) return;
+      socket.emit("chat message", { user: username, text: input.value });
+      input.value = "";
+    });
+  </script>
+</body>
+</html>
