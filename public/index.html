@@ -6,6 +6,7 @@
   <title>My Chat App</title>
   <style>
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     body {
       margin: 0;
       font-family: system-ui, sans-serif;
@@ -21,7 +22,62 @@
       font-weight: 600;
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      gap: 12px;
     }
+    header .right { display: flex; align-items: center; gap: 10px; font-weight: 400; }
+    #logout {
+      background: transparent;
+      border: 1px solid white;
+      padding: 4px 12px;
+      font-size: 13px;
+    }
+
+    /* Login / sign-up box */
+    #authBox {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .card {
+      background: white;
+      width: 100%;
+      max-width: 360px;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .card h2 { margin: 0 0 4px; color: #075e54; }
+    .card p.sub { margin: 0 0 16px; color: #666; font-size: 14px; }
+    .card input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    .card button.main {
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+    #switch {
+      margin-top: 14px;
+      text-align: center;
+      font-size: 14px;
+      color: #075e54;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    #authMsg { margin: 0 0 10px; font-size: 14px; color: #b00020; min-height: 18px; }
+    #authMsg.ok { color: #1b7f3b; }
+
+    /* Chat screen */
+    #chatBox { flex: 1; display: flex; flex-direction: column; min-height: 0; }
     #messages {
       flex: 1;
       overflow-y: auto;
@@ -41,8 +97,8 @@
     .msg.mine { background: #dcf8c6; align-self: flex-end; }
     .msg .name { font-size: 12px; font-weight: 600; color: #075e54; }
     .msg .time { font-size: 10px; color: #888; text-align: right; }
-    form { display: flex; gap: 8px; padding: 10px; background: #f0f0f0; }
-    input[type="text"] {
+    form#form { display: flex; gap: 8px; padding: 10px; background: #f0f0f0; }
+    form#form input {
       flex: 1;
       padding: 12px;
       border: none;
@@ -64,70 +120,193 @@
 <body>
   <header>
     <span>💬 My Chat App</span>
-    <span id="who"></span>
+    <span class="right" id="userArea" hidden>
+      <span id="who"></span>
+      <button id="logout" type="button">Log out</button>
+    </span>
   </header>
 
-  <div id="messages"></div>
+  <!-- Login / sign-up screen -->
+  <div id="authBox" hidden>
+    <form class="card" id="authForm">
+      <h2 id="authTitle">Log in</h2>
+      <p class="sub" id="authSub">Welcome back! Enter your details.</p>
+      <input id="username" type="text" placeholder="Username" maxlength="20" autocomplete="nickname" hidden />
+      <input id="email" type="email" placeholder="Email" autocomplete="email" required />
+      <input id="password" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required />
+      <p id="authMsg"></p>
+      <button class="main" id="authBtn" type="submit">Log in</button>
+      <div id="switch">New here? Create an account</div>
+    </form>
+  </div>
 
-  <form id="form">
-    <input id="input" type="text" placeholder="Type a message" autocomplete="off" />
-    <button type="submit">Send</button>
-  </form>
+  <!-- Chat screen -->
+  <div id="chatBox" hidden>
+    <div id="messages"></div>
+    <form id="form">
+      <input id="input" type="text" placeholder="Type a message" autocomplete="off" />
+      <button type="submit">Send</button>
+    </form>
+  </div>
 
-  <!-- This line loads the real-time connection library -->
+  <!-- Libraries: real-time connection + login system -->
   <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const socket = io();
+    (async function () {
+      const $ = (id) => document.getElementById(id);
 
-    // Ask for a username once, and remember it
-    let username = localStorage.getItem("username");
-    if (!username) {
-      username = prompt("Pick a username:") || "Anonymous";
-      localStorage.setItem("username", username);
-    }
-    document.getElementById("who").textContent = username;
+      // Ask our server for the public login settings
+      const cfg = await (await fetch("/config")).json();
+      const sb = supabase.createClient(cfg.url, cfg.anonKey);
 
-    const messagesDiv = document.getElementById("messages");
-    const form = document.getElementById("form");
-    const input = document.getElementById("input");
+      let me = null;       // the logged-in person
+      let socket = null;   // the live connection
+      let signingUp = false;
 
-    // Draw one message on the screen
-    function addMessage(msg) {
-      const div = document.createElement("div");
-      div.className = "msg" + (msg.user === username ? " mine" : "");
+      // ---------- Login / sign-up screen ----------
+      function setMode(isSignUp) {
+        signingUp = isSignUp;
+        $("authTitle").textContent = isSignUp ? "Create account" : "Log in";
+        $("authSub").textContent = isSignUp
+          ? "Pick a username, then your email and a password."
+          : "Welcome back! Enter your details.";
+        $("authBtn").textContent = isSignUp ? "Sign up" : "Log in";
+        $("switch").textContent = isSignUp
+          ? "Already have an account? Log in"
+          : "New here? Create an account";
+        $("username").hidden = !isSignUp;
+        $("username").required = isSignUp;
+        $("password").autocomplete = isSignUp ? "new-password" : "current-password";
+        showMsg("");
+      }
 
-      const name = document.createElement("div");
-      name.className = "name";
-      name.textContent = msg.user;
+      function showMsg(text, ok) {
+        $("authMsg").textContent = text;
+        $("authMsg").className = ok ? "ok" : "";
+      }
 
-      const text = document.createElement("div");
-      text.textContent = msg.text;
+      $("switch").addEventListener("click", () => setMode(!signingUp));
 
-      const time = document.createElement("div");
-      time.className = "time";
-      time.textContent = new Date(msg.time).toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
+      $("authForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        showMsg("");
+        $("authBtn").disabled = true;
+
+        const email = $("email").value.trim();
+        const password = $("password").value;
+
+        try {
+          if (signingUp) {
+            const username = $("username").value.trim();
+            if (username.length < 2) {
+              showMsg("Username must be at least 2 characters.");
+              return;
+            }
+            const { data, error } = await sb.auth.signUp({
+              email,
+              password,
+              options: { data: { username } },
+            });
+            if (error) { showMsg(error.message); return; }
+            if (data.session) {
+              startChat(data.session.user);
+            } else {
+              showMsg("Account created! Check your email to confirm it, then log in.", true);
+              setMode(false);
+              showMsg("Account created! Check your email to confirm it, then log in.", true);
+            }
+          } else {
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            if (error) { showMsg(error.message); return; }
+            startChat(data.session.user);
+          }
+        } catch (err) {
+          showMsg("Something went wrong. Please try again.");
+        } finally {
+          $("authBtn").disabled = false;
+        }
       });
 
-      div.append(name, text, time);
-      messagesDiv.appendChild(div);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
-    }
+      $("logout").addEventListener("click", async () => {
+        await sb.auth.signOut();
+        location.reload();
+      });
 
-    // When the server sends old messages
-    socket.on("history", (list) => list.forEach(addMessage));
+      // ---------- Chat screen ----------
+      const messagesDiv = $("messages");
 
-    // When a new message arrives
-    socket.on("chat message", addMessage);
+      function addMessage(msg) {
+        const div = document.createElement("div");
+        div.className = "msg" + (me && msg.uid === me.id ? " mine" : "");
 
-    // When you press Send
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      if (!input.value.trim()) return;
-      socket.emit("chat message", { user: username, text: input.value });
-      input.value = "";
-    });
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = msg.user;
+
+        const text = document.createElement("div");
+        text.textContent = msg.text;
+
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = new Date(msg.time).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        div.append(name, text, time);
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function startChat(user) {
+        me = user;
+        $("authBox").hidden = true;
+        $("chatBox").hidden = false;
+        $("userArea").hidden = false;
+        $("who").textContent =
+          (user.user_metadata && user.user_metadata.username) || user.email;
+
+        // Connect, and prove who we are with our login token
+        socket = io({
+          auth: (cb) => {
+            sb.auth.getSession().then(({ data }) => {
+              cb({ token: data.session ? data.session.access_token : "" });
+            });
+          },
+        });
+
+        socket.on("connect_error", async (err) => {
+          if (err.message === "Not logged in") {
+            await sb.auth.signOut();
+            location.reload();
+          }
+        });
+
+        socket.on("history", (list) => {
+          messagesDiv.innerHTML = "";
+          list.forEach(addMessage);
+        });
+        socket.on("chat message", addMessage);
+      }
+
+      $("form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const input = $("input");
+        if (!input.value.trim() || !socket) return;
+        socket.emit("chat message", { text: input.value });
+        input.value = "";
+      });
+
+      // ---------- Start: are we already logged in? ----------
+      const { data } = await sb.auth.getSession();
+      if (data.session) {
+        startChat(data.session.user);
+      } else {
+        $("authBox").hidden = false;
+        setMode(false);
+      }
+    })();
   </script>
 </body>
 </html>
