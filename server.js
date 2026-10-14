@@ -39,6 +39,144 @@ app.get("/config", (req, res) => {
   res.json({ url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY });
 });
 
+// ---------- Profiles and followers ----------
+app.use(express.json());
+
+// Checks the login token on every /api request
+async function requireUser(req, res, next) {
+  const token = (req.headers.authorization || "").replace("Bearer ", "");
+  if (!token) return res.status(401).json({ error: "Not logged in" });
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data || !data.user) return res.status(401).json({ error: "Not logged in" });
+  req.user = data.user;
+  next();
+}
+
+// Stops one error from freezing a request
+const safe = (fn) => (req, res) =>
+  fn(req, res).catch((e) => {
+    console.error(e);
+    res.status(500).json({ error: "Server error" });
+  });
+
+// Gets your profile, or creates it the first time you open it
+async function getOrCreateProfile(user) {
+  const { data: existing } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+  if (existing) return existing;
+
+  const raw = (user.user_metadata && user.user_metadata.username) || String(user.email || "user").split("@")[0];
+  const base = String(raw).toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 16) || "user";
+
+  for (let i = 0; i < 6; i++) {
+    const name = i === 0 ? base : base + Math.floor(100 + Math.random() * 900);
+    const { data, error } = await supabase
+      .from("profiles")
+      .insert({ id: user.id, username: name })
+      .select()
+      .single();
+    if (!error) return data;
+    if (error.code !== "23505") {
+      console.error("Profile error:", error.message);
+      return null;
+    }
+    const { data: again } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+    if (again) return again;
+  }
+  return null;
+}
+
+// Turns a list of user ids into usernames
+async function namesFor(ids) {
+  const map = {};
+  if (!ids.length) return map;
+  const { data } = await supabase.from("profiles").select("id, username").in("id", ids);
+  (data || []).forEach((p) => (map[p.id] = p.username));
+  return map;
+}
+
+// My profile, followers, following, and follow requests
+app.get("/api/me", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+
+  const { data: inRows } = await supabase.from("follows").select("follower_id, status").eq("following_id", me.id);
+  const { data: outRows } = await supabase.from("follows").select("following_id, status").eq("follower_id", me.id);
+  const ins = inRows || [];
+  const outs = outRows || [];
+  const names = await namesFor([...ins.map((r) => r.follower_id), ...outs.map((r) => r.following_id)]);
+
+  res.json({
+    username: me.username,
+    is_private: me.is_private,
+    followers: ins.filter((r) => r.status === "accepted").map((r) => names[r.follower_id] || "unknown"),
+    following: outs.filter((r) => r.status === "accepted").map((r) => names[r.following_id] || "unknown"),
+    requests: ins
+      .filter((r) => r.status === "pending")
+      .map((r) => ({ id: r.follower_id, username: names[r.follower_id] || "unknown" })),
+  });
+}));
+
+// Switch between public and private (easy, any time)
+app.post("/api/me/privacy", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const isPrivate = !!req.body.is_private;
+  await supabase.from("profiles").update({ is_private: isPrivate }).eq("id", me.id);
+  // Going public: everyone waiting is accepted automatically
+  if (!isPrivate) {
+    await supabase.from("follows").update({ status: "accepted" }).eq("following_id", me.id).eq("status", "pending");
+  }
+  res.json({ ok: true });
+}));
+
+// Follow someone by username
+app.post("/api/follow", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+
+  const target = String(req.body.username || "").trim().toLowerCase().replace(/^@/, "");
+  if (!target) return res.json({ message: "Type a username first." });
+
+  const { data: t } = await supabase.from("profiles").select("id, username, is_private").eq("username", target).maybeSingle();
+  if (!t) return res.json({ message: "No one has that username." });
+  if (t.id === me.id) return res.json({ message: "That's you!" });
+
+  const { data: already } = await supabase
+    .from("follows").select("status").eq("follower_id", me.id).eq("following_id", t.id).maybeSingle();
+  if (already) {
+    return res.json({ message: already.status === "pending" ? "Request already sent." : "You already follow them." });
+  }
+
+  const status = t.is_private ? "pending" : "accepted";
+  await supabase.from("follows").insert({ follower_id: me.id, following_id: t.id, status });
+  res.json({ message: status === "pending" ? "Request sent to @" + t.username : "You now follow @" + t.username });
+}));
+
+// Stop following someone
+app.post("/api/unfollow", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const target = String(req.body.username || "").trim().toLowerCase();
+  const { data: t } = await supabase.from("profiles").select("id").eq("username", target).maybeSingle();
+  if (t) await supabase.from("follows").delete().eq("follower_id", me.id).eq("following_id", t.id);
+  res.json({ ok: true });
+}));
+
+// Accept or decline a follow request
+app.post("/api/requests/respond", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const who = String(req.body.follower_id || "");
+  if (req.body.accept) {
+    await supabase.from("follows").update({ status: "accepted" })
+      .eq("follower_id", who).eq("following_id", me.id).eq("status", "pending");
+  } else {
+    await supabase.from("follows").delete()
+      .eq("follower_id", who).eq("following_id", me.id).eq("status", "pending");
+  }
+  res.json({ ok: true });
+}));
+
 // Every connection must prove who it is BEFORE it can chat
 io.use(async (socket, next) => {
   try {

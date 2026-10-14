@@ -1,7 +1,7 @@
 {
-  "name": "my-chat-app",
-  "version": "2.0.0",
-  "description": "A real-time chat app with accounts and saved messages",
+  "name": "twik-chat",
+  "version": "3.0.0",
+  "description": "Twik Chat: chat, profiles and followers",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
