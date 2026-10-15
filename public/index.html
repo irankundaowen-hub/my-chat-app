@@ -133,7 +133,8 @@
     .sheet button.wide { width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
     .sheet button.mini { padding: 4px 10px; font-size: 13px; margin-left: 6px; }
     .sheet button.close { background: #ddd; color: #333; }
-    #pMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    .sheet .hint { color: #777; font-size: 13px; margin: 0 0 6px; }
+    #pMsg, #pPhoneMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
   </style>
 </head>
 <body>
@@ -176,8 +177,14 @@
       <div class="counts" id="pCounts"></div>
       <button class="wide" id="pPrivacy" type="button">Loading...</button>
 
+      <h3>My phone number</h3>
+      <p class="hint" id="pPhoneHint"></p>
+      <input id="pPhoneInput" type="text" placeholder="+250788123456" autocomplete="off" />
+      <button class="wide" id="pPhoneBtn" type="button">Save number</button>
+      <p id="pPhoneMsg"></p>
+
       <h3>Follow someone</h3>
-      <input id="pFollowInput" type="text" placeholder="Their username" autocomplete="off" />
+      <input id="pFollowInput" type="text" placeholder="Username, or phone like +250788123456" autocomplete="off" />
       <button class="wide" id="pFollowBtn" type="button">Follow</button>
       <p id="pMsg"></p>
 
@@ -391,6 +398,9 @@
         const p = await api("/api/me");
         if (p.error) { $("pName").textContent = p.error; return; }
         currentPrivate = p.is_private;
+        $("pPhoneHint").textContent = p.phone_hint
+          ? "Saved (" + p.phone_hint + "). Used only so friends can find you, never shown."
+          : "No number saved. Start with + and your country code.";
         $("pName").textContent = "@" + p.username;
         $("pCounts").textContent = p.followers.length + " followers · " + p.following.length + " following";
         $("pPrivacy").textContent = p.is_private
@@ -424,6 +434,13 @@
         const r = await api("/api/follow", "POST", { username });
         $("pMsg").textContent = r.message || r.error || "";
         $("pFollowInput").value = "";
+        loadProfile();
+      });
+
+      $("pPhoneBtn").addEventListener("click", async () => {
+        const r = await api("/api/me/phone", "POST", { phone: $("pPhoneInput").value });
+        $("pPhoneMsg").textContent = r.message || r.error || "";
+        $("pPhoneInput").value = "";
         loadProfile();
       });
 

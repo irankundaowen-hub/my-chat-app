@@ -1,6 +1,6 @@
 {
   "name": "twik-chat",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Twik Chat: chat, profiles and followers",
   "main": "server.js",
   "scripts": {

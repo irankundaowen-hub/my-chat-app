@@ -85,6 +85,13 @@ async function getOrCreateProfile(user) {
   return null;
 }
 
+// Cleans a phone number into one standard form like +250788123456
+function cleanPhone(raw) {
+  const digits = String(raw || "").replace(/\D/g, "");
+  if (digits.length < 8 || digits.length > 15) return null;
+  return "+" + digits;
+}
+
 // Turns a list of user ids into usernames
 async function namesFor(ids) {
   const map = {};
@@ -108,6 +115,7 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
   res.json({
     username: me.username,
     is_private: me.is_private,
+    phone_hint: me.phone ? "ends in " + me.phone.slice(-3) : "",
     followers: ins.filter((r) => r.status === "accepted").map((r) => names[r.follower_id] || "unknown"),
     following: outs.filter((r) => r.status === "accepted").map((r) => names[r.following_id] || "unknown"),
     requests: ins
@@ -129,16 +137,42 @@ app.post("/api/me/privacy", requireUser, safe(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Follow someone by username
+// Save (or remove) my phone number so friends can find me
+app.post("/api/me/phone", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+
+  const raw = String(req.body.phone || "").trim();
+  if (!raw) {
+    await supabase.from("profiles").update({ phone: null }).eq("id", me.id);
+    return res.json({ message: "Phone number removed." });
+  }
+  const phone = cleanPhone(raw);
+  if (!phone) return res.json({ message: "Use this format: +250788123456 (with country code)." });
+
+  const { error } = await supabase.from("profiles").update({ phone }).eq("id", me.id);
+  if (error) return res.json({ message: "Could not save that number." });
+  res.json({ message: "Saved. Friends can now find you by this number." });
+}));
+
+// Follow someone by username, or by phone number (starts with +)
 app.post("/api/follow", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
 
-  const target = String(req.body.username || "").trim().toLowerCase().replace(/^@/, "");
-  if (!target) return res.json({ message: "Type a username first." });
+  const typed = String(req.body.username || "").trim();
+  if (!typed) return res.json({ message: "Type a username or phone number first." });
 
-  const { data: t } = await supabase.from("profiles").select("id, username, is_private").eq("username", target).maybeSingle();
-  if (!t) return res.json({ message: "No one has that username." });
+  let query = supabase.from("profiles").select("id, username, is_private");
+  if (typed.startsWith("+")) {
+    const phone = cleanPhone(typed);
+    if (!phone) return res.json({ message: "That phone number doesn't look right." });
+    query = query.eq("phone", phone);
+  } else {
+    query = query.eq("username", typed.toLowerCase().replace(/^@/, ""));
+  }
+  const { data: t } = await query.maybeSingle();
+  if (!t) return res.json({ message: "No one found with that username or number." });
   if (t.id === me.id) return res.json({ message: "That's you!" });
 
   const { data: already } = await supabase
