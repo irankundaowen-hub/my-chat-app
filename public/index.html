@@ -26,7 +26,7 @@
       gap: 12px;
     }
     header .right { display: flex; align-items: center; gap: 10px; font-weight: 400; }
-    #logout, #profileBtn {
+    #logout, #profileBtn, #reelsBtn {
       background: transparent;
       border: 1px solid white;
       padding: 4px 12px;
@@ -134,7 +134,24 @@
     .sheet button.mini { padding: 4px 10px; font-size: 13px; margin-left: 6px; }
     .sheet button.close { background: #ddd; color: #333; }
     .sheet .hint { color: #777; font-size: 13px; margin: 0 0 6px; }
-    #pMsg, #pPhoneMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    #pMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+
+    /* Reels */
+    #reelsPanel { position: fixed; inset: 0; background: #000; color: white; z-index: 11; display: flex; flex-direction: column; }
+    .reelsBar { height: 56px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; background: #111; flex-shrink: 0; }
+    .reelsBar button { padding: 6px 12px; font-size: 14px; margin-left: 6px; }
+    #rUpload { background: #111; padding: 12px; flex-shrink: 0; }
+    #rUpload input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; margin: 8px 0; background: white; }
+    #rUpload input[type="file"] { width: 100%; color: white; }
+    #rUpload button { width: 100%; padding: 10px; border-radius: 8px; }
+    #rMsg { margin: 8px 0 0; font-size: 14px; color: #9be7b4; min-height: 18px; }
+    #rFeed { flex: 1; min-height: 0; overflow-y: auto; scroll-snap-type: y mandatory; }
+    .reel { position: relative; background: #000; scroll-snap-align: start; height: calc(100vh - 56px); height: calc(100dvh - 56px); }
+    .reel video { width: 100%; height: 100%; object-fit: contain; }
+    .reelInfo { position: absolute; left: 14px; right: 70px; bottom: 64px; text-shadow: 0 1px 4px #000; pointer-events: none; }
+    .reelInfo .rname { font-weight: 700; margin-bottom: 4px; }
+    .reelDel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
+    .reelsEmpty { padding: 30px 20px; color: #bbb; text-align: center; }
   </style>
 </head>
 <body>
@@ -142,6 +159,7 @@
     <span>💬 Twik Chat</span>
     <span class="right" id="userArea" hidden>
       <span id="who"></span>
+      <button id="reelsBtn" type="button">Reels</button>
       <button id="profileBtn" type="button">Profile</button>
       <button id="logout" type="button">Log out</button>
     </span>
@@ -177,14 +195,8 @@
       <div class="counts" id="pCounts"></div>
       <button class="wide" id="pPrivacy" type="button">Loading...</button>
 
-      <h3>My phone number</h3>
-      <p class="hint" id="pPhoneHint"></p>
-      <input id="pPhoneInput" type="text" placeholder="+250788123456" autocomplete="off" />
-      <button class="wide" id="pPhoneBtn" type="button">Save number</button>
-      <p id="pPhoneMsg"></p>
-
       <h3>Follow someone</h3>
-      <input id="pFollowInput" type="text" placeholder="Username, or phone like +250788123456" autocomplete="off" />
+      <input id="pFollowInput" type="text" placeholder="Their username" autocomplete="off" />
       <button class="wide" id="pFollowBtn" type="button">Follow</button>
       <p id="pMsg"></p>
 
@@ -197,6 +209,24 @@
 
       <button class="wide close" id="pClose" type="button" style="margin-top:16px">Close</button>
     </div>
+  </div>
+
+  <!-- Reels panel -->
+  <div id="reelsPanel" hidden>
+    <div class="reelsBar">
+      <strong>🎬 Reels</strong>
+      <span>
+        <button id="rUploadToggle" type="button">+ Post</button>
+        <button id="rClose" type="button">Close</button>
+      </span>
+    </div>
+    <div id="rUpload" hidden>
+      <input id="rFile" type="file" accept="video/*" />
+      <input id="rCaption" type="text" maxlength="150" placeholder="Caption (optional)" />
+      <button id="rPost" type="button">Post reel</button>
+      <p id="rMsg"></p>
+    </div>
+    <div id="rFeed"></div>
   </div>
 
   <!-- Libraries: real-time connection + login system -->
@@ -398,9 +428,6 @@
         const p = await api("/api/me");
         if (p.error) { $("pName").textContent = p.error; return; }
         currentPrivate = p.is_private;
-        $("pPhoneHint").textContent = p.phone_hint
-          ? "Saved (" + p.phone_hint + "). Used only so friends can find you, never shown."
-          : "No number saved. Start with + and your country code.";
         $("pName").textContent = "@" + p.username;
         $("pCounts").textContent = p.followers.length + " followers · " + p.following.length + " following";
         $("pPrivacy").textContent = p.is_private
@@ -437,11 +464,130 @@
         loadProfile();
       });
 
-      $("pPhoneBtn").addEventListener("click", async () => {
-        const r = await api("/api/me/phone", "POST", { phone: $("pPhoneInput").value });
-        $("pPhoneMsg").textContent = r.message || r.error || "";
-        $("pPhoneInput").value = "";
-        loadProfile();
+      // ---------- Reels ----------
+      const MAX_MB = 40;
+      let observer = null;
+
+      function reelCard(r) {
+        const box = document.createElement("div");
+        box.className = "reel";
+
+        const v = document.createElement("video");
+        v.src = r.url;
+        v.controls = true;
+        v.loop = true;
+        v.muted = true;
+        v.playsInline = true;
+        v.preload = "metadata";
+
+        const info = document.createElement("div");
+        info.className = "reelInfo";
+        const n = document.createElement("div");
+        n.className = "rname";
+        n.textContent = "@" + r.username;
+        const c = document.createElement("div");
+        c.textContent = r.caption || "";
+        info.append(n, c);
+
+        box.append(v, info);
+
+        if (r.mine) {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "reelDel";
+          d.textContent = "Delete";
+          d.onclick = async () => {
+            if (!confirm("Delete this reel?")) return;
+            await api("/api/reels/delete", "POST", { id: r.id });
+            loadReels();
+          };
+          box.appendChild(d);
+        }
+        return box;
+      }
+
+      async function loadReels() {
+        const feed = $("rFeed");
+        feed.innerHTML = '<div class="reelsEmpty">Loading...</div>';
+        const data = await api("/api/reels");
+        feed.innerHTML = "";
+        if (observer) observer.disconnect();
+
+        if (data.error) {
+          feed.innerHTML = '<div class="reelsEmpty"></div>';
+          feed.firstChild.textContent = data.error;
+          return;
+        }
+        if (!data.reels.length) {
+          feed.innerHTML = '<div class="reelsEmpty">No reels yet. Tap "+ Post" to add the first one!</div>';
+          return;
+        }
+
+        // Play the reel you are looking at, pause the others
+        observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              const v = e.target.querySelector("video");
+              if (!v) return;
+              if (e.isIntersecting && e.intersectionRatio >= 0.7) v.play().catch(() => {});
+              else v.pause();
+            });
+          },
+          { root: feed, threshold: [0, 0.7] }
+        );
+        data.reels.forEach((r) => {
+          const card = reelCard(r);
+          feed.appendChild(card);
+          observer.observe(card);
+        });
+      }
+
+      $("reelsBtn").addEventListener("click", () => {
+        $("reelsPanel").hidden = false;
+        loadReels();
+      });
+
+      $("rClose").addEventListener("click", () => {
+        document.querySelectorAll("#rFeed video").forEach((v) => v.pause());
+        if (observer) observer.disconnect();
+        $("rFeed").innerHTML = "";
+        $("reelsPanel").hidden = true;
+      });
+
+      $("rUploadToggle").addEventListener("click", () => {
+        $("rUpload").hidden = !$("rUpload").hidden;
+        $("rMsg").textContent = "";
+      });
+
+      $("rPost").addEventListener("click", async () => {
+        const f = $("rFile").files[0];
+        const msg = $("rMsg");
+        if (!f) { msg.textContent = "Choose a video first."; return; }
+        if (!f.type.startsWith("video/")) { msg.textContent = "That file is not a video."; return; }
+        if (f.size > MAX_MB * 1024 * 1024) { msg.textContent = "Video is too big (max " + MAX_MB + " MB)."; return; }
+
+        $("rPost").disabled = true;
+        msg.textContent = "Uploading... please wait.";
+        try {
+          const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
+          const up = await api("/api/reels/upload-url", "POST", { ext });
+          if (up.error) throw new Error(up.error);
+
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          if (error) throw error;
+
+          const made = await api("/api/reels", "POST", { path: up.path, caption: $("rCaption").value });
+          if (made.error) throw new Error(made.error);
+
+          $("rFile").value = "";
+          $("rCaption").value = "";
+          $("rUpload").hidden = true;
+          loadReels();
+        } catch (e) {
+          msg.textContent = "Upload failed: " + (e.message || "please try again.");
+        } finally {
+          $("rPost").disabled = false;
+        }
       });
 
       // ---------- Start: are we already logged in? ----------

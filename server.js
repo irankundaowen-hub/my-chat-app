@@ -85,13 +85,6 @@ async function getOrCreateProfile(user) {
   return null;
 }
 
-// Cleans a phone number into one standard form like +250788123456
-function cleanPhone(raw) {
-  const digits = String(raw || "").replace(/\D/g, "");
-  if (digits.length < 8 || digits.length > 15) return null;
-  return "+" + digits;
-}
-
 // Turns a list of user ids into usernames
 async function namesFor(ids) {
   const map = {};
@@ -115,7 +108,6 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
   res.json({
     username: me.username,
     is_private: me.is_private,
-    phone_hint: me.phone ? "ends in " + me.phone.slice(-3) : "",
     followers: ins.filter((r) => r.status === "accepted").map((r) => names[r.follower_id] || "unknown"),
     following: outs.filter((r) => r.status === "accepted").map((r) => names[r.following_id] || "unknown"),
     requests: ins
@@ -137,42 +129,17 @@ app.post("/api/me/privacy", requireUser, safe(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// Save (or remove) my phone number so friends can find me
-app.post("/api/me/phone", requireUser, safe(async (req, res) => {
-  const me = await getOrCreateProfile(req.user);
-  if (!me) return res.status(500).json({ error: "Could not load profile" });
-
-  const raw = String(req.body.phone || "").trim();
-  if (!raw) {
-    await supabase.from("profiles").update({ phone: null }).eq("id", me.id);
-    return res.json({ message: "Phone number removed." });
-  }
-  const phone = cleanPhone(raw);
-  if (!phone) return res.json({ message: "Use this format: +250788123456 (with country code)." });
-
-  const { error } = await supabase.from("profiles").update({ phone }).eq("id", me.id);
-  if (error) return res.json({ message: "Could not save that number." });
-  res.json({ message: "Saved. Friends can now find you by this number." });
-}));
-
-// Follow someone by username, or by phone number (starts with +)
+// Follow someone by username
 app.post("/api/follow", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
 
-  const typed = String(req.body.username || "").trim();
-  if (!typed) return res.json({ message: "Type a username or phone number first." });
+  const target = String(req.body.username || "").trim().toLowerCase().replace(/^@/, "");
+  if (!target) return res.json({ message: "Type a username first." });
 
-  let query = supabase.from("profiles").select("id, username, is_private");
-  if (typed.startsWith("+")) {
-    const phone = cleanPhone(typed);
-    if (!phone) return res.json({ message: "That phone number doesn't look right." });
-    query = query.eq("phone", phone);
-  } else {
-    query = query.eq("username", typed.toLowerCase().replace(/^@/, ""));
-  }
-  const { data: t } = await query.maybeSingle();
-  if (!t) return res.json({ message: "No one found with that username or number." });
+  const { data: t } = await supabase
+    .from("profiles").select("id, username, is_private").eq("username", target).maybeSingle();
+  if (!t) return res.json({ message: "No one has that username." });
   if (t.id === me.id) return res.json({ message: "That's you!" });
 
   const { data: already } = await supabase
@@ -208,6 +175,96 @@ app.post("/api/requests/respond", requireUser, safe(async (req, res) => {
     await supabase.from("follows").delete()
       .eq("follower_id", who).eq("following_id", me.id).eq("status", "pending");
   }
+  res.json({ ok: true });
+}));
+
+// ---------- Reels (short videos) ----------
+const REELS_BUCKET = "reels";
+
+// Step 1 of posting: get a safe place to upload the video
+app.post("/api/reels/upload-url", requireUser, safe(async (req, res) => {
+  const wanted = String(req.body.ext || "").toLowerCase();
+  const ext = ["mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "mp4";
+  const path = req.user.id + "/" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) {
+    console.error("Upload URL error:", error.message);
+    return res.status(500).json({ error: "Could not start the upload. Is the 'reels' bucket created in Supabase?" });
+  }
+  res.json({ path, token: data.token });
+}));
+
+// Step 2 of posting: save the reel with its caption
+app.post("/api/reels", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  const path = String(req.body.path || "");
+  if (!me || !path.startsWith(req.user.id + "/")) return res.status(400).json({ error: "Bad request" });
+  const caption = String(req.body.caption || "").trim().slice(0, 150);
+  const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path, caption });
+  if (error) {
+    console.error("Reel save error:", error.message);
+    return res.status(500).json({ error: "Could not save the reel." });
+  }
+  res.json({ ok: true });
+}));
+
+// The reels you are allowed to watch: yours, public accounts, and people you follow
+app.get("/api/reels", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+
+  const { data: rows } = await supabase
+    .from("reels")
+    .select("id, user_id, username, path, caption, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const list = rows || [];
+
+  const authorIds = [...new Set(list.map((r) => r.user_id))];
+  const priv = {};
+  if (authorIds.length) {
+    const { data: authors } = await supabase.from("profiles").select("id, is_private").in("id", authorIds);
+    (authors || []).forEach((a) => (priv[a.id] = a.is_private));
+  }
+  const { data: fRows } = await supabase
+    .from("follows").select("following_id").eq("follower_id", me.id).eq("status", "accepted");
+  const following = new Set((fRows || []).map((r) => r.following_id));
+
+  const allowed = list
+    .filter((r) => r.user_id === me.id || !priv[r.user_id] || following.has(r.user_id))
+    .slice(0, 20);
+  if (!allowed.length) return res.json({ reels: [] });
+
+  const { data: signed, error } = await supabase.storage
+    .from(REELS_BUCKET)
+    .createSignedUrls(allowed.map((r) => r.path), 3600);
+  if (error) {
+    console.error("Signed URL error:", error.message);
+    return res.status(500).json({ error: "Could not load videos." });
+  }
+  const urlByPath = {};
+  (signed || []).forEach((s) => { if (s.signedUrl) urlByPath[s.path] = s.signedUrl; });
+
+  res.json({
+    reels: allowed
+      .filter((r) => urlByPath[r.path])
+      .map((r) => ({
+        id: r.id,
+        username: r.username,
+        caption: r.caption,
+        url: urlByPath[r.path],
+        mine: r.user_id === me.id,
+      })),
+  });
+}));
+
+// Delete one of your own reels
+app.post("/api/reels/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id);
+  const { data: r } = await supabase.from("reels").select("id, user_id, path").eq("id", id).maybeSingle();
+  if (!r || r.user_id !== req.user.id) return res.status(404).json({ error: "Not found" });
+  await supabase.storage.from(REELS_BUCKET).remove([r.path]);
+  await supabase.from("reels").delete().eq("id", id);
   res.json({ ok: true });
 }));
 
