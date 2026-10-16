@@ -26,7 +26,7 @@
       gap: 12px;
     }
     header .right { display: flex; align-items: center; gap: 10px; font-weight: 400; }
-    #logout, #profileBtn, #reelsBtn {
+    #logout, #profileBtn, #reelsBtn, #groupsBtn {
       background: transparent;
       border: 1px solid white;
       padding: 4px 12px;
@@ -152,6 +152,36 @@
     .reelInfo .rname { font-weight: 700; margin-bottom: 4px; }
     .reelDel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
     .reelsEmpty { padding: 30px 20px; color: #bbb; text-align: center; }
+
+    /* Private chats */
+    #chatsPanel {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; justify-content: center; align-items: flex-start;
+      overflow-y: auto; padding: 16px; z-index: 10;
+    }
+    #cMessages { display: flex; flex-direction: column; gap: 6px; height: 50vh; overflow-y: auto; background: #e5ddd5; padding: 8px; border-radius: 8px; margin: 8px 0; }
+    #cForm { display: flex; gap: 8px; }
+    #cForm input { flex: 1; margin: 0; }
+    #cForm button { padding: 0 16px; }
+    .cPick { font-size: 22px; cursor: pointer; display: flex; align-items: center; }
+    #cStatus { font-size: 13px; color: #b00020; min-height: 16px; margin: 4px 0 0; }
+    .msg img { max-width: 100%; border-radius: 8px; display: block; }
+    .msg video { width: 100%; max-width: 260px; border-radius: 8px; display: block; }
+    .msg a { color: #0645ad; overflow-wrap: anywhere; }
+    .msg .rtag { font-size: 12px; font-weight: 600; color: #075e54; margin-top: 4px; }
+    .reelSend { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
+    #cMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    header { flex-wrap: wrap; }
+    header .right { flex-wrap: wrap; justify-content: flex-end; }
+
+    /* Groups */
+    #groupsPanel {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; justify-content: center; align-items: flex-start;
+      overflow-y: auto; padding: 16px; z-index: 10;
+    }
+    .gmsgs { height: 45vh; overflow-y: auto; background: #e5ddd5; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+    #gMsg, #gAddMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
   </style>
 </head>
 <body>
@@ -159,6 +189,8 @@
     <span>💬 Twik Chat</span>
     <span class="right" id="userArea" hidden>
       <span id="who"></span>
+      <button id="groupsBtn" type="button">Groups</button>
+      <button id="chatsBtn" type="button">Chats</button>
       <button id="reelsBtn" type="button">Reels</button>
       <button id="profileBtn" type="button">Profile</button>
       <button id="logout" type="button">Log out</button>
@@ -208,6 +240,67 @@
       <ul id="pFollowing"></ul>
 
       <button class="wide close" id="pClose" type="button" style="margin-top:16px">Close</button>
+    </div>
+  </div>
+
+  <!-- Groups panel -->
+  <div id="groupsPanel" hidden>
+    <div class="sheet">
+      <div id="gList">
+        <h2>👥 Groups</h2>
+        <ul id="gItems"></ul>
+        <h3>Create a group</h3>
+        <input id="gName" type="text" maxlength="40" placeholder="Group name" autocomplete="off" />
+        <input id="gMembers" type="text" placeholder="Usernames, separated by commas" autocomplete="off" />
+        <button class="wide" id="gCreate" type="button">Create group</button>
+        <p id="gMsg"></p>
+        <button class="wide close" id="gClose" type="button">Close</button>
+      </div>
+
+      <div id="gChat" hidden>
+        <h2 id="gTitle"></h2>
+        <div class="counts" id="gMembersLine"></div>
+        <div id="gAdd" hidden>
+          <input id="gAddInput" type="text" placeholder="Add a member by username" autocomplete="off" />
+          <button class="wide" id="gAddBtn" type="button">Add</button>
+        </div>
+        <p id="gAddMsg"></p>
+        <div class="gmsgs" id="gMessages"></div>
+        <form id="gForm" style="display:flex;gap:8px;margin-top:8px">
+          <input id="gInput" type="text" placeholder="Type a message" autocomplete="off" style="margin:0" />
+          <button type="submit">Send</button>
+        </form>
+        <button class="wide close" id="gBack" type="button" style="margin-top:12px">← Back to groups</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Private chats panel -->
+  <div id="chatsPanel" hidden>
+    <div class="sheet">
+      <h2 id="cTitle">💬 Chats</h2>
+
+      <div id="cList">
+        <h3>Start a chat</h3>
+        <input id="cUser" type="text" placeholder="Their username" autocomplete="off" />
+        <button class="wide" id="cStart" type="button">Start chat</button>
+        <p id="cMsg"></p>
+        <h3>Your chats</h3>
+        <ul id="cConvos"></ul>
+      </div>
+
+      <div id="cThread" hidden>
+        <button class="mini" id="cBack" type="button">← Back</button>
+        <div id="cMessages"></div>
+        <form id="cForm">
+          <label class="cPick" title="Send a photo">📷<input id="cFile" type="file" accept="image/*" hidden /></label>
+          <input id="cInput" type="text" placeholder="Type a message or paste a link" autocomplete="off" />
+          <button type="submit">Send</button>
+        </form>
+        <p id="cStatus"></p>
+      </div>
+
+      <button class="wide close" id="cClose" type="button" style="margin-top:16px">Close</button>
     </div>
   </div>
 
@@ -368,6 +461,8 @@
           list.forEach(addMessage);
         });
         socket.on("chat message", addMessage);
+        socket.on("dm", onDm);
+        socket.on("dm error", (text) => alert(text));
       }
 
       $("form").addEventListener("submit", (e) => {
@@ -464,6 +559,263 @@
         loadProfile();
       });
 
+      // ---------- Groups ----------
+      let currentGroup = null;
+      let groupListening = false;
+
+      function addGroupMessage(m) {
+        const div = document.createElement("div");
+        div.className = "msg" + (me && m.uid === me.id ? " mine" : "");
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = m.user;
+        const text = document.createElement("div");
+        text.textContent = m.text;
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        div.append(name, text, time);
+        const box = $("gMessages");
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function listenGroups() {
+        if (groupListening || !socket) return;
+        groupListening = true;
+        socket.on("group message", (m) => {
+          if (currentGroup && m.groupId === currentGroup.id) addGroupMessage(m);
+        });
+        // After a reconnect, join the group room again
+        socket.on("connect", () => {
+          if (currentGroup) socket.emit("group join", { groupId: currentGroup.id });
+        });
+      }
+
+      async function loadGroups() {
+        const d = await api("/api/groups");
+        fill("gItems", (d.groups || []).map((g) => row(g.name, [["Open", () => openGroup(g)]])));
+      }
+
+      async function openGroup(g) {
+        listenGroups();
+        currentGroup = g;
+        $("gList").hidden = true;
+        $("gChat").hidden = false;
+        $("gTitle").textContent = g.name;
+        $("gAdd").hidden = !g.mine;
+        $("gAddMsg").textContent = "";
+        $("gMessages").innerHTML = "";
+        socket.emit("group join", { groupId: g.id });
+        const d = await api("/api/groups/" + g.id + "/messages");
+        if (d.error) { $("gMembersLine").textContent = d.error; return; }
+        $("gMembersLine").textContent = "Members: " + d.members.map((n) => "@" + n).join(", ");
+        d.messages.forEach(addGroupMessage);
+      }
+
+      $("groupsBtn").addEventListener("click", () => {
+        currentGroup = null;
+        $("groupsPanel").hidden = false;
+        $("gList").hidden = false;
+        $("gChat").hidden = true;
+        $("gMsg").textContent = "";
+        loadGroups();
+      });
+      $("gClose").addEventListener("click", () => {
+        currentGroup = null;
+        $("groupsPanel").hidden = true;
+      });
+      $("gBack").addEventListener("click", () => {
+        currentGroup = null;
+        $("gChat").hidden = true;
+        $("gList").hidden = false;
+        loadGroups();
+      });
+      $("gCreate").addEventListener("click", async () => {
+        const r = await api("/api/groups", "POST", { name: $("gName").value, usernames: $("gMembers").value });
+        $("gMsg").textContent = r.message || r.error || "";
+        if (r.id) { $("gName").value = ""; $("gMembers").value = ""; }
+        loadGroups();
+      });
+      $("gAddBtn").addEventListener("click", async () => {
+        if (!currentGroup) return;
+        const r = await api("/api/groups/add", "POST", { group_id: currentGroup.id, username: $("gAddInput").value });
+        $("gAddInput").value = "";
+        await openGroup(currentGroup);
+        $("gAddMsg").textContent = r.message || r.error || "";
+      });
+      $("gForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const t = $("gInput").value;
+        if (!t.trim() || !currentGroup || !socket) return;
+        socket.emit("group message", { groupId: currentGroup.id, text: t });
+        $("gInput").value = "";
+      });
+
+      // ---------- Private chats (one to one) ----------
+      let peer = null; // the person whose chat is open
+
+      // Turns web links in a message into clickable links (only http and https)
+      function linkify(text) {
+        const frag = document.createDocumentFragment();
+        const re = /(https?:\/\/[^\s<>"]+)/g;
+        let last = 0;
+        let m;
+        while ((m = re.exec(text)) !== null) {
+          if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+          const a = document.createElement("a");
+          a.href = m[1];
+          a.textContent = m[1];
+          a.target = "_blank";
+          a.rel = "noopener noreferrer";
+          frag.appendChild(a);
+          last = m.index + m[1].length;
+        }
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        return frag;
+      }
+
+      function bubble(m) {
+        const div = document.createElement("div");
+        div.className = "msg" + (me && m.from === me.id ? " mine" : "");
+
+        if (m.kind === "image") {
+          if (m.image) {
+            const a = document.createElement("a");
+            a.href = m.image;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            const img = document.createElement("img");
+            img.src = m.image;
+            img.alt = "photo";
+            img.loading = "lazy";
+            a.appendChild(img);
+            div.appendChild(a);
+          } else {
+            div.appendChild(document.createTextNode("📷 This photo is no longer available"));
+          }
+        } else if (m.kind === "reel") {
+          if (m.reel && m.reel.url) {
+            const v = document.createElement("video");
+            v.src = m.reel.url;
+            v.controls = true;
+            v.muted = true;
+            v.playsInline = true;
+            v.preload = "metadata";
+            const tag = document.createElement("div");
+            tag.className = "rtag";
+            tag.textContent = "🎬 Reel by @" + m.reel.username + (m.reel.caption ? ": " + m.reel.caption : "");
+            div.append(v, tag);
+          } else {
+            div.appendChild(document.createTextNode("🎬 This reel is no longer available"));
+          }
+        } else {
+          const text = document.createElement("div");
+          text.appendChild(linkify(m.text || ""));
+          div.appendChild(text);
+        }
+
+        const time = document.createElement("div");
+        time.className = "time";
+        time.textContent = new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        div.appendChild(time);
+        return div;
+      }
+
+      function addToThread(m) {
+        const box = $("cMessages");
+        box.appendChild(bubble(m));
+        box.scrollTop = box.scrollHeight;
+      }
+
+      function showList() {
+        peer = null;
+        $("cTitle").textContent = "💬 Chats";
+        $("cThread").hidden = true;
+        $("cList").hidden = false;
+        loadConvos();
+      }
+
+      async function loadConvos() {
+        const data = await api("/api/dms");
+        const chats = data.chats || [];
+        fill("cConvos", chats.map((c) => row(
+          "@" + c.username + ": " + (c.text.length > 28 ? c.text.slice(0, 28) + "..." : c.text),
+          [["Open", () => openThread({ id: c.peer_id, username: c.username })]]
+        )));
+      }
+
+      async function openThread(p) {
+        peer = p;
+        $("cTitle").textContent = "@" + p.username;
+        $("cList").hidden = true;
+        $("cThread").hidden = false;
+        $("cMessages").innerHTML = "";
+        const data = await api("/api/dms/" + p.id);
+        (data.messages || []).forEach(addToThread);
+      }
+
+      // A private message arrived (or one you just sent)
+      function onDm(m) {
+        const open = !$("chatsPanel").hidden;
+        if (peer && open && (m.from === peer.id || m.to === peer.id)) {
+          addToThread(m);
+        } else {
+          if (open && !peer) loadConvos();
+          if (m.from !== me.id) $("chatsBtn").textContent = "Chats •";
+        }
+      }
+
+      $("chatsBtn").addEventListener("click", () => {
+        $("chatsBtn").textContent = "Chats";
+        $("cMsg").textContent = "";
+        $("chatsPanel").hidden = false;
+        showList();
+      });
+      $("cClose").addEventListener("click", () => { $("chatsPanel").hidden = true; peer = null; });
+      $("cBack").addEventListener("click", showList);
+
+      $("cStart").addEventListener("click", async () => {
+        const r = await api("/api/dms/start", "POST", { username: $("cUser").value });
+        if (r.user) {
+          $("cUser").value = "";
+          $("cMsg").textContent = "";
+          openThread(r.user);
+        } else {
+          $("cMsg").textContent = r.message || r.error || "";
+        }
+      });
+
+      $("cForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const text = $("cInput").value;
+        if (!text.trim() || !peer || !socket) return;
+        socket.emit("dm", { to: peer.id, text });
+        $("cInput").value = "";
+      });
+
+      // Send a photo in a private chat
+      $("cFile").addEventListener("change", async () => {
+        const f = $("cFile").files[0];
+        $("cFile").value = "";
+        const st = $("cStatus");
+        if (!f || !peer) return;
+        if (!f.type.startsWith("image/")) { st.textContent = "Please choose a photo."; return; }
+        if (f.size > 10 * 1024 * 1024) { st.textContent = "Photo is too big (max 10 MB)."; return; }
+        st.textContent = "Sending photo...";
+        try {
+          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const up = await api("/api/dms/upload-url", "POST", { ext });
+          if (up.error) throw new Error(up.error);
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          if (error) throw error;
+          const r = await api("/api/dms/send", "POST", { to: peer.id, kind: "image", path: up.path });
+          st.textContent = r.error || "";
+        } catch (e) {
+          st.textContent = "Photo failed: " + (e.message || "please try again.");
+        }
+      });
+
       // ---------- Reels ----------
       const MAX_MB = 40;
       let observer = null;
@@ -490,6 +842,21 @@
         info.append(n, c);
 
         box.append(v, info);
+
+        // Send this reel to a friend in a private chat
+        const s = document.createElement("button");
+        s.type = "button";
+        s.className = "reelSend";
+        s.textContent = "Send to a friend";
+        s.onclick = async () => {
+          const who = prompt("Send this reel to which username?");
+          if (!who) return;
+          const t = await api("/api/dms/start", "POST", { username: who });
+          if (!t.user) { alert(t.message || t.error || "Could not find them."); return; }
+          const res = await api("/api/dms/send", "POST", { to: t.user.id, kind: "reel", reel_id: r.id });
+          alert(res.error || "Sent!");
+        };
+        box.appendChild(s);
 
         if (r.mine) {
           const d = document.createElement("button");
