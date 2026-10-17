@@ -85,6 +85,21 @@ async function getOrCreateProfile(user) {
   return null;
 }
 
+// Turns a list of user ids into picture links (only people who have a picture)
+async function avatarsFor(ids) {
+  const map = {};
+  const uniq = [...new Set(ids)];
+  if (!uniq.length) return map;
+  const { data } = await supabase.from("profiles").select("id, avatar_path").in("id", uniq);
+  const withPic = (data || []).filter((p) => p.avatar_path);
+  if (!withPic.length) return map;
+  const { data: signed } = await supabase.storage.from("reels").createSignedUrls(withPic.map((p) => p.avatar_path), 3600);
+  const byPath = {};
+  (signed || []).forEach((x) => { if (x.signedUrl) byPath[x.path] = x.signedUrl; });
+  withPic.forEach((p) => { if (byPath[p.avatar_path]) map[p.id] = byPath[p.avatar_path]; });
+  return map;
+}
+
 // Turns a list of user ids into usernames
 async function namesFor(ids) {
   const map = {};
@@ -264,7 +279,8 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
     }
   });
   const names = await namesFor(chats.map((c) => c.peer_id));
-  res.json({ chats: chats.map((c) => ({ ...c, username: names[c.peer_id] || "unknown" })) });
+  const pics = await avatarsFor(chats.map((c) => c.peer_id));
+  res.json({ chats: chats.map((c) => ({ ...c, username: names[c.peer_id] || "unknown", avatar: pics[c.peer_id] || null })) });
 }));
 
 // Start a chat with someone by username
@@ -561,6 +577,7 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
   }
   const urls = {};
   (signed || []).forEach((s) => { if (s.signedUrl) urls[s.path] = s.signedUrl; });
+  const pics = await avatarsFor(allowed.map((r) => r.user_id));
 
   res.json({
     posts: allowed
@@ -568,6 +585,7 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
       .map((r) => ({
         id: r.id,
         username: r.username,
+        avatar: pics[r.user_id] || null,
         caption: r.caption,
         url: urls[r.path],
         mine: r.user_id === meId,

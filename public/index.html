@@ -222,9 +222,11 @@
     .pbEmpty { padding: 30px 20px; color: var(--muted); text-align: center; }
     .post { border-bottom: 1px solid var(--line); margin: 0 auto 6px; max-width: 520px; padding-bottom: 6px; }
     .post .phead { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-weight: 600; }
-    .post .phead span::before {
-      content: ""; display: inline-block; width: 30px; height: 30px; border-radius: 50%; vertical-align: middle; margin-right: 10px;
-      border: 2px solid transparent; background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--grad) border-box;
+    .rowText { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .sAv {
+      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover;
+      display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px;
+      border: 2px solid transparent; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box;
     }
     .post img { width: 100%; display: block; max-height: 80vh; object-fit: cover; background: var(--surface); }
     .post .pact { padding: 10px 12px 0; display: flex; gap: 16px; align-items: center; }
@@ -592,10 +594,20 @@
         return res.json();
       }
 
-      function row(text, buttons) {
+      function smallAvatar(url, name) {
+        const el = document.createElement(url ? "img" : "span");
+        el.className = "sAv";
+        if (url) { el.src = url; el.alt = ""; }
+        else el.textContent = String(name || "?").replace(/^@/, "").charAt(0).toUpperCase();
+        return el;
+      }
+
+      function row(text, buttons, avatarUrl, avatarName) {
         const li = document.createElement("li");
         const span = document.createElement("span");
-        span.textContent = text;
+        span.className = "rowText";
+        if (avatarName !== undefined) span.appendChild(smallAvatar(avatarUrl, avatarName));
+        span.appendChild(document.createTextNode(text));
         li.appendChild(span);
         const box = document.createElement("span");
         (buttons || []).forEach(([label, fn]) => {
@@ -873,7 +885,8 @@
         const chats = data.chats || [];
         fill("cConvos", chats.map((c) => row(
           "@" + c.username + ": " + (c.text.length > 28 ? c.text.slice(0, 28) + "..." : c.text),
-          [["Open", () => openThread({ id: c.peer_id, username: c.username })]]
+          [["Open", () => openThread({ id: c.peer_id, username: c.username })]],
+          c.avatar, c.username
         )));
       }
 
@@ -956,7 +969,9 @@
         const head = document.createElement("div");
         head.className = "phead";
         const who = document.createElement("span");
-        who.textContent = "@" + p.username;
+        who.className = "rowText";
+        who.appendChild(smallAvatar(p.avatar, p.username));
+        who.appendChild(document.createTextNode("@" + p.username));
         head.appendChild(who);
         if (p.mine) {
           const d = document.createElement("button");
