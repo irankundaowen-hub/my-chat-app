@@ -347,12 +347,22 @@
     #vBody { max-width: 520px; margin: 10px auto 0; }
     #vBody .reel { height: 75vh; }
     .vClose { background: var(--surface2); border: 1px solid var(--line); display: block; margin: 0 auto; padding: 9px 18px; }
+
+    /* ===== Search + other profiles (v12) ===== */
+    .topRight { display: flex; align-items: center; gap: 8px; }
+    .iconBtn { width: 40px; height: 40px; padding: 0; background: var(--surface2); border: 1px solid var(--line); border-radius: 16px 16px 16px 5px; display: flex; align-items: center; justify-content: center; color: #fff; }
+    .iconBtn svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+    #searchPanel { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); background: var(--bg); z-index: 12; overflow-y: auto; padding: 16px; display: flex; justify-content: center; align-items: flex-start; }
+    #userView { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); background: var(--bg); z-index: 30; overflow-y: auto; padding: 16px; display: flex; justify-content: center; align-items: flex-start; }
+    #userView .sheet, #searchPanel .sheet { width: 100%; max-width: 520px; }
+    .pBtns .primary { background: var(--grad); border-color: transparent; color: #fff; }
+    .clickRow .rowText { cursor: pointer; }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brandBox"><img class="logoSm" src="/logo.svg" alt="" /><span class="brand">twik</span></div>
-    <span id="who"></span>
+    <span class="topRight"><span id="who"></span><button id="searchBtn" class="iconBtn" type="button" aria-label="Search people" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button></span>
   </header>
   <nav class="tabbar" id="userArea" hidden>
     <button id="postsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
@@ -457,6 +467,48 @@
         <div id="pFollowingBox"><h2>Following</h2><ul id="pFollowing"></ul></div>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Search panel -->
+  <div id="searchPanel" hidden>
+    <div class="sheet">
+      <h2>Find people</h2>
+      <input id="sInput" type="text" placeholder="Search by username" autocomplete="off" maxlength="20" />
+      <ul id="sResults"></ul>
+      <button class="close" id="sClose" type="button" hidden>Close</button>
+    </div>
+  </div>
+
+  <!-- Someone else's profile -->
+  <div id="userView" hidden>
+    <div class="sheet">
+      <button class="mini back" type="button" id="uvBack">← Back</button>
+      <div class="pHead">
+        <div class="avatarWrap"><img id="uvAvatar" class="avatar big" alt="" hidden /><span id="uvLetter" class="avatar big letter">?</span></div>
+        <div class="pRight">
+          <h2 id="uvName">@user</h2>
+          <div class="pStats">
+            <div class="stat"><b id="uvPosts">0</b><span>posts</span></div>
+            <div class="stat"><b id="uvFollowers">0</b><span>followers</span></div>
+            <div class="stat"><b id="uvFollowing">0</b><span>following</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="pDisplay" id="uvDisplay"></div>
+      <div class="pBioText" id="uvBio"></div>
+      <div class="pBtns">
+        <button type="button" id="uvFollowBtn" class="primary">Follow</button>
+        <button type="button" id="uvMsgBtn">Message</button>
+      </div>
+      <div id="uvLocked" class="gridEmpty" hidden>🔒 This account is private. Follow to see their photos and reels.</div>
+      <div id="uvContent">
+        <div class="pTabs">
+          <button type="button" id="uvTabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
+          <button type="button" id="uvTabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg></button>
+        </div>
+        <div class="pGrid" id="uvGrid"></div>
+      </div>
     </div>
   </div>
 
@@ -678,6 +730,7 @@
         $("authBox").hidden = true;
         $("chatBox").hidden = false;
         $("userArea").hidden = false;
+        $("searchBtn").hidden = false;
         $("who").textContent =
           (user.user_metadata && user.user_metadata.username) || user.email;
 
@@ -710,8 +763,9 @@
       // ---------- Bottom tabs ----------
       const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "loungeBtn", "profileBtn"];
       function closeAllPanels() {
-        ["rClose", "pbClose", "cClose", "gClose", "pClose"].forEach((id) => $(id).click());
+        ["rClose", "pbClose", "cClose", "gClose", "pClose", "sClose"].forEach((id) => $(id).click());
         $("viewer").hidden = true;
+        $("userView").hidden = true;
       }
       function setActive(id) {
         tabIds.forEach((t) => $(t).classList.toggle("active", t === id));
@@ -819,6 +873,125 @@
         loadProfile();
       }
       $("vClose").addEventListener("click", closeViewer);
+
+      // ---------- Other people's profiles + search ----------
+      let uv = null;
+      let uvTab = "posts";
+
+      function paintUserGrid() {
+        const grid = $("uvGrid");
+        grid.innerHTML = "";
+        $("uvTabPosts").classList.toggle("on", uvTab === "posts");
+        $("uvTabReels").classList.toggle("on", uvTab === "reels");
+        grid.classList.toggle("tall", uvTab === "reels");
+        const items = uvTab === "posts" ? uv.posts : uv.reels;
+        if (!items.length) {
+          const e = document.createElement("div");
+          e.className = "gridEmpty";
+          e.textContent = uvTab === "posts" ? "No photos yet." : "No reels yet.";
+          grid.appendChild(e);
+          return;
+        }
+        items.forEach((it) => {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "cell";
+          if (uvTab === "posts") {
+            const im = document.createElement("img");
+            im.src = it.url; im.alt = ""; im.loading = "lazy";
+            cell.appendChild(im);
+            cell.onclick = () => openViewer(postCard(it));
+          } else {
+            const v = document.createElement("video");
+            v.src = it.url + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true;
+            cell.appendChild(v);
+            const tag = document.createElement("span");
+            tag.className = "playTag"; tag.textContent = "▶";
+            cell.appendChild(tag);
+            cell.onclick = () => openViewer(reelCard(it));
+          }
+          grid.appendChild(cell);
+        });
+      }
+
+      async function openUser(username) {
+        const d = await api("/api/users/" + encodeURIComponent(username));
+        if (d.error) { alert(d.error); return; }
+        if (d.is_me) { $("profileBtn").click(); return; }
+        uv = d;
+        $("uvName").textContent = "@" + d.username + (d.is_private ? " 🔒" : "");
+        $("uvLetter").textContent = d.username.charAt(0).toUpperCase();
+        if (d.avatar) { $("uvAvatar").src = d.avatar; $("uvAvatar").hidden = false; $("uvLetter").hidden = true; }
+        else { $("uvAvatar").hidden = true; $("uvLetter").hidden = false; }
+        $("uvDisplay").textContent = d.display_name; $("uvDisplay").hidden = !d.display_name;
+        $("uvBio").textContent = d.bio; $("uvBio").hidden = !d.bio;
+        $("uvPosts").textContent = d.posts_count;
+        $("uvFollowers").textContent = d.followers;
+        $("uvFollowing").textContent = d.following;
+        $("uvFollowBtn").textContent = d.relation === "following" ? "Following ✓" : d.relation === "pending" ? "Requested" : "Follow";
+        $("uvFollowBtn").classList.toggle("primary", d.relation === "none");
+        $("uvLocked").hidden = d.can_see;
+        $("uvContent").hidden = !d.can_see;
+        uvTab = "posts";
+        if (d.can_see) paintUserGrid();
+        $("userView").hidden = false;
+        $("userView").scrollTop = 0;
+      }
+      $("uvBack").addEventListener("click", () => {
+        document.querySelectorAll("#userView video").forEach((v) => v.pause());
+        $("userView").hidden = true;
+      });
+      $("uvTabPosts").addEventListener("click", () => { uvTab = "posts"; paintUserGrid(); });
+      $("uvTabReels").addEventListener("click", () => { uvTab = "reels"; paintUserGrid(); });
+      $("uvFollowBtn").addEventListener("click", async () => {
+        if (!uv) return;
+        if (uv.relation === "none") await api("/api/follow", "POST", { username: uv.username });
+        else await api("/api/unfollow", "POST", { username: uv.username });
+        openUser(uv.username);
+      });
+      $("uvMsgBtn").addEventListener("click", () => {
+        if (!uv) return;
+        const name = uv.username;
+        $("userView").hidden = true;
+        $("chatsBtn").click();
+        $("cUser").value = name;
+        $("cStart").click();
+      });
+
+      let searchTimer = null;
+      async function runSearch() {
+        const d = await api("/api/search?q=" + encodeURIComponent($("sInput").value));
+        const people = d.people || [];
+        const ul = $("sResults");
+        ul.innerHTML = "";
+        if (!people.length) {
+          const li = document.createElement("li");
+          li.className = "empty";
+          li.textContent = "No one found.";
+          ul.appendChild(li);
+          return;
+        }
+        people.forEach((p) => {
+          const label = "@" + p.username + (p.display_name ? " · " + p.display_name : "") + (p.is_private ? " 🔒" : "");
+          const li = row(label, [["View", () => openUser(p.username)]], p.avatar, p.username);
+          li.classList.add("clickRow");
+          li.firstChild.onclick = () => openUser(p.username);
+          ul.appendChild(li);
+        });
+      }
+      $("searchBtn").addEventListener("click", () => {
+        closeAllPanels();
+        tabIds.forEach((t) => $(t).classList.remove("active"));
+        $("sInput").value = "";
+        $("searchPanel").hidden = false;
+        runSearch();
+        $("sInput").focus();
+      });
+      $("sClose").addEventListener("click", () => { $("searchPanel").hidden = true; });
+      $("sInput").addEventListener("input", () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(runSearch, 250);
+      });
       $("vBody").addEventListener("click", (e) => {
         if (e.target.closest(".pdel, .reelDel")) setTimeout(closeViewer, 900);
       });
@@ -891,8 +1064,9 @@
           ["Accept", async () => { await api("/api/requests/respond", "POST", { follower_id: r.id, accept: true }); loadProfile(); }],
           ["Decline", async () => { await api("/api/requests/respond", "POST", { follower_id: r.id, accept: false }); loadProfile(); }],
         ])));
-        fill("pFollowers", p.followers.map((n) => row("@" + n)));
+        fill("pFollowers", p.followers.map((n) => row("@" + n, [["View", () => openUser(n)]])));
         fill("pFollowing", p.following.map((n) => row("@" + n, [
+          ["View", () => openUser(n)],
           ["Unfollow", async () => { await api("/api/unfollow", "POST", { username: n }); loadProfile(); }],
         ])));
         loadMedia();
@@ -1226,6 +1400,7 @@
         who.className = "rowText";
         who.appendChild(smallAvatar(p.avatar, p.username));
         who.appendChild(document.createTextNode("@" + p.username));
+        if (!p.mine) { who.style.cursor = "pointer"; who.onclick = () => { $("viewer").hidden = true; openUser(p.username); }; }
         head.appendChild(who);
         if (p.mine) {
           const d = document.createElement("button");

@@ -156,15 +156,13 @@ app.post("/api/me/bio", requireUser, safe(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// My own photos and reels (for the grid on my profile)
-app.get("/api/me/media", requireUser, safe(async (req, res) => {
-  const me = await getOrCreateProfile(req.user);
-  if (!me) return res.status(500).json({ error: "Could not load profile" });
+// Someone's photos and reels, ready for a grid (viewerId decides which are "mine" / "liked")
+async function mediaFor(userId, viewerId) {
   const { data: pRows } = await supabase
-    .from("photo_posts").select("id, username, path, caption").eq("user_id", me.id)
+    .from("photo_posts").select("id, username, path, caption").eq("user_id", userId)
     .order("created_at", { ascending: false }).limit(60);
   const { data: rRows } = await supabase
-    .from("reels").select("id, username, path, caption").eq("user_id", me.id)
+    .from("reels").select("id, username, path, caption").eq("user_id", userId)
     .order("created_at", { ascending: false }).limit(60);
   const posts = pRows || [];
   const reels = rRows || [];
@@ -181,18 +179,73 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
     const { data: comRows } = await supabase.from("photo_comments").select("post_id").in("post_id", ids);
     (likeRows || []).forEach((l) => {
       likes[l.post_id] = (likes[l.post_id] || 0) + 1;
-      if (l.user_id === me.id) liked[l.post_id] = true;
+      if (l.user_id === viewerId) liked[l.post_id] = true;
     });
     (comRows || []).forEach((c) => { comments[c.post_id] = (comments[c.post_id] || 0) + 1; });
   }
-  res.json({
+  const mine = userId === viewerId;
+  return {
     posts: posts.filter((p) => urls[p.path]).map((p) => ({
-      id: p.id, username: p.username, avatar: null, caption: p.caption, url: urls[p.path], mine: true,
+      id: p.id, username: p.username, avatar: null, caption: p.caption, url: urls[p.path], mine,
       likes: likes[p.id] || 0, liked: !!liked[p.id], comments: comments[p.id] || 0,
     })),
     reels: reels.filter((r) => urls[r.path]).map((r) => ({
-      id: r.id, username: r.username, caption: r.caption, url: urls[r.path], mine: true,
+      id: r.id, username: r.username, caption: r.caption, url: urls[r.path], mine,
     })),
+  };
+}
+
+// My own photos and reels (for the grid on my profile)
+app.get("/api/me/media", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  res.json(await mediaFor(me.id, me.id));
+}));
+
+// Find people by username (empty search shows the newest people)
+app.get("/api/search", requireUser, safe(async (req, res) => {
+  const q = String(req.query.q || "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9_]/g, "").slice(0, 20);
+  let query = supabase.from("profiles").select("id, username, display_name, avatar_path, is_private").neq("id", req.user.id);
+  query = q ? query.ilike("username", "%" + q + "%") : query.order("created_at", { ascending: false });
+  const { data } = await query.limit(20);
+  const list = data || [];
+  const pics = await avatarsFor(list.map((p) => p.id));
+  const { data: fRows } = list.length
+    ? await supabase.from("follows").select("following_id, status").eq("follower_id", req.user.id).in("following_id", list.map((p) => p.id))
+    : { data: [] };
+  const rel = {};
+  (fRows || []).forEach((f) => (rel[f.following_id] = f.status === "pending" ? "pending" : "following"));
+  res.json({
+    people: list.map((p) => ({
+      username: p.username, display_name: p.display_name || "", avatar: pics[p.id] || null,
+      is_private: !!p.is_private, relation: rel[p.id] || "none",
+    })),
+  });
+}));
+
+// Someone else's profile page
+app.get("/api/users/:username", requireUser, safe(async (req, res) => {
+  const name = String(req.params.username || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
+  const { data: u } = await supabase.from("profiles").select("*").eq("username", name).maybeSingle();
+  if (!u) return res.json({ error: "No one has that username." });
+  const meId = req.user.id;
+  if (u.id === meId) return res.json({ is_me: true });
+
+  const pics = await avatarsFor([u.id]);
+  const { data: rel } = await supabase
+    .from("follows").select("status").eq("follower_id", meId).eq("following_id", u.id).maybeSingle();
+  const { count: followers } = await supabase.from("follows").select("follower_id", { count: "exact", head: true }).eq("following_id", u.id).eq("status", "accepted");
+  const { count: following } = await supabase.from("follows").select("following_id", { count: "exact", head: true }).eq("follower_id", u.id).eq("status", "accepted");
+  const { count: pc } = await supabase.from("photo_posts").select("id", { count: "exact", head: true }).eq("user_id", u.id);
+  const { count: rc } = await supabase.from("reels").select("id", { count: "exact", head: true }).eq("user_id", u.id);
+
+  const canSee = await canSeeUser(meId, u.id);
+  const media = canSee ? await mediaFor(u.id, meId) : { posts: [], reels: [] };
+  res.json({
+    username: u.username, display_name: u.display_name || "", bio: u.bio || "", avatar: pics[u.id] || null,
+    is_private: !!u.is_private, relation: rel ? (rel.status === "pending" ? "pending" : "following") : "none",
+    can_see: canSee, followers: followers || 0, following: following || 0, posts_count: (pc || 0) + (rc || 0),
+    posts: media.posts, reels: media.reels,
   });
 }));
 
