@@ -47,7 +47,7 @@
       padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--bg);
     }
     .brandBox { display: flex; align-items: center; gap: 10px; }
-    .logoSm { width: 32px; height: 32px; border-radius: 9px; display: block; }
+    .logoSm { width: 32px; height: 32px; border-radius: 50%; display: block; }
     .brand {
       font-size: 27px; font-weight: 800; letter-spacing: -1px; line-height: 1;
       background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -101,7 +101,7 @@
       width: 100%; max-width: 360px; padding: 28px 24px; background: var(--surface);
       border: 1px solid var(--line); border-radius: 20px; text-align: center;
     }
-    .logoBig { width: 84px; height: 84px; border-radius: 22px; margin: 0 auto 12px; display: block; box-shadow: 0 8px 30px rgba(236, 72, 153, 0.35); }
+    .logoBig { width: 84px; height: 84px; border-radius: 50%; margin: 0 auto 12px; display: block; box-shadow: 0 8px 30px rgba(236, 72, 153, 0.35); }
     .card h2 { margin: 0 0 4px; font-size: 26px; }
     .card p.sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
     .card input { width: 100%; margin-bottom: 10px; }
@@ -167,7 +167,7 @@
     #pName { font-size: 28px; margin: 0; }
     .avatarRow { display: flex; align-items: center; gap: 16px; margin: 4px 0 14px; }
     .avatarWrap { cursor: pointer; flex-shrink: 0; }
-    .avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; display: block; border: 3px solid transparent;
+    .avatar, img.avatar { width: 84px !important; height: 84px !important; border-radius: 50%; object-fit: cover; display: block; border: 3px solid transparent;
       background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--grad) border-box; }
     .avatar.letter { display: flex; align-items: center; justify-content: center; font-family: "Outfit", sans-serif; font-size: 36px; font-weight: 800; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box; }
     .avatar[hidden], .avatar.letter[hidden] { display: none !important; }
@@ -223,8 +223,8 @@
     .post { border-bottom: 1px solid var(--line); margin: 0 auto 6px; max-width: 520px; padding-bottom: 6px; }
     .post .phead { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-weight: 600; }
     .rowText { display: flex; align-items: center; gap: 10px; min-width: 0; }
-    .sAv {
-      width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; object-fit: cover;
+    .sAv, .post img.sAv {
+      aspect-ratio: 1 / 1; width: 34px; height: 34px; max-height: none; border-radius: 50%; flex-shrink: 0; object-fit: cover;
       display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px;
       border: 2px solid transparent; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box;
     }
