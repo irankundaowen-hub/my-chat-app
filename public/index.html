@@ -314,6 +314,39 @@
     .reelDel, .reelSend { border-radius: 14px 14px 14px 4px; }
     .reelsBar, .pbBar { border-bottom: none; }
     #rUpload, #pbUpload { border-radius: 24px 24px 24px 8px; margin: 0 8px 8px; border: 1px solid var(--line); }
+
+    /* ===== Profile page (v11) ===== */
+    #pMain, #pEdit, #pSettings, #pLists { width: 100%; }
+    .pHead { display: flex; align-items: center; gap: 20px; margin: 6px 0 14px; }
+    .avatar.big { width: 96px; height: 96px; font-size: 42px; }
+    .pRight { flex: 1; min-width: 0; }
+    .pRight h2 { margin: 0 0 10px; font-size: 22px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pStats { display: flex; gap: 6px; }
+    .stat { flex: 1; background: var(--surface); border: 1px solid var(--line); color: var(--text); border-radius: 18px 18px 18px 6px;
+      padding: 8px 4px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-weight: 400; }
+    .stat b { font-size: 17px; font-family: "Outfit", sans-serif; }
+    .stat span { font-size: 11px; color: var(--muted); }
+    .pDisplay { font-weight: 700; margin: 4px 2px 2px; }
+    .pBioText { white-space: pre-line; margin: 0 2px 14px; color: #e6e6e6; overflow-wrap: anywhere; }
+    .pBtns { display: flex; gap: 8px; margin-bottom: 18px; }
+    .pBtns button { flex: 1; padding: 11px; background: var(--surface2); border: 1px solid var(--line); color: var(--text); border-radius: 22px 22px 22px 8px; }
+    .pTabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .pTabs button { flex: 1; height: 44px; background: var(--surface); border: 1px solid var(--line); color: #8e8e8e; border-radius: 22px 22px 22px 8px; display: flex; align-items: center; justify-content: center; }
+    .pTabs button svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .pTabs button.on { background: var(--grad); color: #fff; border-color: transparent; }
+    .pGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .pGrid .cell { position: relative; padding: 0; border: none; background: var(--surface); aspect-ratio: 1; overflow: hidden; border-radius: 18px 18px 18px 5px; }
+    .pGrid.tall .cell { aspect-ratio: 9 / 14; }
+    .pGrid .cell img, .pGrid .cell video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .playTag { position: absolute; right: 8px; bottom: 6px; font-size: 12px; color: #fff; text-shadow: 0 1px 4px #000; }
+    .gridEmpty { grid-column: 1 / -1; color: var(--muted); text-align: center; padding: 30px 10px; }
+    .back { margin: 0 0 8px; }
+    .editAv { display: block; width: 96px; margin: 8px 0 4px; }
+    #pEditMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; margin: 4px 0; }
+    #viewer { position: fixed; inset: 0; z-index: 40; background: rgba(0, 0, 0, 0.97); overflow-y: auto; padding: 14px 10px 30px; }
+    #vBody { max-width: 520px; margin: 10px auto 0; }
+    #vBody .reel { height: 75vh; }
+    .vClose { background: var(--surface2); border: 1px solid var(--line); display: block; margin: 0 auto; padding: 9px 18px; }
   </style>
 </head>
 <body>
@@ -357,37 +390,80 @@
   <!-- Profile panel -->
   <div id="panel" hidden>
     <div class="sheet">
-      <div class="avatarRow">
-        <label class="avatarWrap" title="Change picture">
-          <img id="pAvatar" class="avatar" alt="" hidden />
-          <span id="pAvatarLetter" class="avatar letter">?</span>
+
+      <!-- Main profile page -->
+      <div id="pMain">
+        <div class="pHead">
+          <div class="avatarWrap"><img id="pAvatar" class="avatar big" alt="" hidden /><span id="pAvatarLetter" class="avatar big letter">?</span></div>
+          <div class="pRight">
+            <h2 id="pName">@you</h2>
+            <div class="pStats">
+              <div class="stat"><b id="sPosts">0</b><span>posts</span></div>
+              <button class="stat" id="sFollowers" type="button"><b id="sFollowersN">0</b><span>followers</span></button>
+              <button class="stat" id="sFollowing" type="button"><b id="sFollowingN">0</b><span>following</span></button>
+            </div>
+          </div>
+        </div>
+        <div class="pDisplay" id="pDisplay"></div>
+        <div class="pBioText" id="pBioText"></div>
+        <div class="pBtns">
+          <button type="button" id="pEditBtn">Edit profile</button>
+          <button type="button" id="pSettingsBtn">Settings</button>
+        </div>
+        <div class="pTabs">
+          <button type="button" id="tabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
+          <button type="button" id="tabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg></button>
+        </div>
+        <div class="pGrid" id="pGrid"></div>
+      </div>
+
+      <!-- Edit profile -->
+      <div id="pEdit" hidden>
+        <button class="mini back" type="button" data-back>← Back</button>
+        <h2>Edit profile</h2>
+        <label class="avatarWrap editAv" title="Change picture">
+          <img id="pAvatar2" class="avatar big" alt="" hidden />
+          <span id="pAvatarLetter2" class="avatar big letter">?</span>
           <input id="pAvatarFile" type="file" accept="image/*" hidden />
         </label>
-        <div>
-          <h2 id="pName">@you</h2>
-          <div class="hint" id="pAvatarHint">Tap the picture to change it</div>
-        </div>
+        <p class="hint">Tap the picture to change it</p>
+        <h3>Name</h3>
+        <input id="pNameInput" type="text" maxlength="30" placeholder="Your name (like Owen)" autocomplete="off" />
+        <h3>Bio</h3>
+        <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
+        <button class="wide" id="pBioSave" type="button">Save</button>
+        <p id="pEditMsg"></p>
       </div>
-      <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
-      <button class="wide" id="pBioSave" type="button">Save bio</button>
-      <div class="counts" id="pCounts"></div>
-      <button class="wide" id="pPrivacy" type="button">Loading...</button>
 
-      <h3>Follow someone</h3>
-      <input id="pFollowInput" type="text" placeholder="Their username" autocomplete="off" />
-      <button class="wide" id="pFollowBtn" type="button">Follow</button>
-      <p id="pMsg"></p>
+      <!-- Settings -->
+      <div id="pSettings" hidden>
+        <button class="mini back" type="button" data-back>← Back</button>
+        <h2>Settings</h2>
+        <button class="wide" id="pPrivacy" type="button">Loading...</button>
+        <h3>Follow someone</h3>
+        <input id="pFollowInput" type="text" placeholder="Their username" autocomplete="off" />
+        <button class="wide" id="pFollowBtn" type="button">Follow</button>
+        <p id="pMsg"></p>
+        <h3>Follow requests</h3>
+        <ul id="pReqList"></ul>
+        <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
+        <button class="close" id="pClose" type="button" hidden>Close</button>
+      </div>
 
-      <h3>Follow requests</h3>
-      <ul id="pReqList"></ul>
-      <h3>Followers</h3>
-      <ul id="pFollowers"></ul>
-      <h3>Following</h3>
-      <ul id="pFollowing"></ul>
+      <!-- Followers / following lists -->
+      <div id="pLists" hidden>
+        <button class="mini back" type="button" data-back>← Back</button>
+        <div id="pFollowersBox"><h2>Followers</h2><ul id="pFollowers"></ul></div>
+        <div id="pFollowingBox"><h2>Following</h2><ul id="pFollowing"></ul></div>
+      </div>
 
-      <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
-      <button class="close" id="pClose" type="button" hidden>Close</button>
     </div>
+  </div>
+
+  <!-- Viewer: opens a photo or reel from the grid -->
+  <div id="viewer" hidden>
+    <button type="button" id="vClose" class="vClose">✕ Close</button>
+    <div id="vBody"></div>
   </div>
 
   <!-- Groups panel -->
@@ -635,6 +711,7 @@
       const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "loungeBtn", "profileBtn"];
       function closeAllPanels() {
         ["rClose", "pbClose", "cClose", "gClose", "pClose"].forEach((id) => $(id).click());
+        $("viewer").hidden = true;
       }
       function setActive(id) {
         tabIds.forEach((t) => $(t).classList.toggle("active", t === id));
@@ -709,16 +786,103 @@
         items.forEach((i) => ul.appendChild(i));
       }
 
+      function paintAvatar(p) {
+        const letter = (p.username || "?").charAt(0).toUpperCase();
+        [["pAvatar", "pAvatarLetter"], ["pAvatar2", "pAvatarLetter2"]].forEach(([i, l]) => {
+          $(l).textContent = letter;
+          if (p.avatar_url) { $(i).src = p.avatar_url; $(i).hidden = false; $(l).hidden = true; }
+          else { $(i).hidden = true; $(l).hidden = false; }
+        });
+      }
+
+      let profileView = "main";
+      let profileTab = "posts";
+      let myMedia = { posts: [], reels: [] };
+
+      function showProfileView(name) {
+        profileView = name;
+        ["pMain", "pEdit", "pSettings", "pLists"].forEach((id) => {
+          $(id).hidden = id !== "p" + name.charAt(0).toUpperCase() + name.slice(1);
+        });
+        $("panel").scrollTop = 0;
+      }
+
+      function openViewer(node) {
+        $("vBody").innerHTML = "";
+        $("vBody").appendChild(node);
+        $("viewer").hidden = false;
+      }
+      function closeViewer() {
+        document.querySelectorAll("#vBody video").forEach((v) => v.pause());
+        $("vBody").innerHTML = "";
+        $("viewer").hidden = true;
+        loadProfile();
+      }
+      $("vClose").addEventListener("click", closeViewer);
+      $("vBody").addEventListener("click", (e) => {
+        if (e.target.closest(".pdel, .reelDel")) setTimeout(closeViewer, 900);
+      });
+
+      function paintGrid() {
+        const grid = $("pGrid");
+        grid.innerHTML = "";
+        $("tabPosts").classList.toggle("on", profileTab === "posts");
+        $("tabReels").classList.toggle("on", profileTab === "reels");
+        grid.classList.toggle("tall", profileTab === "reels");
+        const items = profileTab === "posts" ? myMedia.posts : myMedia.reels;
+        if (!items.length) {
+          const e = document.createElement("div");
+          e.className = "gridEmpty";
+          e.textContent = profileTab === "posts"
+            ? "No photos yet. Share your first one on Home!"
+            : "No reels yet. Post your first one in Reels!";
+          grid.appendChild(e);
+          return;
+        }
+        items.forEach((it) => {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "cell";
+          if (profileTab === "posts") {
+            const im = document.createElement("img");
+            im.src = it.url; im.alt = ""; im.loading = "lazy";
+            cell.appendChild(im);
+            cell.onclick = () => openViewer(postCard(it));
+          } else {
+            const v = document.createElement("video");
+            v.src = it.url + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true;
+            cell.appendChild(v);
+            const tag = document.createElement("span");
+            tag.className = "playTag"; tag.textContent = "▶";
+            cell.appendChild(tag);
+            cell.onclick = () => openViewer(reelCard(it));
+          }
+          grid.appendChild(cell);
+        });
+      }
+
+      async function loadMedia() {
+        const m = await api("/api/me/media");
+        myMedia = { posts: m.posts || [], reels: m.reels || [] };
+        paintGrid();
+      }
+
       async function loadProfile() {
         const p = await api("/api/me");
         if (p.error) { $("pName").textContent = p.error; return; }
         currentPrivate = p.is_private;
-        $("pName").textContent = "@" + p.username;
-        $("pAvatarLetter").textContent = (p.username || "?").charAt(0).toUpperCase();
-        if (p.avatar_url) { $("pAvatar").src = p.avatar_url; $("pAvatar").hidden = false; $("pAvatarLetter").hidden = true; }
-        else { $("pAvatar").hidden = true; $("pAvatarLetter").hidden = false; }
+        $("pName").textContent = "@" + p.username + (p.is_private ? " 🔒" : "");
+        paintAvatar(p);
+        $("pDisplay").textContent = p.display_name || "";
+        $("pDisplay").hidden = !p.display_name;
+        $("pBioText").textContent = p.bio || "";
+        $("pBioText").hidden = !p.bio;
+        $("sPosts").textContent = p.posts_count || 0;
+        $("sFollowersN").textContent = p.followers.length;
+        $("sFollowingN").textContent = p.following.length;
+        $("pSettingsBtn").textContent = p.requests.length ? "Settings (" + p.requests.length + ")" : "Settings";
         if (document.activeElement !== $("pBio")) $("pBio").value = p.bio || "";
-        $("pCounts").textContent = p.followers.length + " followers · " + p.following.length + " following";
+        if (document.activeElement !== $("pNameInput")) $("pNameInput").value = p.display_name || "";
         $("pPrivacy").textContent = p.is_private
           ? "🔒 Private account (tap to make public)"
           : "🌍 Public account (tap to make private)";
@@ -731,17 +895,31 @@
         fill("pFollowing", p.following.map((n) => row("@" + n, [
           ["Unfollow", async () => { await api("/api/unfollow", "POST", { username: n }); loadProfile(); }],
         ])));
+        loadMedia();
       }
 
+      $("pEditBtn").addEventListener("click", () => { $("pEditMsg").textContent = ""; showProfileView("edit"); });
+      $("pSettingsBtn").addEventListener("click", () => { $("pMsg").textContent = ""; showProfileView("settings"); });
+      $("sFollowers").addEventListener("click", () => {
+        $("pFollowersBox").hidden = false; $("pFollowingBox").hidden = true; showProfileView("lists");
+      });
+      $("sFollowing").addEventListener("click", () => {
+        $("pFollowersBox").hidden = true; $("pFollowingBox").hidden = false; showProfileView("lists");
+      });
+      document.querySelectorAll("#panel [data-back]").forEach((b) => b.addEventListener("click", () => showProfileView("main")));
+      $("tabPosts").addEventListener("click", () => { profileTab = "posts"; paintGrid(); });
+      $("tabReels").addEventListener("click", () => { profileTab = "reels"; paintGrid(); });
+
       $("pBioSave").addEventListener("click", async () => {
-        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value });
-        $("pMsg").textContent = r.error || "Bio saved ✓";
+        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value, name: $("pNameInput").value });
+        $("pEditMsg").textContent = r.error || "Saved ✓";
+        if (!r.error) loadProfile();
       });
       $("pAvatarFile").addEventListener("change", async () => {
         const f = $("pAvatarFile").files[0];
         if (!f) return;
-        if (f.size > 5 * 1024 * 1024) { $("pMsg").textContent = "Picture is too big (max 5 MB)."; return; }
-        $("pMsg").textContent = "Uploading picture...";
+        if (f.size > 5 * 1024 * 1024) { $("pEditMsg").textContent = "Picture is too big (max 5 MB)."; return; }
+        $("pEditMsg").textContent = "Uploading picture...";
         try {
           const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
           const up = await api("/api/me/avatar-url", "POST", { ext });
@@ -750,16 +928,17 @@
           if (error) throw error;
           const r = await api("/api/me/avatar", "POST", { path: up.path });
           if (r.error) throw new Error(r.error);
-          $("pMsg").textContent = "Picture saved ✓";
+          $("pEditMsg").textContent = "Picture saved ✓";
           loadProfile();
         } catch (e) {
-          $("pMsg").textContent = "Could not upload: " + (e.message || "try again");
+          $("pEditMsg").textContent = "Could not upload: " + (e.message || "try again");
         }
         $("pAvatarFile").value = "";
       });
 
       $("profileBtn").addEventListener("click", () => {
         $("pMsg").textContent = "";
+        showProfileView("main");
         $("panel").hidden = false;
         loadProfile();
       });

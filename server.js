@@ -126,8 +126,13 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
     avatarUrl = signed ? signed.signedUrl : null;
   }
 
+  const { count: postCount } = await supabase.from("photo_posts").select("id", { count: "exact", head: true }).eq("user_id", me.id);
+  const { count: reelCount } = await supabase.from("reels").select("id", { count: "exact", head: true }).eq("user_id", me.id);
+
   res.json({
     username: me.username,
+    display_name: me.display_name || "",
+    posts_count: (postCount || 0) + (reelCount || 0),
     bio: me.bio || "",
     avatar_url: avatarUrl,
     is_private: me.is_private,
@@ -144,9 +149,51 @@ app.post("/api/me/bio", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const bio = String(req.body.bio || "").trim().slice(0, 150);
-  const { error } = await supabase.from("profiles").update({ bio }).eq("id", me.id);
+  const update = { bio };
+  if (typeof req.body.name === "string") update.display_name = req.body.name.trim().slice(0, 30);
+  const { error } = await supabase.from("profiles").update(update).eq("id", me.id);
   if (error) return res.status(500).json({ error: "Could not save. Did you run the profile SQL in Supabase?" });
   res.json({ ok: true });
+}));
+
+// My own photos and reels (for the grid on my profile)
+app.get("/api/me/media", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const { data: pRows } = await supabase
+    .from("photo_posts").select("id, username, path, caption").eq("user_id", me.id)
+    .order("created_at", { ascending: false }).limit(60);
+  const { data: rRows } = await supabase
+    .from("reels").select("id, username, path, caption").eq("user_id", me.id)
+    .order("created_at", { ascending: false }).limit(60);
+  const posts = pRows || [];
+  const reels = rRows || [];
+  const paths = [...posts.map((p) => p.path), ...reels.map((r) => r.path)];
+  const urls = {};
+  if (paths.length) {
+    const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(paths, 3600);
+    (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  }
+  const ids = posts.map((p) => p.id);
+  const likes = {}, liked = {}, comments = {};
+  if (ids.length) {
+    const { data: likeRows } = await supabase.from("photo_likes").select("post_id, user_id").in("post_id", ids);
+    const { data: comRows } = await supabase.from("photo_comments").select("post_id").in("post_id", ids);
+    (likeRows || []).forEach((l) => {
+      likes[l.post_id] = (likes[l.post_id] || 0) + 1;
+      if (l.user_id === me.id) liked[l.post_id] = true;
+    });
+    (comRows || []).forEach((c) => { comments[c.post_id] = (comments[c.post_id] || 0) + 1; });
+  }
+  res.json({
+    posts: posts.filter((p) => urls[p.path]).map((p) => ({
+      id: p.id, username: p.username, avatar: null, caption: p.caption, url: urls[p.path], mine: true,
+      likes: likes[p.id] || 0, liked: !!liked[p.id], comments: comments[p.id] || 0,
+    })),
+    reels: reels.filter((r) => urls[r.path]).map((r) => ({
+      id: r.id, username: r.username, caption: r.caption, url: urls[r.path], mine: true,
+    })),
+  });
 }));
 
 // Profile picture: get an upload spot, then save it
