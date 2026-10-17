@@ -164,7 +164,13 @@
     #logout { background: none; border: 1px solid var(--danger); color: var(--danger); }
     .sheet .hint { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
     #pMsg, #cMsg, #gMsg, #gAddMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
-    #pName { font-size: 30px; }
+    #pName { font-size: 28px; margin: 0; }
+    .avatarRow { display: flex; align-items: center; gap: 16px; margin: 4px 0 14px; }
+    .avatarWrap { cursor: pointer; flex-shrink: 0; }
+    .avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; display: block; border: 3px solid transparent;
+      background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--grad) border-box; }
+    .avatar.letter { display: flex; align-items: center; justify-content: center; font-family: "Outfit", sans-serif; font-size: 36px; font-weight: 800; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box; }
+    .avatar[hidden], .avatar.letter[hidden] { display: none !important; }
 
     /* Chat threads */
     #cMessages {
@@ -274,7 +280,19 @@
   <!-- Profile panel -->
   <div id="panel" hidden>
     <div class="sheet">
-      <h2 id="pName">@you</h2>
+      <div class="avatarRow">
+        <label class="avatarWrap" title="Change picture">
+          <img id="pAvatar" class="avatar" alt="" hidden />
+          <span id="pAvatarLetter" class="avatar letter">?</span>
+          <input id="pAvatarFile" type="file" accept="image/*" hidden />
+        </label>
+        <div>
+          <h2 id="pName">@you</h2>
+          <div class="hint" id="pAvatarHint">Tap the circle to add a picture</div>
+        </div>
+      </div>
+      <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
+      <button class="wide" id="pBioSave" type="button">Save bio</button>
       <div class="counts" id="pCounts"></div>
       <button class="wide" id="pPrivacy" type="button">Loading...</button>
 
@@ -609,6 +627,10 @@
         if (p.error) { $("pName").textContent = p.error; return; }
         currentPrivate = p.is_private;
         $("pName").textContent = "@" + p.username;
+        $("pAvatarLetter").textContent = (p.username || "?").charAt(0).toUpperCase();
+        if (p.avatar_url) { $("pAvatar").src = p.avatar_url; $("pAvatar").hidden = false; $("pAvatarLetter").hidden = true; }
+        else { $("pAvatar").hidden = true; $("pAvatarLetter").hidden = false; }
+        if (document.activeElement !== $("pBio")) $("pBio").value = p.bio || "";
         $("pCounts").textContent = p.followers.length + " followers · " + p.following.length + " following";
         $("pPrivacy").textContent = p.is_private
           ? "🔒 Private account (tap to make public)"
@@ -623,6 +645,31 @@
           ["Unfollow", async () => { await api("/api/unfollow", "POST", { username: n }); loadProfile(); }],
         ])));
       }
+
+      $("pBioSave").addEventListener("click", async () => {
+        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value });
+        $("pMsg").textContent = r.error || "Bio saved ✓";
+      });
+      $("pAvatarFile").addEventListener("change", async () => {
+        const f = $("pAvatarFile").files[0];
+        if (!f) return;
+        if (f.size > 5 * 1024 * 1024) { $("pMsg").textContent = "Picture is too big (max 5 MB)."; return; }
+        $("pMsg").textContent = "Uploading picture...";
+        try {
+          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const up = await api("/api/me/avatar-url", "POST", { ext });
+          if (up.error) throw new Error(up.error);
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          if (error) throw error;
+          const r = await api("/api/me/avatar", "POST", { path: up.path });
+          if (r.error) throw new Error(r.error);
+          $("pMsg").textContent = "Picture saved ✓";
+          loadProfile();
+        } catch (e) {
+          $("pMsg").textContent = "Could not upload: " + (e.message || "try again");
+        }
+        $("pAvatarFile").value = "";
+      });
 
       $("profileBtn").addEventListener("click", () => {
         $("pMsg").textContent = "";

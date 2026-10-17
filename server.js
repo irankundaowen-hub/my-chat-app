@@ -105,8 +105,16 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
   const outs = outRows || [];
   const names = await namesFor([...ins.map((r) => r.follower_id), ...outs.map((r) => r.following_id)]);
 
+  let avatarUrl = null;
+  if (me.avatar_path) {
+    const { data: signed } = await supabase.storage.from("reels").createSignedUrl(me.avatar_path, 3600);
+    avatarUrl = signed ? signed.signedUrl : null;
+  }
+
   res.json({
     username: me.username,
+    bio: me.bio || "",
+    avatar_url: avatarUrl,
     is_private: me.is_private,
     followers: ins.filter((r) => r.status === "accepted").map((r) => names[r.follower_id] || "unknown"),
     following: outs.filter((r) => r.status === "accepted").map((r) => names[r.following_id] || "unknown"),
@@ -114,6 +122,41 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
       .filter((r) => r.status === "pending")
       .map((r) => ({ id: r.follower_id, username: names[r.follower_id] || "unknown" })),
   });
+}));
+
+// Save my bio
+app.post("/api/me/bio", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const bio = String(req.body.bio || "").trim().slice(0, 150);
+  const { error } = await supabase.from("profiles").update({ bio }).eq("id", me.id);
+  if (error) return res.status(500).json({ error: "Could not save. Did you run the profile SQL in Supabase?" });
+  res.json({ ok: true });
+}));
+
+// Profile picture: get an upload spot, then save it
+app.post("/api/me/avatar-url", requireUser, safe(async (req, res) => {
+  const wanted = String(req.body.ext || "").toLowerCase();
+  const ext = ["jpg", "jpeg", "png", "webp", "gif"].includes(wanted) ? wanted : "jpg";
+  const path = req.user.id + "/avatar-" + Date.now() + "." + ext;
+  const { data, error } = await supabase.storage.from("reels").createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+
+app.post("/api/me/avatar", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const path = String(req.body.path || "");
+  if (!path.startsWith(req.user.id + "/avatar-") || path.includes("..")) {
+    return res.status(400).json({ error: "Bad picture" });
+  }
+  if (me.avatar_path && me.avatar_path !== path) {
+    await supabase.storage.from("reels").remove([me.avatar_path]);
+  }
+  const { error } = await supabase.from("profiles").update({ avatar_path: path }).eq("id", me.id);
+  if (error) return res.status(500).json({ error: "Could not save. Did you run the profile SQL in Supabase?" });
+  res.json({ ok: true });
 }));
 
 // Switch between public and private (easy, any time)
