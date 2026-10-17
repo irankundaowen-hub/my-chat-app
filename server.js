@@ -402,9 +402,17 @@ app.post("/api/dms/send", requireUser, safe(async (req, res) => {
     const { data: reel } = await supabase
       .from("reels").select("id, user_id").eq("id", Number(req.body.reel_id) || 0).maybeSingle();
     if (!reel) return res.json({ error: "That reel no longer exists." });
-    if (reel.user_id !== me) {
+    // A private account's reel can go to the owner, or to someone who follows the owner
+    if (reel.user_id !== me && reel.user_id !== to) {
       const { data: author } = await supabase.from("profiles").select("is_private").eq("id", reel.user_id).maybeSingle();
-      if (author && author.is_private) return res.json({ error: "Reels from private accounts can't be shared." });
+      if (author && author.is_private) {
+        const { data: allowed } = await supabase
+          .from("follows").select("status")
+          .eq("follower_id", to).eq("following_id", reel.user_id).eq("status", "accepted").limit(1);
+        if (!(allowed && allowed.length)) {
+          return res.json({ error: "That reel is from a private account, and this person doesn't follow it, so they can't see it." });
+        }
+      }
     }
     row.reel_id = reel.id;
   } else {
@@ -419,6 +427,169 @@ app.post("/api/dms/send", requireUser, safe(async (req, res) => {
   const [payload] = await shapeDms([saved]);
   io.to("u:" + to).emit("dm", payload);
   io.to("u:" + me).emit("dm", payload);
+  res.json({ ok: true });
+}));
+
+// ---------- Photo posts, likes and comments ----------
+// Can this person see that author's posts? (themselves, public accounts, or people they follow)
+async function canSeeUser(meId, authorId) {
+  if (meId === authorId) return true;
+  const { data: a } = await supabase.from("profiles").select("is_private").eq("id", authorId).maybeSingle();
+  if (!a) return false;
+  if (!a.is_private) return true;
+  const { data: f } = await supabase
+    .from("follows").select("status")
+    .eq("follower_id", meId).eq("following_id", authorId).eq("status", "accepted").limit(1);
+  return !!(f && f.length);
+}
+
+// Step 1 of posting: a safe place to upload the photo
+app.post("/api/posts/upload-url", requireUser, safe(async (req, res) => {
+  const ext = String(req.body.ext || "").toLowerCase();
+  if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
+    return res.json({ error: "Please use a JPG, PNG, GIF or WEBP photo." });
+  }
+  const path = req.user.id + "/post-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) {
+    console.error("Post upload URL error:", error.message);
+    return res.status(500).json({ error: "Could not start the upload." });
+  }
+  res.json({ path, token: data.token });
+}));
+
+// Step 2: save the post with its caption
+app.post("/api/posts", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  const path = String(req.body.path || "");
+  if (!me || !path.startsWith(req.user.id + "/post-")) return res.status(400).json({ error: "Bad request" });
+  const caption = String(req.body.caption || "").trim().slice(0, 200);
+  const { error } = await supabase.from("photo_posts").insert({ user_id: me.id, username: me.username, path, caption });
+  if (error) {
+    console.error("Post save error:", error.message);
+    return res.status(500).json({ error: "Could not save the post." });
+  }
+  res.json({ ok: true });
+}));
+
+// The feed: your posts, public accounts, and people you follow
+app.get("/api/posts", requireUser, safe(async (req, res) => {
+  const meId = req.user.id;
+  const { data: rows } = await supabase
+    .from("photo_posts")
+    .select("id, user_id, username, path, caption, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+  const list = rows || [];
+
+  const authorIds = [...new Set(list.map((r) => r.user_id))];
+  const priv = {};
+  if (authorIds.length) {
+    const { data: authors } = await supabase.from("profiles").select("id, is_private").in("id", authorIds);
+    (authors || []).forEach((a) => (priv[a.id] = a.is_private));
+  }
+  const { data: fRows } = await supabase
+    .from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
+  const following = new Set((fRows || []).map((r) => r.following_id));
+
+  const allowed = list
+    .filter((r) => r.user_id === meId || !priv[r.user_id] || following.has(r.user_id))
+    .slice(0, 30);
+  if (!allowed.length) return res.json({ posts: [] });
+
+  const ids = allowed.map((r) => r.id);
+  const { data: likeRows } = await supabase.from("photo_likes").select("post_id, user_id").in("post_id", ids);
+  const { data: comRows } = await supabase.from("photo_comments").select("post_id").in("post_id", ids);
+  const likes = {};
+  const liked = {};
+  const comments = {};
+  (likeRows || []).forEach((l) => {
+    likes[l.post_id] = (likes[l.post_id] || 0) + 1;
+    if (l.user_id === meId) liked[l.post_id] = true;
+  });
+  (comRows || []).forEach((c) => { comments[c.post_id] = (comments[c.post_id] || 0) + 1; });
+
+  const { data: signed, error } = await supabase.storage
+    .from(REELS_BUCKET)
+    .createSignedUrls(allowed.map((r) => r.path), 3600);
+  if (error) {
+    console.error("Post signed URL error:", error.message);
+    return res.status(500).json({ error: "Could not load photos." });
+  }
+  const urls = {};
+  (signed || []).forEach((s) => { if (s.signedUrl) urls[s.path] = s.signedUrl; });
+
+  res.json({
+    posts: allowed
+      .filter((r) => urls[r.path])
+      .map((r) => ({
+        id: r.id,
+        username: r.username,
+        caption: r.caption,
+        url: urls[r.path],
+        mine: r.user_id === meId,
+        likes: likes[r.id] || 0,
+        liked: !!liked[r.id],
+        comments: comments[r.id] || 0,
+      })),
+  });
+}));
+
+// Like or unlike a post
+app.post("/api/posts/like", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.post_id) || 0;
+  const { data: p } = await supabase.from("photo_posts").select("id, user_id").eq("id", id).maybeSingle();
+  if (!p || !(await canSeeUser(req.user.id, p.user_id))) return res.json({ error: "Post not found." });
+
+  const { data: ex } = await supabase
+    .from("photo_likes").select("post_id").eq("post_id", id).eq("user_id", req.user.id).maybeSingle();
+  if (ex) await supabase.from("photo_likes").delete().eq("post_id", id).eq("user_id", req.user.id);
+  else await supabase.from("photo_likes").insert({ post_id: id, user_id: req.user.id });
+
+  const { count } = await supabase
+    .from("photo_likes").select("post_id", { count: "exact", head: true }).eq("post_id", id);
+  res.json({ liked: !ex, likes: count || 0 });
+}));
+
+// The comments on a post
+app.get("/api/posts/:id/comments", requireUser, safe(async (req, res) => {
+  const id = Number(req.params.id) || 0;
+  const { data: p } = await supabase.from("photo_posts").select("id, user_id").eq("id", id).maybeSingle();
+  if (!p || !(await canSeeUser(req.user.id, p.user_id))) return res.json({ error: "Post not found." });
+  const { data } = await supabase
+    .from("photo_comments")
+    .select("username, text, created_at")
+    .eq("post_id", id)
+    .order("created_at", { ascending: true })
+    .limit(100);
+  res.json({ comments: data || [] });
+}));
+
+// Add a comment
+app.post("/api/posts/comment", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const id = Number(req.body.post_id) || 0;
+  const text = String(req.body.text || "").trim().slice(0, 300);
+  if (!text) return res.json({ error: "Write a comment first." });
+  const { data: p } = await supabase.from("photo_posts").select("id, user_id").eq("id", id).maybeSingle();
+  if (!p || !(await canSeeUser(me.id, p.user_id))) return res.json({ error: "Post not found." });
+  const { error } = await supabase
+    .from("photo_comments").insert({ post_id: id, user_id: me.id, username: me.username, text });
+  if (error) {
+    console.error("Comment error:", error.message);
+    return res.status(500).json({ error: "Could not post the comment." });
+  }
+  res.json({ ok: true });
+}));
+
+// Delete one of your own posts
+app.post("/api/posts/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: p } = await supabase.from("photo_posts").select("id, user_id, path").eq("id", id).maybeSingle();
+  if (!p || p.user_id !== req.user.id) return res.status(404).json({ error: "Not found" });
+  await supabase.storage.from(REELS_BUCKET).remove([p.path]);
+  await supabase.from("photo_posts").delete().eq("id", id);
   res.json({ ok: true });
 }));
 

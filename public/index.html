@@ -26,7 +26,7 @@
       gap: 12px;
     }
     header .right { display: flex; align-items: center; gap: 10px; font-weight: 400; }
-    #logout, #profileBtn, #reelsBtn, #groupsBtn {
+    #logout, #profileBtn, #reelsBtn, #groupsBtn, #postsBtn {
       background: transparent;
       border: 1px solid white;
       padding: 4px 12px;
@@ -170,6 +170,30 @@
     .msg a { color: #0645ad; overflow-wrap: anywhere; }
     .msg .rtag { font-size: 12px; font-weight: 600; color: #075e54; margin-top: 4px; }
     .reelSend { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
+
+    /* Photo posts */
+    #postsPanel { position: fixed; inset: 0; background: #fafafa; z-index: 11; display: flex; flex-direction: column; }
+    .pbBar { height: 56px; background: #075e54; color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; flex-shrink: 0; }
+    .pbBar button { padding: 6px 12px; font-size: 14px; margin-left: 6px; border: 1px solid white; background: transparent; }
+    #pbUpload { background: white; padding: 12px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+    #pbUpload input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin: 8px 0; font-size: 16px; }
+    #pbUpload button { width: 100%; padding: 10px; border-radius: 8px; }
+    #pbMsg { margin: 8px 0 0; font-size: 14px; color: #075e54; min-height: 18px; }
+    #pbFeed { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 20px; }
+    .pbEmpty { padding: 30px 20px; color: #777; text-align: center; }
+    .post { background: white; border-bottom: 1px solid #ddd; margin: 0 auto 10px; max-width: 520px; }
+    .post .phead { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-weight: 600; }
+    .post img { width: 100%; display: block; max-height: 80vh; object-fit: cover; }
+    .post .pact { padding: 8px 12px 0; display: flex; gap: 14px; align-items: center; }
+    .post .pact button { background: none; color: #222; padding: 0; font-size: 24px; }
+    .post .pcount { padding: 2px 12px; font-weight: 600; font-size: 14px; }
+    .post .pcap { padding: 0 12px 8px; font-size: 15px; }
+    .post .pcom { padding: 0 12px 12px; }
+    .post .pcom .cl { font-size: 14px; margin: 3px 0; overflow-wrap: anywhere; }
+    .post .pcom form { display: flex; gap: 6px; margin-top: 6px; }
+    .post .pcom input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 16px; font-size: 15px; }
+    .post .pcom form button { padding: 0 14px; font-size: 14px; }
+    .post .pdel { background: none; color: #b00020; font-size: 13px; padding: 0; }
     #cMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
     header { flex-wrap: wrap; }
     header .right { flex-wrap: wrap; justify-content: flex-end; }
@@ -191,6 +215,7 @@
       <span id="who"></span>
       <button id="groupsBtn" type="button">Groups</button>
       <button id="chatsBtn" type="button">Chats</button>
+      <button id="postsBtn" type="button">Home</button>
       <button id="reelsBtn" type="button">Reels</button>
       <button id="profileBtn" type="button">Profile</button>
       <button id="logout" type="button">Log out</button>
@@ -320,6 +345,24 @@
       <p id="rMsg"></p>
     </div>
     <div id="rFeed"></div>
+  </div>
+
+  <!-- Photo posts panel -->
+  <div id="postsPanel" hidden>
+    <div class="pbBar">
+      <strong>🏠 Home</strong>
+      <span>
+        <button id="pbToggle" type="button">+ Post</button>
+        <button id="pbClose" type="button">Close</button>
+      </span>
+    </div>
+    <div id="pbUpload" hidden>
+      <input id="pbFile" type="file" accept="image/*" />
+      <input id="pbCaption" type="text" maxlength="200" placeholder="Write a caption..." />
+      <button id="pbPost" type="button">Share photo</button>
+      <p id="pbMsg"></p>
+    </div>
+    <div id="pbFeed"></div>
   </div>
 
   <!-- Libraries: real-time connection + login system -->
@@ -813,6 +856,171 @@
           st.textContent = r.error || "";
         } catch (e) {
           st.textContent = "Photo failed: " + (e.message || "please try again.");
+        }
+      });
+
+      // ---------- Photo posts ----------
+      function postCard(p) {
+        const box = document.createElement("div");
+        box.className = "post";
+
+        const head = document.createElement("div");
+        head.className = "phead";
+        const who = document.createElement("span");
+        who.textContent = "@" + p.username;
+        head.appendChild(who);
+        if (p.mine) {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "pdel";
+          d.textContent = "Delete";
+          d.onclick = async () => {
+            if (!confirm("Delete this post?")) return;
+            await api("/api/posts/delete", "POST", { id: p.id });
+            loadPosts();
+          };
+          head.appendChild(d);
+        }
+
+        const img = document.createElement("img");
+        img.src = p.url;
+        img.alt = "post by " + p.username;
+        img.loading = "lazy";
+
+        const act = document.createElement("div");
+        act.className = "pact";
+        const like = document.createElement("button");
+        like.type = "button";
+        const cbtn = document.createElement("button");
+        cbtn.type = "button";
+        cbtn.textContent = "💬";
+        act.append(like, cbtn);
+
+        const count = document.createElement("div");
+        count.className = "pcount";
+        let liked = p.liked;
+        let likes = p.likes;
+        const paint = () => {
+          like.textContent = liked ? "❤️" : "🤍";
+          count.textContent = likes + (likes === 1 ? " like" : " likes");
+        };
+        paint();
+        like.onclick = async () => {
+          const r = await api("/api/posts/like", "POST", { post_id: p.id });
+          if (r.error) return;
+          liked = r.liked;
+          likes = r.likes;
+          paint();
+        };
+
+        const cap = document.createElement("div");
+        cap.className = "pcap";
+        if (p.caption) {
+          const b = document.createElement("strong");
+          b.textContent = "@" + p.username;
+          cap.append(b, document.createTextNode(" " + p.caption));
+        }
+
+        const com = document.createElement("div");
+        com.className = "pcom";
+        com.hidden = true;
+        const list = document.createElement("div");
+        const form = document.createElement("form");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.placeholder = "Add a comment...";
+        input.maxLength = 300;
+        input.autocomplete = "off";
+        const send = document.createElement("button");
+        send.type = "submit";
+        send.textContent = "Post";
+        form.append(input, send);
+        com.append(list, form);
+
+        async function loadComments() {
+          const d = await api("/api/posts/" + p.id + "/comments");
+          list.innerHTML = "";
+          (d.comments || []).forEach((c) => {
+            const l = document.createElement("div");
+            l.className = "cl";
+            const b = document.createElement("strong");
+            b.textContent = "@" + c.username;
+            l.append(b, document.createTextNode(" " + c.text));
+            list.appendChild(l);
+          });
+        }
+        cbtn.onclick = () => {
+          com.hidden = !com.hidden;
+          if (!com.hidden) loadComments();
+        };
+        form.onsubmit = async (e) => {
+          e.preventDefault();
+          const t = input.value.trim();
+          if (!t) return;
+          input.value = "";
+          const r = await api("/api/posts/comment", "POST", { post_id: p.id, text: t });
+          if (r.error) { alert(r.error); return; }
+          loadComments();
+        };
+
+        box.append(head, img, act, count, cap, com);
+        return box;
+      }
+
+      async function loadPosts() {
+        const feed = $("pbFeed");
+        feed.innerHTML = '<div class="pbEmpty">Loading...</div>';
+        const d = await api("/api/posts");
+        feed.innerHTML = "";
+        if (d.error) {
+          feed.innerHTML = '<div class="pbEmpty"></div>';
+          feed.firstChild.textContent = d.error;
+          return;
+        }
+        if (!d.posts.length) {
+          feed.innerHTML = '<div class="pbEmpty">No posts yet. Tap "+ Post" to share the first photo!</div>';
+          return;
+        }
+        d.posts.forEach((p) => feed.appendChild(postCard(p)));
+      }
+
+      $("postsBtn").addEventListener("click", () => {
+        $("postsPanel").hidden = false;
+        loadPosts();
+      });
+      $("pbClose").addEventListener("click", () => {
+        $("pbFeed").innerHTML = "";
+        $("postsPanel").hidden = true;
+      });
+      $("pbToggle").addEventListener("click", () => {
+        $("pbUpload").hidden = !$("pbUpload").hidden;
+        $("pbMsg").textContent = "";
+      });
+      $("pbPost").addEventListener("click", async () => {
+        const f = $("pbFile").files[0];
+        const msg = $("pbMsg");
+        if (!f) { msg.textContent = "Choose a photo first."; return; }
+        if (!f.type.startsWith("image/")) { msg.textContent = "That file is not a photo."; return; }
+        if (f.size > 10 * 1024 * 1024) { msg.textContent = "Photo is too big (max 10 MB)."; return; }
+
+        $("pbPost").disabled = true;
+        msg.textContent = "Uploading... please wait.";
+        try {
+          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const up = await api("/api/posts/upload-url", "POST", { ext });
+          if (up.error) throw new Error(up.error);
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          if (error) throw error;
+          const made = await api("/api/posts", "POST", { path: up.path, caption: $("pbCaption").value });
+          if (made.error) throw new Error(made.error);
+          $("pbFile").value = "";
+          $("pbCaption").value = "";
+          $("pbUpload").hidden = true;
+          loadPosts();
+        } catch (e) {
+          msg.textContent = "Upload failed: " + (e.message || "please try again.");
+        } finally {
+          $("pbPost").disabled = false;
         }
       });
 
