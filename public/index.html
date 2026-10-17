@@ -4,227 +4,253 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Twik Chat</title>
+  <meta name="theme-color" content="#000000" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; }
+    :root {
+      --bg: #000;
+      --surface: #121212;
+      --surface2: #1c1c1c;
+      --line: #262626;
+      --text: #f5f5f5;
+      --muted: #a8a8a8;
+      --danger: #ff5a6e;
+      --grad: linear-gradient(135deg, #8b5cf6 0%, #ec4899 55%, #f59e0b 100%);
+      --top: 56px;
+      --bottom: calc(58px + env(safe-area-inset-bottom));
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     [hidden] { display: none !important; }
+    html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #e5ddd5;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
+      height: 100dvh;
+      overflow: hidden;
+      padding-bottom: var(--bottom);
     }
-    header {
-      background: #075e54;
-      color: white;
-      padding: 14px 16px;
-      font-weight: 600;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+    h1, h2, h3, .brand { font-family: "Outfit", system-ui, sans-serif; }
+    a { color: #8ab4ff; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+    /* Top bar */
+    .topbar {
+      height: var(--top); flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px; border-bottom: 1px solid var(--line); background: var(--bg);
     }
-    header .right { display: flex; align-items: center; gap: 10px; font-weight: 400; }
-    #logout, #profileBtn, #reelsBtn, #groupsBtn, #postsBtn {
-      background: transparent;
-      border: 1px solid white;
-      padding: 4px 12px;
-      font-size: 13px;
+    .brandBox { display: flex; align-items: center; gap: 10px; }
+    .logoSm { width: 32px; height: 32px; border-radius: 9px; display: block; }
+    .brand {
+      font-size: 27px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+      background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    #who { color: var(--muted); font-size: 13px; max-width: 45vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Bottom tab bar */
+    .tabbar {
+      position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom);
+      padding-bottom: env(safe-area-inset-bottom);
+      background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(12px);
+      border-top: 1px solid var(--line); display: flex; z-index: 20;
+    }
+    .tabbar button {
+      flex: 1; position: relative; background: none; border: none; border-radius: 0; padding: 0;
+      color: #8e8e8e; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; font-size: 10px; font-weight: 500;
+    }
+    .tabbar svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .tabbar button.active { color: #fff; }
+    .tabbar button.active svg { stroke-width: 2.4; }
+    .tabbar button.active::before {
+      content: ""; position: absolute; top: 0; width: 28px; height: 3px; border-radius: 0 0 4px 4px; background: var(--grad);
+    }
+    .tabbar button.unread::after {
+      content: ""; position: absolute; top: 9px; left: calc(50% + 8px); width: 9px; height: 9px;
+      border-radius: 50%; background: #ff3b5c; border: 2px solid #000;
     }
 
-    /* Login / sign-up box */
-    #authBox {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
+    /* Inputs and buttons */
+    input[type="text"], input[type="email"], input[type="password"] {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--line);
+      border-radius: 12px; padding: 12px 14px; font-size: 16px; font-family: inherit; outline: none;
     }
-    .card {
-      background: white;
-      width: 100%;
-      max-width: 360px;
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
-    }
-    .card h2 { margin: 0 0 4px; color: #075e54; }
-    .card p.sub { margin: 0 0 16px; color: #666; font-size: 14px; }
-    .card input {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    .card button.main {
-      width: 100%;
-      padding: 12px;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    #switch {
-      margin-top: 14px;
-      text-align: center;
-      font-size: 14px;
-      color: #075e54;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    #authMsg { margin: 0 0 10px; font-size: 14px; color: #b00020; min-height: 18px; }
-    #authMsg.ok { color: #1b7f3b; }
-
-    /* Chat screen */
-    #chatBox { flex: 1; display: flex; flex-direction: column; min-height: 0; }
-    #messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .msg {
-      max-width: 75%;
-      padding: 8px 12px;
-      border-radius: 10px;
-      background: white;
-      align-self: flex-start;
-      word-wrap: break-word;
-    }
-    .msg.mine { background: #dcf8c6; align-self: flex-end; }
-    .msg .name { font-size: 12px; font-weight: 600; color: #075e54; }
-    .msg .time { font-size: 10px; color: #888; text-align: right; }
-    form#form { display: flex; gap: 8px; padding: 10px; background: #f0f0f0; }
-    form#form input {
-      flex: 1;
-      padding: 12px;
-      border: none;
-      border-radius: 20px;
-      font-size: 16px;
-      outline: none;
+    input::placeholder { color: #777; }
+    input:focus { border-color: #8b5cf6; }
+    input[type="file"] { color: var(--muted); width: 100%; margin-bottom: 8px; font-size: 14px; }
+    input[type="file"]::file-selector-button {
+      background: var(--surface2); color: var(--text); border: 1px solid var(--line);
+      border-radius: 10px; padding: 8px 12px; margin-right: 10px; cursor: pointer;
     }
     button {
-      background: #075e54;
-      color: white;
-      border: none;
-      border-radius: 20px;
-      padding: 0 20px;
-      font-size: 16px;
-      cursor: pointer;
+      font-family: inherit; cursor: pointer; border: none; border-radius: 12px;
+      background: var(--grad); color: #fff; font-size: 15px; font-weight: 600; padding: 0 18px;
     }
+    button:disabled { opacity: 0.6; }
 
-    /* Profile panel */
-    #panel {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      display: flex; justify-content: center; align-items: flex-start;
-      overflow-y: auto; padding: 16px; z-index: 10;
+    /* Login / sign-up */
+    #authBox { flex: 1; display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+    .card {
+      width: 100%; max-width: 360px; padding: 28px 24px; background: var(--surface);
+      border: 1px solid var(--line); border-radius: 20px; text-align: center;
     }
-    .sheet { background: white; width: 100%; max-width: 420px; border-radius: 12px; padding: 20px; }
-    .sheet h2 { margin: 0; color: #075e54; }
-    .sheet h3 { margin: 18px 0 6px; font-size: 14px; color: #444; }
-    .sheet .counts { color: #666; margin: 4px 0 12px; }
-    .sheet ul { list-style: none; margin: 0; padding: 0; }
-    .sheet li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 15px; }
-    .sheet li.empty { color: #999; }
-    .sheet input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; margin-bottom: 8px; }
-    .sheet button.wide { width: 100%; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
-    .sheet button.mini { padding: 4px 10px; font-size: 13px; margin-left: 6px; }
-    .sheet button.close { background: #ddd; color: #333; }
-    .sheet .hint { color: #777; font-size: 13px; margin: 0 0 6px; }
-    #pMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    .logoBig { width: 84px; height: 84px; border-radius: 22px; margin: 0 auto 12px; display: block; box-shadow: 0 8px 30px rgba(236, 72, 153, 0.35); }
+    .card h2 { margin: 0 0 4px; font-size: 26px; }
+    .card p.sub { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+    .card input { width: 100%; margin-bottom: 10px; }
+    .card button.main { width: 100%; padding: 13px; font-size: 16px; }
+    #switch { margin-top: 16px; font-size: 14px; color: #c9a7ff; cursor: pointer; }
+    #authMsg { margin: 0 0 10px; font-size: 14px; color: var(--danger); min-height: 18px; }
+    #authMsg.ok { color: #5fe08a; }
 
-    /* Reels */
-    #reelsPanel { position: fixed; inset: 0; background: #000; color: white; z-index: 11; display: flex; flex-direction: column; }
-    .reelsBar { height: 56px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; background: #111; flex-shrink: 0; }
-    .reelsBar button { padding: 6px 12px; font-size: 14px; margin-left: 6px; }
-    #rUpload { background: #111; padding: 12px; flex-shrink: 0; }
-    #rUpload input[type="text"] { width: 100%; padding: 10px; border-radius: 8px; margin: 8px 0; background: white; }
-    #rUpload input[type="file"] { width: 100%; color: white; }
-    #rUpload button { width: 100%; padding: 10px; border-radius: 8px; }
-    #rMsg { margin: 8px 0 0; font-size: 14px; color: #9be7b4; min-height: 18px; }
+    /* Lounge (public room) */
+    #chatBox { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+    #messages { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+    form#form { display: flex; gap: 8px; padding: 10px; border-top: 1px solid var(--line); }
+    form#form input { flex: 1; border-radius: 22px; }
+    form#form button { padding: 0 20px; border-radius: 22px; }
+
+    /* Message bubbles (lounge, chats, groups) */
+    .msg {
+      max-width: 78%; padding: 8px 12px; border-radius: 18px; background: var(--surface2);
+      align-self: flex-start; overflow-wrap: anywhere; color: var(--text);
+    }
+    .msg.mine { background: var(--grad); align-self: flex-end; color: #fff; }
+    .msg .name { font-size: 12px; font-weight: 700; color: #c9a7ff; margin-bottom: 2px; }
+    .msg.mine .name { color: rgba(255, 255, 255, 0.85); }
+    .msg .time { font-size: 10px; color: rgba(255, 255, 255, 0.5); text-align: right; margin-top: 2px; }
+    .msg img { max-width: 100%; border-radius: 12px; display: block; }
+    .msg video { width: 100%; max-width: 260px; border-radius: 12px; display: block; }
+    .msg a { color: #8ab4ff; overflow-wrap: anywhere; }
+    .msg.mine a { color: #fff; text-decoration: underline; }
+    .msg .rtag { font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.8); margin-top: 4px; }
+
+    /* Full-screen pages (sit between the top bar and the tab bar) */
+    #panel, #groupsPanel, #chatsPanel, #reelsPanel, #postsPanel {
+      position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); background: var(--bg); z-index: 10;
+    }
+    #panel, #groupsPanel, #chatsPanel { overflow-y: auto; padding: 16px; display: flex; justify-content: center; align-items: flex-start; }
+    #reelsPanel, #postsPanel { display: flex; flex-direction: column; }
+    #pClose, #gClose, #cClose, #rClose, #pbClose { display: none; }
+
+    /* Sheets: profile, groups, chats */
+    .sheet { width: 100%; max-width: 520px; padding: 0 0 24px; }
+    .sheet h2 { font-size: 26px; margin: 4px 0 6px; }
+    .sheet h3 { margin: 22px 0 8px; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .sheet .counts { color: var(--muted); margin: 2px 0 14px; }
+    .sheet ul { list-style: none; margin: 0; padding: 0; background: var(--surface); border-radius: 14px; overflow: hidden; }
+    .sheet ul:empty { display: none; }
+    .sheet li {
+      display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 15px;
+    }
+    .sheet li:last-child { border-bottom: none; }
+    .sheet li.empty { color: var(--muted); }
+    .sheet input { width: 100%; margin-bottom: 8px; }
+    .sheet button.wide, button.wide { width: 100%; padding: 12px; margin-bottom: 8px; }
+    button.mini {
+      padding: 6px 12px; font-size: 13px; margin-left: 6px;
+      background: var(--surface2); border: 1px solid var(--line); color: var(--text);
+    }
+    button.close { background: var(--surface2); color: var(--text); }
+    #pPrivacy { background: var(--surface2); border: 1px solid var(--line); color: var(--text); }
+    #logout { background: none; border: 1px solid var(--danger); color: var(--danger); }
+    .sheet .hint { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+    #pMsg, #cMsg, #gMsg, #gAddMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    #pName { font-size: 30px; }
+
+    /* Chat threads */
+    #cMessages {
+      display: flex; flex-direction: column; gap: 6px; overflow-y: auto; background: var(--surface);
+      padding: 10px; border-radius: 14px; margin: 8px 0; height: calc(100vh - var(--top) - var(--bottom) - 220px); min-height: 220px;
+    }
+    .gmsgs {
+      overflow-y: auto; background: var(--surface); border-radius: 14px; padding: 10px;
+      display: flex; flex-direction: column; gap: 6px; height: calc(100vh - var(--top) - var(--bottom) - 300px); min-height: 200px;
+    }
+    #cForm { display: flex; gap: 8px; align-items: center; }
+    #cForm input { flex: 1; margin: 0; }
+    #cForm button { padding: 12px 16px; }
+    .cPick { font-size: 24px; cursor: pointer; display: flex; align-items: center; }
+    #cStatus { font-size: 13px; color: var(--danger); min-height: 16px; margin: 4px 0 0; }
+
+    /* Reels and photo-post top bars */
+    .reelsBar, .pbBar {
+      height: 48px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px;
+      flex-shrink: 0; border-bottom: 1px solid var(--line);
+    }
+    .reelsBar strong, .pbBar strong { font-family: "Outfit", system-ui, sans-serif; font-size: 19px; }
+    .reelsBar button, .pbBar button { padding: 7px 14px; font-size: 13px; margin-left: 6px; }
+    #rUpload, #pbUpload { background: var(--surface); padding: 12px; flex-shrink: 0; border-bottom: 1px solid var(--line); }
+    #rUpload input[type="text"], #pbUpload input[type="text"] { width: 100%; margin: 4px 0 8px; }
+    #rUpload button, #pbUpload button { width: 100%; padding: 12px; }
+    #rMsg, #pbMsg { margin: 8px 0 0; font-size: 14px; color: #c9a7ff; min-height: 18px; }
+
+    /* Reels feed */
+    #reelsPanel { background: #000; }
     #rFeed { flex: 1; min-height: 0; overflow-y: auto; scroll-snap-type: y mandatory; }
-    .reel { position: relative; background: #000; scroll-snap-align: start; height: calc(100vh - 56px); height: calc(100dvh - 56px); }
+    .reel {
+      position: relative; background: #000; scroll-snap-align: start;
+      height: calc(100vh - var(--top) - var(--bottom) - 48px); height: calc(100dvh - var(--top) - var(--bottom) - 48px);
+    }
     .reel video { width: 100%; height: 100%; object-fit: contain; }
-    .reelInfo { position: absolute; left: 14px; right: 70px; bottom: 64px; text-shadow: 0 1px 4px #000; pointer-events: none; }
+    .reelInfo { position: absolute; left: 14px; right: 70px; bottom: 70px; text-shadow: 0 1px 6px #000; pointer-events: none; }
     .reelInfo .rname { font-weight: 700; margin-bottom: 4px; }
-    .reelDel { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
+    .reelDel, .reelSend {
+      position: absolute; top: 12px; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(8px);
+      padding: 7px 14px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    .reelDel { right: 12px; }
+    .reelSend { left: 12px; }
     .reelsEmpty { padding: 30px 20px; color: #bbb; text-align: center; }
 
-    /* Private chats */
-    #chatsPanel {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      display: flex; justify-content: center; align-items: flex-start;
-      overflow-y: auto; padding: 16px; z-index: 10;
-    }
-    #cMessages { display: flex; flex-direction: column; gap: 6px; height: 50vh; overflow-y: auto; background: #e5ddd5; padding: 8px; border-radius: 8px; margin: 8px 0; }
-    #cForm { display: flex; gap: 8px; }
-    #cForm input { flex: 1; margin: 0; }
-    #cForm button { padding: 0 16px; }
-    .cPick { font-size: 22px; cursor: pointer; display: flex; align-items: center; }
-    #cStatus { font-size: 13px; color: #b00020; min-height: 16px; margin: 4px 0 0; }
-    .msg img { max-width: 100%; border-radius: 8px; display: block; }
-    .msg video { width: 100%; max-width: 260px; border-radius: 8px; display: block; }
-    .msg a { color: #0645ad; overflow-wrap: anywhere; }
-    .msg .rtag { font-size: 12px; font-weight: 600; color: #075e54; margin-top: 4px; }
-    .reelSend { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); padding: 6px 12px; font-size: 13px; }
-
-    /* Photo posts */
-    #postsPanel { position: fixed; inset: 0; background: #fafafa; z-index: 11; display: flex; flex-direction: column; }
-    .pbBar { height: 56px; background: #075e54; color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; flex-shrink: 0; }
-    .pbBar button { padding: 6px 12px; font-size: 14px; margin-left: 6px; border: 1px solid white; background: transparent; }
-    #pbUpload { background: white; padding: 12px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-    #pbUpload input[type="text"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; margin: 8px 0; font-size: 16px; }
-    #pbUpload button { width: 100%; padding: 10px; border-radius: 8px; }
-    #pbMsg { margin: 8px 0 0; font-size: 14px; color: #075e54; min-height: 18px; }
+    /* Photo feed */
     #pbFeed { flex: 1; min-height: 0; overflow-y: auto; padding-bottom: 20px; }
-    .pbEmpty { padding: 30px 20px; color: #777; text-align: center; }
-    .post { background: white; border-bottom: 1px solid #ddd; margin: 0 auto 10px; max-width: 520px; }
+    .pbEmpty { padding: 30px 20px; color: var(--muted); text-align: center; }
+    .post { border-bottom: 1px solid var(--line); margin: 0 auto 6px; max-width: 520px; padding-bottom: 6px; }
     .post .phead { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; font-weight: 600; }
-    .post img { width: 100%; display: block; max-height: 80vh; object-fit: cover; }
-    .post .pact { padding: 8px 12px 0; display: flex; gap: 14px; align-items: center; }
-    .post .pact button { background: none; color: #222; padding: 0; font-size: 24px; }
-    .post .pcount { padding: 2px 12px; font-weight: 600; font-size: 14px; }
-    .post .pcap { padding: 0 12px 8px; font-size: 15px; }
-    .post .pcom { padding: 0 12px 12px; }
-    .post .pcom .cl { font-size: 14px; margin: 3px 0; overflow-wrap: anywhere; }
-    .post .pcom form { display: flex; gap: 6px; margin-top: 6px; }
-    .post .pcom input { flex: 1; padding: 8px 12px; border: 1px solid #ccc; border-radius: 16px; font-size: 15px; }
-    .post .pcom form button { padding: 0 14px; font-size: 14px; }
-    .post .pdel { background: none; color: #b00020; font-size: 13px; padding: 0; }
-    #cMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
-    header { flex-wrap: wrap; }
-    header .right { flex-wrap: wrap; justify-content: flex-end; }
-
-    /* Groups */
-    #groupsPanel {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-      display: flex; justify-content: center; align-items: flex-start;
-      overflow-y: auto; padding: 16px; z-index: 10;
+    .post .phead span::before {
+      content: ""; display: inline-block; width: 30px; height: 30px; border-radius: 50%; vertical-align: middle; margin-right: 10px;
+      border: 2px solid transparent; background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--grad) border-box;
     }
-    .gmsgs { height: 45vh; overflow-y: auto; background: #e5ddd5; border-radius: 8px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-    #gMsg, #gAddMsg { color: #075e54; font-size: 14px; min-height: 18px; margin: 0 0 4px; }
+    .post img { width: 100%; display: block; max-height: 80vh; object-fit: cover; background: var(--surface); }
+    .post .pact { padding: 10px 12px 0; display: flex; gap: 16px; align-items: center; }
+    .post .pact button { background: none; color: var(--text); padding: 0; font-size: 26px; line-height: 1; }
+    .post .pcount { padding: 4px 12px; font-weight: 600; font-size: 14px; }
+    .post .pcap { padding: 0 12px 8px; font-size: 15px; overflow-wrap: anywhere; }
+    .post .pcom { padding: 0 12px 12px; }
+    .post .pcom .cl { font-size: 14px; margin: 4px 0; overflow-wrap: anywhere; color: #ddd; }
+    .post .pcom form { display: flex; gap: 6px; margin-top: 8px; }
+    .post .pcom input { flex: 1; padding: 9px 14px; border-radius: 18px; font-size: 15px; }
+    .post .pcom form button { padding: 0 16px; font-size: 14px; border-radius: 18px; }
+    .post .pdel { background: none; color: var(--danger); font-size: 13px; padding: 0; }
   </style>
 </head>
 <body>
-  <header>
-    <span>💬 Twik Chat</span>
-    <span class="right" id="userArea" hidden>
-      <span id="who"></span>
-      <button id="groupsBtn" type="button">Groups</button>
-      <button id="chatsBtn" type="button">Chats</button>
-      <button id="postsBtn" type="button">Home</button>
-      <button id="reelsBtn" type="button">Reels</button>
-      <button id="profileBtn" type="button">Profile</button>
-      <button id="logout" type="button">Log out</button>
-    </span>
+  <header class="topbar">
+    <div class="brandBox"><img class="logoSm" src="/logo.svg" alt="" /><span class="brand">twik</span></div>
+    <span id="who"></span>
   </header>
+  <nav class="tabbar" id="userArea" hidden>
+    <button id="postsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button id="reelsBtn" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg>Reels</button>
+    <button id="chatsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg>Chats</button>
+    <button id="groupsBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.400 6.500 6"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 14.300c2 .8 3.500 2.600 3.500 5.700"/></svg>Groups</button>
+    <button id="loungeBtn" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.600 7.100L4 20l1-4.600A8 8 0 1 1 21 12z"/></svg>Lounge</button>
+    <button id="profileBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>Me</button>
+  </nav>
 
   <!-- Login / sign-up screen -->
   <div id="authBox" hidden>
     <form class="card" id="authForm">
+      <img class="logoBig" src="/logo.svg" alt="Twik Chat" />
       <h2 id="authTitle">Log in</h2>
       <p class="sub" id="authSub">Welcome back! Enter your details.</p>
       <input id="username" type="text" placeholder="Username" maxlength="20" autocomplete="nickname" hidden />
@@ -264,7 +290,8 @@
       <h3>Following</h3>
       <ul id="pFollowing"></ul>
 
-      <button class="wide close" id="pClose" type="button" style="margin-top:16px">Close</button>
+      <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
+      <button class="close" id="pClose" type="button" hidden>Close</button>
     </div>
   </div>
 
@@ -506,7 +533,22 @@
         socket.on("chat message", addMessage);
         socket.on("dm", onDm);
         socket.on("dm error", (text) => alert(text));
+        goHome();
       }
+
+      // ---------- Bottom tabs ----------
+      const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "loungeBtn", "profileBtn"];
+      function closeAllPanels() {
+        ["rClose", "pbClose", "cClose", "gClose", "pClose"].forEach((id) => $(id).click());
+      }
+      function setActive(id) {
+        tabIds.forEach((t) => $(t).classList.toggle("active", t === id));
+      }
+      function goHome() { $("postsBtn").click(); }
+      $("userArea").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (b) { closeAllPanels(); setActive(b.id); }
+      }, true);
 
       $("form").addEventListener("submit", (e) => {
         e.preventDefault();
@@ -805,12 +847,12 @@
           addToThread(m);
         } else {
           if (open && !peer) loadConvos();
-          if (m.from !== me.id) $("chatsBtn").textContent = "Chats •";
+          if (m.from !== me.id) $("chatsBtn").classList.add("unread");
         }
       }
 
       $("chatsBtn").addEventListener("click", () => {
-        $("chatsBtn").textContent = "Chats";
+        $("chatsBtn").classList.remove("unread");
         $("cMsg").textContent = "";
         $("chatsPanel").hidden = false;
         showList();

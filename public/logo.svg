@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Twik Chat">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset=".55" stop-color="#ec4899"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#g)"/>
+  <g fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="64">
+    <path d="M232 118 L232 322 Q232 398 304 398 L344 398"/>
+    <path d="M146 222 L374 202"/>
+  </g>
+  <path d="M398 78 l10 28 28 10 -28 10 -10 28 -10 -28 -28 -10 28 -10z" fill="#fff"/>
+</svg>
