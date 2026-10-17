@@ -239,6 +239,81 @@
     .post .pcom input { flex: 1; padding: 9px 14px; border-radius: 18px; font-size: 15px; }
     .post .pcom form button { padding: 0 16px; font-size: 14px; border-radius: 18px; }
     .post .pdel { background: none; color: var(--danger); font-size: 13px; padding: 0; }
+
+    /* ===== Twik's own shapes (v10): soft pebbles, leaf bubbles, floating pill bar ===== */
+    :root { --bottom: calc(88px + env(safe-area-inset-bottom)); --pebble: 26px; }
+
+    /* Top bar floats, no hard line; logo tilts like a sticker */
+    .topbar { border-bottom: none; padding: 0 16px; }
+    .logoSm { border-radius: 11px 11px 11px 4px; transform: rotate(-6deg); }
+    .logoBig { border-radius: 30px 30px 30px 8px; transform: rotate(-5deg); }
+    #who { background: var(--surface2); padding: 5px 12px; border-radius: 14px 14px 14px 4px; color: #ddd; }
+
+    /* Floating pill tab bar: icons only, the chosen tab grows into a glowing pill */
+    .tabbar {
+      left: 12px; right: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); height: 64px; padding: 7px; gap: 4px;
+      border: 1px solid #2a2a2a; border-radius: 34px; background: rgba(20, 20, 24, 0.86);
+      backdrop-filter: blur(16px); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(236, 72, 153, 0.12);
+    }
+    .tabbar button {
+      flex: 1 1 0; flex-direction: row; gap: 7px; border-radius: 26px; font-size: 0; transition: flex 0.25s ease, background 0.25s ease;
+    }
+    .tabbar button.active {
+      flex: 2.6 1 0; background: var(--grad); color: #fff; font-size: 13px; font-weight: 700;
+      box-shadow: 0 4px 18px rgba(236, 72, 153, 0.45);
+    }
+    .tabbar button.active::before { display: none; }
+    .tabbar button.active svg { stroke-width: 2.2; }
+    .tabbar button.unread::after { top: 8px; left: calc(50% + 6px); }
+    .tabbar button.active.unread::after { display: none; }
+
+    /* Soft pebble avatars instead of circles */
+    .avatar, .sAv { border-radius: 36% 36% 36% 12%; }
+    .sAv { width: 38px; height: 38px; }
+
+    /* Leaf-shaped chat bubbles */
+    .msg { border-radius: 22px 22px 22px 6px; padding: 9px 14px; }
+    .msg.mine { border-radius: 22px 22px 6px 22px; box-shadow: 0 4px 16px rgba(236, 72, 153, 0.25); }
+    form#form, #cForm { padding: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 30px; margin: 8px 10px; }
+    form#form input, #cForm input { border: none; background: transparent; }
+    form#form button, #cForm button { border-radius: 24px 24px 24px 8px; }
+    #cForm { margin: 8px 0; }
+
+    /* Cards and lists become pebbles with one sharper corner */
+    .card { border-radius: 44px 44px 44px 12px; padding: 32px 26px; }
+    .sheet ul { border-radius: var(--pebble); }
+    #cMessages, .gmsgs { border-radius: 28px; }
+    .sheet h3 {
+      display: inline-block; padding: 5px 13px; margin: 22px 0 10px; background: var(--surface2);
+      border-radius: 14px 14px 14px 4px; color: #d9c8ff; font-size: 11px;
+    }
+    .sheet h3::before { content: "✦ "; color: #ec4899; }
+    input[type="text"], input[type="email"], input[type="password"] { border-radius: 20px 20px 20px 8px; }
+    button { border-radius: 20px 20px 20px 8px; }
+    button.wide, .card button.main { border-radius: 24px 24px 24px 8px; }
+    button.mini { border-radius: 14px 14px 14px 5px; }
+    #pPrivacy { border-radius: 26px; }
+    .reelsBar button, .pbBar button { border-radius: 16px 16px 16px 5px; }
+
+    /* Photo posts: floating pebble cards with an inner rounded photo */
+    #pbFeed { padding: 4px 12px 24px; }
+    .post {
+      background: var(--surface); border: 1px solid var(--line); border-radius: 32px 32px 32px 10px;
+      margin: 0 auto 16px; padding: 6px 6px 8px; overflow: hidden;
+    }
+    .post img { border-radius: 26px 26px 26px 6px; max-height: 70vh; }
+    .post .phead { padding: 8px 10px; }
+    .post .pact button { background: var(--surface2); width: 46px; height: 40px; border-radius: 18px 18px 18px 6px; font-size: 22px; }
+    .post .pcom input { border-radius: 20px 20px 20px 6px; }
+    .post .pcom form button { border-radius: 18px 18px 18px 6px; }
+
+    /* Reels get rounded corners and a floating caption plate */
+    #reelsPanel { padding: 0 8px; }
+    .reel { border-radius: 30px; overflow: hidden; margin-bottom: 10px; }
+    .reelInfo { background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(10px); padding: 8px 14px; border-radius: 18px 18px 18px 5px; left: 12px; right: 72px; bottom: 16px; }
+    .reelDel, .reelSend { border-radius: 14px 14px 14px 4px; }
+    .reelsBar, .pbBar { border-bottom: none; }
+    #rUpload, #pbUpload { border-radius: 24px 24px 24px 8px; margin: 0 8px 8px; border: 1px solid var(--line); }
   </style>
 </head>
 <body>
@@ -290,7 +365,7 @@
         </label>
         <div>
           <h2 id="pName">@you</h2>
-          <div class="hint" id="pAvatarHint">Tap the circle to add a picture</div>
+          <div class="hint" id="pAvatarHint">Tap the picture to change it</div>
         </div>
       </div>
       <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
