@@ -357,12 +357,22 @@
     #userView .sheet, #searchPanel .sheet { width: 100%; max-width: 520px; }
     .pBtns .primary { background: var(--grad); border-color: transparent; color: #fff; }
     .clickRow .rowText { cursor: pointer; }
+
+    /* ===== Notifications (v13) ===== */
+    .iconBtn { position: relative; }
+    .badge { position: absolute; top: -5px; right: -5px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 10px 10px 10px 3px; background: #ff3b5c; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #000; }
+    .badge[hidden] { display: none !important; }
+    #notifPanel { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); background: var(--bg); z-index: 12; overflow-y: auto; padding: 16px; display: flex; justify-content: center; align-items: flex-start; }
+    #notifPanel .sheet { width: 100%; max-width: 520px; }
+    .nTime { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+    #nList li.isNew { background: rgba(139, 92, 246, 0.16); }
+    #nList .rowText { flex: 1; }
   </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brandBox"><img class="logoSm" src="/logo.svg" alt="" /><span class="brand">twik</span></div>
-    <span class="topRight"><span id="who"></span><button id="searchBtn" class="iconBtn" type="button" aria-label="Search people" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button></span>
+    <span class="topRight"><span id="who"></span><button id="bellBtn" class="iconBtn" type="button" aria-label="Notifications" hidden><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.500 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span id="bellBadge" class="badge" hidden>0</span></button><button id="searchBtn" class="iconBtn" type="button" aria-label="Search people" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button></span>
   </header>
   <nav class="tabbar" id="userArea" hidden>
     <button id="postsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
@@ -477,6 +487,15 @@
       <input id="sInput" type="text" placeholder="Search by username" autocomplete="off" maxlength="20" />
       <ul id="sResults"></ul>
       <button class="close" id="sClose" type="button" hidden>Close</button>
+    </div>
+  </div>
+
+  <!-- Notifications panel -->
+  <div id="notifPanel" hidden>
+    <div class="sheet">
+      <h2>Notifications</h2>
+      <ul id="nList"></ul>
+      <button class="close" id="nClose" type="button" hidden>Close</button>
     </div>
   </div>
 
@@ -731,6 +750,9 @@
         $("chatBox").hidden = false;
         $("userArea").hidden = false;
         $("searchBtn").hidden = false;
+        $("bellBtn").hidden = false;
+        refreshBell();
+        setInterval(refreshBell, 45000);
         $("who").textContent =
           (user.user_metadata && user.user_metadata.username) || user.email;
 
@@ -763,7 +785,7 @@
       // ---------- Bottom tabs ----------
       const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "loungeBtn", "profileBtn"];
       function closeAllPanels() {
-        ["rClose", "pbClose", "cClose", "gClose", "pClose", "sClose"].forEach((id) => $(id).click());
+        ["rClose", "pbClose", "cClose", "gClose", "pClose", "sClose", "nClose"].forEach((id) => $(id).click());
         $("viewer").hidden = true;
         $("userView").hidden = true;
       }
@@ -957,6 +979,52 @@
         $("cUser").value = name;
         $("cStart").click();
       });
+
+      // ---------- Notifications ----------
+      function ago(iso) {
+        const sec = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+        if (sec < 60) return "now";
+        if (sec < 3600) return Math.floor(sec / 60) + "m";
+        if (sec < 86400) return Math.floor(sec / 3600) + "h";
+        return Math.floor(sec / 86400) + "d";
+      }
+      function setBadge(n) {
+        $("bellBadge").hidden = !n;
+        $("bellBadge").textContent = n > 9 ? "9+" : String(n);
+      }
+      async function refreshBell() {
+        const d = await api("/api/notifications/count");
+        setBadge(d.unread || 0);
+      }
+      $("bellBtn").addEventListener("click", async () => {
+        closeAllPanels();
+        tabIds.forEach((t) => $(t).classList.remove("active"));
+        $("notifPanel").hidden = false;
+        const d = await api("/api/notifications");
+        const ul = $("nList");
+        ul.innerHTML = "";
+        const items = d.items || [];
+        if (!items.length) {
+          const li = document.createElement("li");
+          li.className = "empty";
+          li.textContent = "Nothing yet. New followers, likes and comments show up here.";
+          ul.appendChild(li);
+        }
+        items.forEach((it) => {
+          const li = row("@" + it.username + " " + it.text, [], it.avatar, it.username);
+          li.classList.add("clickRow");
+          if (it.is_new) li.classList.add("isNew");
+          const t = document.createElement("span");
+          t.className = "nTime";
+          t.textContent = ago(it.time);
+          li.appendChild(t);
+          li.firstChild.onclick = () => { $("notifPanel").hidden = true; openUser(it.username); };
+          ul.appendChild(li);
+        });
+        await api("/api/notifications/seen", "POST", {});
+        setBadge(0);
+      });
+      $("nClose").addEventListener("click", () => { $("notifPanel").hidden = true; });
 
       let searchTimer = null;
       async function runSearch() {

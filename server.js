@@ -202,6 +202,70 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
   res.json(await mediaFor(me.id, me.id));
 }));
 
+// ---------- Notifications (built from follows, likes and comments) ----------
+async function buildNotifications(me) {
+  const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+  const items = [];
+
+  const { data: fRows } = await supabase
+    .from("follows").select("follower_id, status, created_at")
+    .eq("following_id", me.id).gte("created_at", since).order("created_at", { ascending: false }).limit(40);
+  const { data: myPosts } = await supabase.from("photo_posts").select("id").eq("user_id", me.id);
+  const postIds = (myPosts || []).map((p) => p.id);
+
+  let likeRows = [];
+  let comRows = [];
+  if (postIds.length) {
+    const l = await supabase.from("photo_likes").select("post_id, user_id, created_at")
+      .in("post_id", postIds).neq("user_id", me.id).gte("created_at", since).order("created_at", { ascending: false }).limit(40);
+    likeRows = l.data || [];
+    const c = await supabase.from("photo_comments").select("post_id, user_id, username, text, created_at")
+      .in("post_id", postIds).neq("user_id", me.id).gte("created_at", since).order("created_at", { ascending: false }).limit(40);
+    comRows = c.data || [];
+  }
+
+  const names = await namesFor([...new Set([...(fRows || []).map((f) => f.follower_id), ...likeRows.map((l) => l.user_id)])]);
+  const actorIds = [...new Set([...(fRows || []).map((f) => f.follower_id), ...likeRows.map((l) => l.user_id), ...comRows.map((c) => c.user_id)].filter(Boolean))];
+  const pics = await avatarsFor(actorIds);
+
+  (fRows || []).forEach((f) => items.push({
+    type: f.status === "pending" ? "request" : "follow", username: names[f.follower_id] || "someone",
+    avatar: pics[f.follower_id] || null, text: f.status === "pending" ? "wants to follow you" : "started following you", time: f.created_at,
+  }));
+  likeRows.forEach((l) => items.push({
+    type: "like", username: names[l.user_id] || "someone", avatar: pics[l.user_id] || null, text: "liked your photo", time: l.created_at,
+  }));
+  comRows.forEach((c) => items.push({
+    type: "comment", username: c.username || "someone", avatar: pics[c.user_id] || null,
+    text: "commented: " + String(c.text || "").slice(0, 80), time: c.created_at,
+  }));
+
+  items.sort((a, b) => new Date(b.time) - new Date(a.time));
+  const seen = me.notif_seen_at ? new Date(me.notif_seen_at).getTime() : 0;
+  items.forEach((i) => { i.is_new = new Date(i.time).getTime() > seen; });
+  return items.slice(0, 50);
+}
+
+app.get("/api/notifications", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const items = await buildNotifications(me);
+  res.json({ items, unread: items.filter((i) => i.is_new).length });
+}));
+
+app.get("/api/notifications/count", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.json({ unread: 0 });
+  const items = await buildNotifications(me);
+  res.json({ unread: items.filter((i) => i.is_new).length });
+}));
+
+app.post("/api/notifications/seen", requireUser, safe(async (req, res) => {
+  const { error } = await supabase.from("profiles").update({ notif_seen_at: new Date().toISOString() }).eq("id", req.user.id);
+  if (error) return res.status(500).json({ error: "Could not save. Did you run the notifications SQL in Supabase?" });
+  res.json({ ok: true });
+}));
+
 // Find people by username (empty search shows the newest people)
 app.get("/api/search", requireUser, safe(async (req, res) => {
   const q = String(req.query.q || "").toLowerCase().replace(/^@/, "").replace(/[^a-z0-9_]/g, "").slice(0, 20);
