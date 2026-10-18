@@ -202,6 +202,87 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
   res.json(await mediaFor(me.id, me.id));
 }));
 
+// People who follow me AND I follow them back ("friends")
+async function mutualIds(meId) {
+  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
+  const { data: inRows } = await supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted");
+  const iFollow = new Set((outRows || []).map((r) => r.following_id));
+  return (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id));
+}
+
+app.get("/api/friends", requireUser, safe(async (req, res) => {
+  const ids = await mutualIds(req.user.id);
+  if (!ids.length) return res.json({ friends: [] });
+  const names = await namesFor(ids);
+  const pics = await avatarsFor(ids);
+  res.json({ friends: ids.map((id) => ({ id, username: names[id] || "unknown", avatar: pics[id] || null }))
+    .sort((a, b) => a.username.localeCompare(b.username)) });
+}));
+
+// ---------- Notes (a short thought, with music, for 24 hours) ----------
+app.post("/api/notes/audio-url", requireUser, safe(async (req, res) => {
+  const wanted = String(req.body.ext || "").toLowerCase();
+  const ext = ["mp3", "m4a", "aac", "wav", "ogg", "opus", "webm"].includes(wanted) ? wanted : "mp3";
+  const path = req.user.id + "/note-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+
+app.post("/api/notes", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const text = String(req.body.text || "").trim().slice(0, 60);
+  const song = String(req.body.song || "").trim().slice(0, 40);
+  const artist = String(req.body.artist || "").trim().slice(0, 40);
+  let audio = String(req.body.audio_path || "");
+  if (audio && (!audio.startsWith(req.user.id + "/note-") || audio.includes(".."))) audio = "";
+  if (!text && !song) return res.json({ error: "Write something or add a song." });
+
+  const { data: old } = await supabase.from("notes").select("audio_path").eq("user_id", me.id).maybeSingle();
+  if (!audio && req.body.keep_audio && old && old.audio_path) audio = old.audio_path;
+  if (old && old.audio_path && old.audio_path !== audio) await supabase.storage.from(REELS_BUCKET).remove([old.audio_path]);
+
+  const { error } = await supabase.from("notes").upsert({
+    user_id: me.id, username: me.username, text, song, artist, audio_path: audio || null, created_at: new Date().toISOString(),
+  });
+  if (error) return res.status(500).json({ error: "Could not save. Did you run the notes SQL in Supabase?" });
+  res.json({ ok: true });
+}));
+
+app.post("/api/notes/delete", requireUser, safe(async (req, res) => {
+  const { data: old } = await supabase.from("notes").select("audio_path").eq("user_id", req.user.id).maybeSingle();
+  if (old && old.audio_path) await supabase.storage.from(REELS_BUCKET).remove([old.audio_path]);
+  await supabase.from("notes").delete().eq("user_id", req.user.id);
+  res.json({ ok: true });
+}));
+
+app.get("/api/notes", requireUser, safe(async (req, res) => {
+  const meId = req.user.id;
+  const ids = [meId, ...(await mutualIds(meId))];
+  const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const { data: rows, error } = await supabase
+    .from("notes").select("user_id, username, text, song, artist, audio_path, created_at")
+    .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: false });
+  if (error) return res.json({ notes: [] });
+  const list = rows || [];
+  const audio = list.filter((n) => n.audio_path).map((n) => n.audio_path);
+  const urls = {};
+  if (audio.length) {
+    const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(audio, 3600);
+    (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  }
+  const pics = await avatarsFor(list.map((n) => n.user_id));
+  const notes = list.map((n) => ({
+    user_id: n.user_id, username: n.username, avatar: pics[n.user_id] || null, mine: n.user_id === meId,
+    text: n.text || "", song: n.song || "", artist: n.artist || "", audio_url: n.audio_path ? urls[n.audio_path] || null : null,
+    time: n.created_at,
+  }));
+  notes.sort((a, b) => (a.mine === b.mine ? 0 : a.mine ? -1 : 1));
+  const mePics = await avatarsFor([meId]);
+  res.json({ notes, me_avatar: mePics[meId] || null });
+}));
+
 // ---------- Stories (disappear after 24 hours) ----------
 const STORY_HOURS = 24;
 let lastStoryCleanup = 0;
@@ -210,6 +291,12 @@ async function cleanupStories() {
   if (Date.now() - lastStoryCleanup < 10 * 60 * 1000) return;
   lastStoryCleanup = Date.now();
   const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
+  const { data: oldNotes } = await supabase.from("notes").select("user_id, audio_path").lt("created_at", cutoff).limit(200);
+  if (oldNotes && oldNotes.length) {
+    const files = oldNotes.map((n) => n.audio_path).filter(Boolean);
+    if (files.length) await supabase.storage.from(REELS_BUCKET).remove(files);
+    await supabase.from("notes").delete().in("user_id", oldNotes.map((n) => n.user_id));
+  }
   const { data: old } = await supabase.from("stories").select("id, path").lt("created_at", cutoff).limit(200);
   if (!old || !old.length) return;
   await supabase.storage.from(REELS_BUCKET).remove(old.map((o) => o.path));
@@ -232,7 +319,14 @@ app.post("/api/stories", requireUser, safe(async (req, res) => {
   if (!path.startsWith(req.user.id + "/story-") || path.includes("..")) return res.status(400).json({ error: "Bad file" });
   const kind = req.body.kind === "video" ? "video" : "image";
   const caption = String(req.body.caption || "").trim().slice(0, 120);
-  const { error } = await supabase.from("stories").insert({ user_id: me.id, username: me.username, path, kind, caption });
+  const row = { user_id: me.id, username: me.username, path, kind, caption };
+  if (Array.isArray(req.body.audience)) {
+    const friends = new Set(await mutualIds(me.id));
+    const chosen = [...new Set(req.body.audience.map(String))].filter((id) => UUID_RE.test(id) && friends.has(id));
+    if (!chosen.length) return res.status(400).json({ error: "Pick at least one friend, or share with all your friends." });
+    row.audience = chosen;
+  }
+  const { error } = await supabase.from("stories").insert(row);
   if (error) return res.status(500).json({ error: "Could not save. Did you run the stories SQL in Supabase?" });
   res.json({ ok: true });
 }));
@@ -258,11 +352,17 @@ app.get("/api/stories", requireUser, safe(async (req, res) => {
   const ids = [meId, ...mutual];
 
   const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
-  const { data: rows, error } = await supabase
-    .from("stories").select("id, user_id, username, path, kind, caption, created_at")
+  let q = await supabase
+    .from("stories").select("id, user_id, username, path, kind, caption, created_at, audience")
     .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(300);
-  if (error) return res.json({ groups: [] });
-  const list = rows || [];
+  if (q.error) {
+    // the "audience" column may not exist yet (SQL not run): fall back to the old query
+    q = await supabase
+      .from("stories").select("id, user_id, username, path, kind, caption, created_at")
+      .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(300);
+  }
+  if (q.error) return res.json({ groups: [] });
+  const list = (q.data || []).filter((r) => r.user_id === meId || !r.audience || !r.audience.length || r.audience.includes(meId));
   if (!list.length) return res.json({ groups: [] });
 
   const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(list.map((r) => r.path), 3600);
@@ -525,13 +625,18 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
     .limit(200);
 
   const seen = {};
+  const iSentTo = new Set();
+  (data || []).forEach((m) => { if (m.sender_id === me) iSentTo.add(m.receiver_id); });
+  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted");
+  const iFollow = new Set((outRows || []).map((r) => r.following_id));
   const chats = [];
   (data || []).forEach((m) => {
     const peer = m.sender_id === me ? m.receiver_id : m.sender_id;
     if (!seen[peer]) {
       seen[peer] = true;
       const preview = m.kind === "image" ? "📷 Photo" : m.kind === "reel" ? "🎬 Reel" : m.text || "";
-      chats.push({ peer_id: peer, text: preview, time: m.created_at });
+      // A "request" = someone I don't follow and have never written to
+      chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
   });
   const names = await namesFor(chats.map((c) => c.peer_id));

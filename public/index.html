@@ -429,6 +429,62 @@
     .pwEye { position: absolute; right: 6px; top: 4px; width: 42px; height: 42px; padding: 0; background: none; color: var(--muted); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
     .pwEye svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
     .linkBtn { background: none; color: #c9a7ff; text-decoration: underline; font-size: 14px; padding: 0; margin: 0 0 12px; font-weight: 500; }
+
+    /* ===== Chats list, notes, story audience (v16) ===== */
+    #chatsPanel .sheet { max-width: 520px; }
+    .cTop { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .cTop h2 { margin: 0; font-size: 24px; }
+    .cSearch { display: flex; align-items: center; gap: 10px; background: var(--surface2); border-radius: 22px 22px 22px 8px; padding: 0 14px; margin-bottom: 14px; }
+    .cSearch svg { width: 20px; height: 20px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; flex-shrink: 0; }
+    .cSearch input { flex: 1; width: auto; background: none; border: none; padding: 13px 0; margin: 0; }
+    #cStartBox { margin-bottom: 12px; }
+    #cStartBox input { width: 100%; margin-bottom: 8px; }
+    .notesRow { display: flex; gap: 14px; overflow-x: auto; padding: 38px 8px 12px 14px; scrollbar-width: none; }
+    .notesRow::-webkit-scrollbar { display: none; }
+    .nCard { flex: 0 0 auto; width: 84px; background: none; padding: 0; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--text); font-weight: 400; }
+    .nBubble {
+      position: absolute; top: -34px; left: 50%; transform: translateX(-50%); width: max-content; max-width: 100px; min-width: 40px; padding: 6px 10px;
+      background: var(--surface2); border: 1px solid #333; border-radius: 16px 16px 16px 4px; font-size: 11px; line-height: 1.25; z-index: 2;
+      display: flex; flex-direction: column; gap: 2px; text-align: left; box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+    }
+    .nBubble.ghost { color: var(--muted); }
+    .nText { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+    .nSong { color: #e9d5ff; font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .nAv { width: 68px; height: 68px; font-size: 26px; margin-top: 4px; }
+    .nName { font-size: 11.5px; color: var(--muted); max-width: 84px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cTabs { display: flex; justify-content: space-between; align-items: center; margin: 6px 0 4px; }
+    .cTabs button { background: none; padding: 6px 2px; font-family: "Outfit", sans-serif; font-size: 17px; font-weight: 600; color: var(--muted); border-radius: 0; }
+    .cTabs button.on { color: #fff; }
+    .cTabs button#cTabReq { font-size: 14px; font-family: inherit; }
+    ul.convos { background: none; border-radius: 0; }
+    .convos li.convo { display: flex; justify-content: flex-start; gap: 14px; padding: 10px 2px; border-bottom: none; cursor: pointer; position: relative; }
+    .cAv { width: 54px; height: 54px; font-size: 22px; }
+    .cMid { flex: 1; min-width: 0; }
+    .cName { font-size: 15.5px; font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cPrev { font-size: 13.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+    .convo.unread .cName, .convo.unread .cPrev { font-weight: 700; color: #fff; }
+    .cDot { width: 11px; height: 11px; border-radius: 50%; background: var(--grad); flex-shrink: 0; align-self: center; }
+    #noteSheet, #noteView { position: fixed; inset: 0; z-index: 56; background: rgba(0,0,0,0.97); display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+    #noteSheet .saBox input[type="text"], #noteView input[type="text"] { width: 100%; margin-bottom: 8px; }
+    .ntCount { text-align: right; font-size: 12px; color: var(--muted); margin: -2px 4px 8px; }
+    .ntFile { display: block; background: var(--surface2); border: 1px solid var(--line); padding: 12px; border-radius: 16px 16px 16px 5px; margin-bottom: 6px; cursor: pointer; }
+    #ntMsg, #nvMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; }
+    .nvBox { text-align: center; }
+    .nvWho { display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; margin-bottom: 14px; }
+    .nvBubble { background: var(--surface2); border: 1px solid #333; border-radius: 28px 28px 28px 8px; padding: 18px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; align-items: center; font-size: 18px; overflow-wrap: anywhere; }
+    #nvSong { color: #e9d5ff; font-size: 14px; }
+    .nvPlay { padding: 9px 16px; font-size: 14px; }
+    .nvForm { display: flex; gap: 8px; margin-bottom: 10px; }
+    .nvForm input { flex: 1; margin: 0 !important; }
+    .audBox { margin: 4px 0 12px; text-align: left; }
+    .audTitle { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .audOpt { display: flex; align-items: center; gap: 8px; padding: 6px 2px; }
+    .audBox input, .audOpt input, .audRow input { width: auto !important; margin: 0 !important; accent-color: #ec4899; }
+    .audList { max-height: 160px; overflow-y: auto; background: var(--surface); border-radius: 18px; padding: 4px 10px; margin-top: 6px; }
+    .audRow { display: flex; align-items: center; gap: 10px; padding: 7px 0; }
+    .audRow .sAv { width: 30px; height: 30px; font-size: 13px; }
+    .saPreview { height: 38vh; }
+    #ntDelete { background: none; border: 1px solid var(--danger); color: var(--danger); }
   </style>
 </head>
 <body>
@@ -628,15 +684,32 @@
   <!-- Private chats panel -->
   <div id="chatsPanel" hidden>
     <div class="sheet">
-      <h2 id="cTitle">💬 Chats</h2>
+      <h2 id="cTitle" hidden>Chat</h2>
 
       <div id="cList">
-        <h3>Start a chat</h3>
-        <input id="cUser" type="text" placeholder="Their username" autocomplete="off" />
-        <button class="wide" id="cStart" type="button">Start chat</button>
-        <p id="cMsg"></p>
-        <h3>Your chats</h3>
-        <ul id="cConvos"></ul>
+        <div class="cTop">
+          <h2 id="cHeadName">@you</h2>
+          <button id="cCompose" class="iconBtn" type="button" aria-label="New chat"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9a2.800 2.800 0 0 0-4-4L4 16z"/><path d="M14 6l4 4"/></svg></button>
+        </div>
+        <label class="cSearch">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+          <input id="cSearch" type="text" placeholder="Search" autocomplete="off" />
+        </label>
+        <div id="cStartBox" hidden>
+          <input id="cUser" type="text" placeholder="Start a chat: their username" autocomplete="off" />
+          <button class="wide" id="cStart" type="button">Start chat</button>
+          <p id="cMsg"></p>
+        </div>
+        <div id="notesRow" class="notesRow"></div>
+        <div class="cTabs">
+          <button type="button" id="cTabMsgs" class="on">Messages</button>
+          <button type="button" id="cTabReq">Requests</button>
+        </div>
+        <ul id="cConvos" class="convos"></ul>
+        <div id="cPeopleBox" hidden>
+          <h3>People</h3>
+          <ul id="cPeople" class="convos"></ul>
+        </div>
       </div>
 
       <div id="cThread" hidden>
@@ -695,12 +768,59 @@
 
   <input id="stFile" type="file" accept="image/*,video/*" hidden />
 
+  <!-- Write a note -->
+  <div id="noteSheet" hidden>
+    <div class="saBox">
+      <h2>Your note</h2>
+      <p class="hint">Friends who follow you back see it for 24 hours.</p>
+      <input id="ntText" type="text" maxlength="60" placeholder="Share a thought..." autocomplete="off" />
+      <div class="ntCount"><span id="ntCount">0</span>/60</div>
+      <label class="audOpt"><input type="checkbox" id="ntMusicOn" /> <span>♪ Add music</span></label>
+      <div id="ntMusicBox" hidden>
+        <input id="ntSong" type="text" maxlength="40" placeholder="Song name" autocomplete="off" />
+        <input id="ntArtist" type="text" maxlength="40" placeholder="Artist" autocomplete="off" />
+        <label class="ntFile">🎧 Attach a clip (optional)<input id="ntAudio" type="file" accept="audio/*" hidden /></label>
+        <div id="ntAudioName" class="hint"></div>
+        <p class="hint">Twik can't play copyrighted songs. Type the song name, or attach your own clip (max 5 MB) that friends can play.</p>
+      </div>
+      <button class="wide" id="ntShare" type="button">Share note</button>
+      <button class="wide" id="ntDelete" type="button" hidden>Delete note</button>
+      <button class="wide close" id="ntCancel" type="button">Cancel</button>
+      <p id="ntMsg"></p>
+    </div>
+  </div>
+
+  <!-- Look at a note -->
+  <div id="noteView" hidden>
+    <div class="saBox nvBox">
+      <div class="nvWho" id="nvWho"></div>
+      <div class="nvBubble">
+        <div id="nvText"></div>
+        <div id="nvSong"></div>
+        <button type="button" id="nvPlay" class="nvPlay" hidden>▶ Play clip</button>
+      </div>
+      <form id="nvForm" class="nvForm" autocomplete="off">
+        <input id="nvInput" type="text" maxlength="300" placeholder="Reply to this note..." autocomplete="off" />
+        <button type="submit">Send</button>
+      </form>
+      <button class="wide" id="nvEdit" type="button" hidden>Edit your note</button>
+      <button class="wide close" id="nvClose" type="button">Close</button>
+      <p id="nvMsg"></p>
+    </div>
+  </div>
+
   <!-- Add a story -->
   <div id="storyAdd" hidden>
     <div class="saBox">
       <h2>New story</h2>
       <div id="saPreview" class="saPreview"></div>
       <input id="saCaption" type="text" maxlength="120" placeholder="Say something (optional)" autocomplete="off" />
+      <div class="audBox">
+        <div class="audTitle">Who can see this?</div>
+        <label class="audOpt"><input type="radio" name="aud" value="all" checked /> <span>All my friends</span></label>
+        <label class="audOpt"><input type="radio" name="aud" value="some" /> <span>Only people I choose</span></label>
+        <div id="audList" class="audList" hidden></div>
+      </div>
       <button class="wide" id="saShare" type="button">Share to story</button>
       <button class="wide close" id="saCancel" type="button">Cancel</button>
       <p id="saMsg"></p>
@@ -1170,12 +1290,51 @@
         box.appendChild(el);
         $("saCaption").value = "";
         $("saMsg").textContent = "";
+        document.querySelector('input[name="aud"][value="all"]').checked = true;
+        $("audList").hidden = true;
+        loadFriendsForStory();
         $("storyAdd").hidden = false;
       });
+
+      // Who can see this story?
+      async function loadFriendsForStory() {
+        const d = await api("/api/friends");
+        const box = $("audList");
+        box.innerHTML = "";
+        const friends = d.friends || [];
+        if (!friends.length) {
+          const e = document.createElement("div");
+          e.className = "hint";
+          e.textContent = "No friends yet. Friends are people who follow you and you follow back.";
+          box.appendChild(e);
+          return;
+        }
+        friends.forEach((f) => {
+          const lab = document.createElement("label");
+          lab.className = "audRow";
+          const cb = document.createElement("input");
+          cb.type = "checkbox";
+          cb.value = f.id;
+          const av = smallAvatar(f.avatar, f.username);
+          const nm = document.createElement("span");
+          nm.textContent = "@" + f.username;
+          lab.append(cb, av, nm);
+          box.appendChild(lab);
+        });
+      }
+      document.querySelectorAll('input[name="aud"]').forEach((r) => r.addEventListener("change", () => {
+        $("audList").hidden = document.querySelector('input[name="aud"]:checked').value !== "some";
+      }));
+      function storyAudience() {
+        if (document.querySelector('input[name="aud"]:checked').value !== "some") return null;
+        return [...document.querySelectorAll("#audList input:checked")].map((c) => c.value);
+      }
       $("saCancel").addEventListener("click", () => { $("storyAdd").hidden = true; $("saPreview").innerHTML = ""; pendingStory = null; });
       $("saShare").addEventListener("click", async () => {
         if (!pendingStory) return;
         const { file, kind } = pendingStory;
+        const audCheck = storyAudience();
+        if (audCheck !== null && !audCheck.length) { $("saMsg").textContent = "Pick at least one friend, or choose All my friends."; return; }
         $("saShare").disabled = true;
         $("saMsg").textContent = "Uploading... please wait.";
         try {
@@ -1184,7 +1343,10 @@
           if (up.error) throw new Error(up.error);
           const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
           if (error) throw error;
-          const made = await api("/api/stories", "POST", { path: up.path, kind, caption: $("saCaption").value });
+          const body = { path: up.path, kind, caption: $("saCaption").value };
+          const aud = storyAudience();
+          if (aud !== null) body.audience = aud;
+          const made = await api("/api/stories", "POST", body);
           if (made.error) throw new Error(made.error);
           $("storyAdd").hidden = true;
           $("saPreview").innerHTML = "";
@@ -1749,26 +1911,271 @@
         box.scrollTop = box.scrollHeight;
       }
 
+      // ---------- Chats list (v16) ----------
+      let convos = [];
+      let cTab = "msgs";
+      const dmKey = () => "twik_dmread_" + (me ? me.id : "x");
+      function getRead() { try { return JSON.parse(localStorage.getItem(dmKey()) || "null"); } catch (e) { return null; } }
+      function setRead(m) { try { localStorage.setItem(dmKey(), JSON.stringify(m)); } catch (e) {} }
+      function markRead(peerId) { const m = getRead() || {}; m[peerId] = new Date().toISOString(); setRead(m); }
+
       function showList() {
         peer = null;
-        $("cTitle").textContent = "💬 Chats";
+        $("cTitle").hidden = true;
+        $("cHeadName").textContent = "@" + ((me && me.user_metadata && me.user_metadata.username) || "you");
         $("cThread").hidden = true;
         $("cList").hidden = false;
         loadConvos();
       }
 
+      function renderConvos() {
+        const q = $("cSearch").value.trim().toLowerCase();
+        const rd = getRead() || {};
+        const reqCount = convos.filter((c) => c.request).length;
+        $("cTabReq").textContent = reqCount ? "Requests (" + reqCount + ")" : "Requests";
+        $("cTabMsgs").classList.toggle("on", cTab === "msgs");
+        $("cTabReq").classList.toggle("on", cTab === "req");
+        const list = convos
+          .filter((c) => (cTab === "req") === !!c.request)
+          .filter((c) => !q || c.username.toLowerCase().indexOf(q) >= 0);
+        const ul = $("cConvos");
+        ul.innerHTML = "";
+        if (!list.length) {
+          const li = document.createElement("li");
+          li.className = "empty";
+          li.textContent = cTab === "req" ? "No message requests." : q ? "No chats match." : "No chats yet. Tap the pencil to start one.";
+          ul.appendChild(li);
+        }
+        list.forEach((c) => {
+          const unread = !c.mine && new Date(c.time) > new Date(rd[c.peer_id] || 0);
+          const li = document.createElement("li");
+          li.className = "convo" + (unread ? " unread" : "");
+          const av = smallAvatar(c.avatar, c.username);
+          av.classList.add("cAv");
+          const mid = document.createElement("div");
+          mid.className = "cMid";
+          const nm = document.createElement("div");
+          nm.className = "cName";
+          nm.textContent = c.username;
+          const pv = document.createElement("div");
+          pv.className = "cPrev";
+          const t = (c.mine ? "You: " : "") + c.text;
+          pv.textContent = (t.length > 34 ? t.slice(0, 34) + "…" : t) + " · " + ago(c.time);
+          mid.append(nm, pv);
+          li.append(av, mid);
+          if (unread) { const d = document.createElement("span"); d.className = "cDot"; li.appendChild(d); }
+          li.onclick = () => openThread({ id: c.peer_id, username: c.username });
+          ul.appendChild(li);
+        });
+      }
+
       async function loadConvos() {
         const data = await api("/api/dms");
-        const chats = data.chats || [];
-        fill("cConvos", chats.map((c) => row(
-          "@" + c.username + ": " + (c.text.length > 28 ? c.text.slice(0, 28) + "..." : c.text),
-          [["Open", () => openThread({ id: c.peer_id, username: c.username })]],
-          c.avatar, c.username
-        )));
+        convos = data.chats || [];
+        let rd = getRead();
+        if (!rd) { rd = {}; convos.forEach((c) => { rd[c.peer_id] = c.time; }); setRead(rd); }
+        renderConvos();
+        loadNotes();
       }
+
+      async function startChatWith(username) {
+        const r = await api("/api/dms/start", "POST", { username });
+        if (r.user) openThread(r.user);
+        else alert(r.message || r.error || "You can't message this person.");
+      }
+
+      let chatSearchTimer = null;
+      $("cSearch").addEventListener("input", () => {
+        renderConvos();
+        clearTimeout(chatSearchTimer);
+        const q = $("cSearch").value.trim();
+        if (q.length < 2) { $("cPeopleBox").hidden = true; return; }
+        chatSearchTimer = setTimeout(async () => {
+          const d = await api("/api/search?q=" + encodeURIComponent(q));
+          const ul = $("cPeople");
+          ul.innerHTML = "";
+          (d.people || []).forEach((p) => {
+            const li = document.createElement("li");
+            li.className = "convo";
+            const av = smallAvatar(p.avatar, p.username);
+            av.classList.add("cAv");
+            const mid = document.createElement("div");
+            mid.className = "cMid";
+            const nm = document.createElement("div");
+            nm.className = "cName";
+            nm.textContent = p.username;
+            const pv = document.createElement("div");
+            pv.className = "cPrev";
+            pv.textContent = p.display_name || "Tap to message";
+            mid.append(nm, pv);
+            li.append(av, mid);
+            li.onclick = () => startChatWith(p.username);
+            ul.appendChild(li);
+          });
+          $("cPeopleBox").hidden = !ul.children.length;
+        }, 250);
+      });
+      $("cCompose").addEventListener("click", () => {
+        $("cStartBox").hidden = !$("cStartBox").hidden;
+        if (!$("cStartBox").hidden) $("cUser").focus();
+      });
+      $("cTabMsgs").addEventListener("click", () => { cTab = "msgs"; renderConvos(); });
+      $("cTabReq").addEventListener("click", () => { cTab = "req"; renderConvos(); });
+
+      // ---------- Notes ----------
+      let notes = [];
+      let meNoteAvatar = null;
+      let currentNote = null;
+      let noteHadAudio = false;
+      let ntAudioFile = null;
+
+      function noteCard(n) {
+        const mine = !n || n.mine;
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "nCard";
+        const bub = document.createElement("span");
+        bub.className = "nBubble" + (n ? "" : " ghost");
+        if (n) {
+          if (n.text) { const t = document.createElement("span"); t.className = "nText"; t.textContent = n.text; bub.appendChild(t); }
+          if (n.song) {
+            const m = document.createElement("span");
+            m.className = "nSong";
+            m.textContent = "♪ " + n.song + (n.artist ? " · " + n.artist : "");
+            bub.appendChild(m);
+          }
+        } else {
+          bub.textContent = "Note…";
+        }
+        const av = smallAvatar(n ? n.avatar : meNoteAvatar, n ? n.username : (me && me.user_metadata && me.user_metadata.username) || "you");
+        av.classList.add("nAv");
+        const nm = document.createElement("span");
+        nm.className = "nName";
+        nm.textContent = mine ? "Your note" : n.username;
+        b.append(bub, av, nm);
+        b.onclick = () => { if (mine && !n) openNoteComposer(); else openNote(n); };
+        return b;
+      }
+
+      async function loadNotes() {
+        const d = await api("/api/notes");
+        notes = d.notes || [];
+        meNoteAvatar = d.me_avatar || null;
+        const row = $("notesRow");
+        row.innerHTML = "";
+        const mine = notes.find((n) => n.mine) || null;
+        row.appendChild(noteCard(mine));
+        notes.filter((n) => !n.mine).forEach((n) => row.appendChild(noteCard(n)));
+      }
+
+      function openNoteComposer() {
+        const mine = notes.find((n) => n.mine) || null;
+        $("ntText").value = mine ? mine.text : "";
+        $("ntCount").textContent = $("ntText").value.length;
+        $("ntSong").value = mine ? mine.song : "";
+        $("ntArtist").value = mine ? mine.artist : "";
+        noteHadAudio = !!(mine && mine.audio_url);
+        $("ntMusicOn").checked = !!(mine && (mine.song || mine.audio_url));
+        $("ntMusicBox").hidden = !$("ntMusicOn").checked;
+        $("ntAudio").value = "";
+        ntAudioFile = null;
+        $("ntAudioName").textContent = noteHadAudio ? "Clip attached ✓ (pick a new file to replace it)" : "";
+        $("ntDelete").hidden = !mine;
+        $("ntMsg").textContent = "";
+        $("noteView").hidden = true;
+        $("noteSheet").hidden = false;
+      }
+      $("ntText").addEventListener("input", () => { $("ntCount").textContent = $("ntText").value.length; });
+      $("ntMusicOn").addEventListener("change", () => { $("ntMusicBox").hidden = !$("ntMusicOn").checked; });
+      $("ntAudio").addEventListener("change", () => {
+        const f = $("ntAudio").files[0];
+        if (!f) return;
+        if (f.type.indexOf("audio") !== 0) { $("ntMsg").textContent = "Pick an audio file."; $("ntAudio").value = ""; return; }
+        if (f.size > 5 * 1024 * 1024) { $("ntMsg").textContent = "Clip is too big (max 5 MB)."; $("ntAudio").value = ""; return; }
+        ntAudioFile = f;
+        $("ntMsg").textContent = "";
+        $("ntAudioName").textContent = "🎧 " + f.name;
+      });
+      $("ntCancel").addEventListener("click", () => { $("noteSheet").hidden = true; });
+      $("ntDelete").addEventListener("click", async () => {
+        await api("/api/notes/delete", "POST", {});
+        $("noteSheet").hidden = true;
+        loadNotes();
+      });
+      $("ntShare").addEventListener("click", async () => {
+        const text = $("ntText").value.trim();
+        const music = $("ntMusicOn").checked;
+        const song = music ? $("ntSong").value.trim() : "";
+        const artist = music ? $("ntArtist").value.trim() : "";
+        if (!text && !song) { $("ntMsg").textContent = "Write something or add a song."; return; }
+        $("ntShare").disabled = true;
+        $("ntMsg").textContent = "Sharing...";
+        try {
+          let audio_path = "";
+          if (music && ntAudioFile) {
+            const ext = (ntAudioFile.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+            const up = await api("/api/notes/audio-url", "POST", { ext });
+            if (up.error) throw new Error(up.error);
+            const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, ntAudioFile, { contentType: ntAudioFile.type });
+            if (error) throw error;
+            audio_path = up.path;
+          }
+          const body = { text, song, artist, audio_path };
+          if (music && !ntAudioFile && noteHadAudio) body.keep_audio = true;
+          const r = await api("/api/notes", "POST", body);
+          if (r.error) throw new Error(r.error);
+          $("noteSheet").hidden = true;
+          loadNotes();
+        } catch (e) {
+          $("ntMsg").textContent = "Could not share: " + (e.message || "try again");
+        } finally {
+          $("ntShare").disabled = false;
+        }
+      });
+
+      // Looking at a note
+      let nvAudio = null;
+      function stopNoteAudio() { if (nvAudio) { nvAudio.pause(); nvAudio = null; } $("nvPlay").textContent = "▶ Play clip"; }
+      function openNote(n) {
+        currentNote = n;
+        stopNoteAudio();
+        $("nvWho").innerHTML = "";
+        const av = smallAvatar(n.avatar, n.username);
+        av.classList.add("cAv");
+        $("nvWho").append(av, document.createTextNode(" @" + n.username + " · " + ago(n.time)));
+        $("nvText").textContent = n.text;
+        $("nvText").hidden = !n.text;
+        $("nvSong").textContent = n.song ? "♪ " + n.song + (n.artist ? " · " + n.artist : "") : "";
+        $("nvSong").hidden = !n.song;
+        $("nvPlay").hidden = !n.audio_url;
+        $("nvForm").hidden = !!n.mine;
+        $("nvEdit").hidden = !n.mine;
+        $("nvInput").value = "";
+        $("nvMsg").textContent = "";
+        $("noteView").hidden = false;
+      }
+      $("nvPlay").addEventListener("click", () => {
+        if (nvAudio) { stopNoteAudio(); return; }
+        if (!currentNote || !currentNote.audio_url) return;
+        nvAudio = new Audio(currentNote.audio_url);
+        nvAudio.onended = stopNoteAudio;
+        nvAudio.play().then(() => { $("nvPlay").textContent = "⏸ Pause"; }).catch(() => { $("nvMsg").textContent = "Could not play the clip."; nvAudio = null; });
+      });
+      $("nvClose").addEventListener("click", () => { stopNoteAudio(); $("noteView").hidden = true; });
+      $("nvEdit").addEventListener("click", () => { stopNoteAudio(); openNoteComposer(); });
+      $("nvForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const t = $("nvInput").value.trim();
+        if (!t || !socket || !currentNote) return;
+        socket.emit("dm", { to: currentNote.user_id, text: "↩ Replied to your note: " + t });
+        $("nvInput").value = "";
+        $("nvMsg").textContent = "Sent ✓";
+      });
 
       async function openThread(p) {
         peer = p;
+        markRead(p.id);
+        $("cTitle").hidden = false;
         $("cTitle").textContent = "@" + p.username;
         $("cList").hidden = true;
         $("cThread").hidden = false;
@@ -1782,6 +2189,7 @@
         const open = !$("chatsPanel").hidden;
         if (peer && open && (m.from === peer.id || m.to === peer.id)) {
           addToThread(m);
+          markRead(peer.id);
         } else {
           if (open && !peer) loadConvos();
           if (m.from !== me.id) $("chatsBtn").classList.add("unread");
