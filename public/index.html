@@ -368,6 +368,47 @@
     #nList li.isNew { background: rgba(139, 92, 246, 0.16); }
     #nList .rowText { flex: 1; }
     #nList .followBtn { background: var(--grad); border-color: transparent; color: #fff; }
+
+    /* ===== Stories (v15): tall pebbles with a Twik gradient ring ===== */
+    #pbScroll { flex: 1; min-height: 0; overflow-y: auto; }
+    #pbScroll #pbFeed { flex: none; overflow: visible; }
+    .storyStrip { display: flex; gap: 10px; overflow-x: auto; padding: 6px 12px 14px; scrollbar-width: none; }
+    .storyStrip::-webkit-scrollbar { display: none; }
+    .stCard {
+      position: relative; flex: 0 0 auto; width: 100px; height: 158px; padding: 0; overflow: hidden; color: #fff;
+      border: 2px solid var(--line); border-radius: 30px 30px 30px 9px; background: var(--surface2);
+    }
+    .stCard.fresh { border-color: transparent; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box; }
+    .stCard img, .stCard video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 28px 28px 28px 7px; }
+    .stShade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0.75) 100%); }
+    .stAv { position: absolute; top: 8px; left: 8px; width: 34px; height: 34px; }
+    .stName { position: absolute; left: 8px; right: 8px; bottom: 9px; font-size: 12px; font-weight: 700; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-shadow: 0 1px 4px #000; }
+    .stPlus {
+      position: absolute; right: 8px; top: 8px; width: 30px; height: 30px; border-radius: 12px 12px 12px 4px; background: var(--grad);
+      display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; line-height: 1; box-shadow: 0 3px 12px rgba(236,72,153,0.5);
+    }
+    .stCard.empty .stPlus { right: 50%; top: 42%; transform: translateX(50%); width: 46px; height: 46px; font-size: 30px; border-radius: 18px 18px 18px 6px; }
+    .stCard.empty .stAv { display: none; }
+    #storyAdd { position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; padding: 16px; overflow-y: auto; }
+    .saBox { width: 100%; max-width: 380px; }
+    .saPreview { height: 52vh; background: var(--surface); border-radius: 32px 32px 32px 10px; overflow: hidden; margin: 10px 0; }
+    .saPreview img, .saPreview video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .saBox input { width: 100%; margin-bottom: 8px; }
+    #saMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; }
+    #storyViewer { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; justify-content: center; }
+    .svStage { position: absolute; inset: 0; max-width: 520px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
+    .svStage img, .svStage video { width: 100%; height: 100%; object-fit: contain; }
+    .svBars { position: absolute; top: 10px; left: 12px; right: 12px; max-width: 496px; margin: 0 auto; display: flex; gap: 4px; z-index: 3; }
+    .svBar { flex: 1; height: 4px; border-radius: 3px; background: rgba(255,255,255,0.28); overflow: hidden; }
+    .svBar i { display: block; height: 100%; width: 0; background: var(--grad); }
+    .svBar.done i { width: 100%; }
+    .svHead { position: absolute; top: 22px; left: 12px; right: 12px; max-width: 496px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; z-index: 4; font-weight: 700; text-shadow: 0 1px 6px #000; }
+    .svWho { display: flex; align-items: center; gap: 4px; }
+    .svBtn { background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); padding: 7px 13px; font-size: 14px; margin-left: 6px; border-radius: 14px 14px 14px 5px; }
+    .svCaption { position: absolute; left: 14px; right: 14px; bottom: 26px; max-width: 492px; margin: 0 auto; text-align: center; z-index: 3; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: 20px 20px 20px 6px; }
+    .svCaption:empty { display: none; }
+    .svTap { position: absolute; top: 80px; bottom: 90px; width: 40%; z-index: 2; background: none; border-radius: 0; padding: 0; }
+    .svTap.left { left: 0; } .svTap.right { right: 0; }
   </style>
 </head>
 <body>
@@ -632,7 +673,40 @@
       <button id="pbPost" type="button">Share photo</button>
       <p id="pbMsg"></p>
     </div>
-    <div id="pbFeed"></div>
+    <div id="pbScroll">
+      <div id="storyStrip" class="storyStrip"></div>
+      <div id="pbFeed"></div>
+    </div>
+  </div>
+
+  <input id="stFile" type="file" accept="image/*,video/*" hidden />
+
+  <!-- Add a story -->
+  <div id="storyAdd" hidden>
+    <div class="saBox">
+      <h2>New story</h2>
+      <div id="saPreview" class="saPreview"></div>
+      <input id="saCaption" type="text" maxlength="120" placeholder="Say something (optional)" autocomplete="off" />
+      <button class="wide" id="saShare" type="button">Share to story</button>
+      <button class="wide close" id="saCancel" type="button">Cancel</button>
+      <p id="saMsg"></p>
+    </div>
+  </div>
+
+  <!-- Story viewer -->
+  <div id="storyViewer" hidden>
+    <div class="svStage" id="svStage"></div>
+    <div class="svBars" id="svBars"></div>
+    <div class="svHead">
+      <span class="svWho" id="svWho"></span>
+      <span>
+        <button type="button" class="svBtn" id="svDelete" hidden>Delete</button>
+        <button type="button" class="svBtn" id="svClose">✕</button>
+      </span>
+    </div>
+    <div class="svCaption" id="svCaption"></div>
+    <button type="button" class="svTap left" id="svPrev" aria-label="Previous"></button>
+    <button type="button" class="svTap right" id="svNext" aria-label="Next"></button>
   </div>
 
   <!-- Libraries: real-time connection + login system -->
@@ -979,6 +1053,204 @@
         $("chatsBtn").click();
         $("cUser").value = name;
         $("cStart").click();
+      });
+
+      // ---------- Stories ----------
+      let storyGroups = [];
+      const seenKey = () => "twik_seen_" + (me ? me.id : "x");
+      function getSeen() { try { return JSON.parse(localStorage.getItem(seenKey()) || "{}"); } catch (e) { return {}; } }
+      function markSeen(uid, id) {
+        try { const s = getSeen(); s[uid] = Math.max(s[uid] || 0, id); localStorage.setItem(seenKey(), JSON.stringify(s)); } catch (e) {}
+      }
+      function groupSeen(g) {
+        const last = g.stories[g.stories.length - 1].id;
+        return (getSeen()[g.user_id] || 0) >= last;
+      }
+
+      function mediaThumb(st) {
+        if (st.kind === "video") {
+          const v = document.createElement("video");
+          v.src = st.url + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true;
+          return v;
+        }
+        const im = document.createElement("img");
+        im.src = st.url; im.alt = ""; im.loading = "lazy";
+        return im;
+      }
+
+      function storyCard(g, isMine) {
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = "stCard" + (g && !groupSeen(g) ? " fresh" : "");
+        if (g) card.appendChild(mediaThumb(g.stories[g.stories.length - 1]));
+        const shade = document.createElement("span");
+        shade.className = "stShade";
+        card.appendChild(shade);
+        const who = (g && g.username) || (me && me.user_metadata && me.user_metadata.username) || "you";
+        const av = smallAvatar(g ? g.avatar : null, who);
+        av.classList.add("stAv");
+        card.appendChild(av);
+        const nm = document.createElement("span");
+        nm.className = "stName";
+        nm.textContent = isMine ? "Your story" : "@" + g.username;
+        card.appendChild(nm);
+        if (isMine) {
+          const plus = document.createElement("span");
+          plus.className = "stPlus";
+          plus.textContent = "+";
+          plus.onclick = (e) => { e.stopPropagation(); $("stFile").click(); };
+          card.appendChild(plus);
+          card.onclick = () => { if (g) openStories(g); else $("stFile").click(); };
+          if (!g) card.classList.add("empty");
+        } else {
+          card.onclick = () => openStories(g);
+        }
+        return card;
+      }
+
+      async function loadStories() {
+        const d = await api("/api/stories");
+        storyGroups = d.groups || [];
+        const strip = $("storyStrip");
+        strip.innerHTML = "";
+        const mine = storyGroups.find((g) => g.mine) || null;
+        strip.appendChild(storyCard(mine, true));
+        storyGroups.filter((g) => !g.mine).forEach((g) => strip.appendChild(storyCard(g, false)));
+      }
+      $("postsBtn").addEventListener("click", loadStories);
+
+      // Add a story
+      let pendingStory = null;
+      $("stFile").addEventListener("change", () => {
+        const f = $("stFile").files[0];
+        $("stFile").value = "";
+        if (!f) return;
+        const isVideo = f.type.indexOf("video") === 0;
+        const isImage = f.type.indexOf("image") === 0;
+        if (!isVideo && !isImage) { alert("Pick a photo or a video."); return; }
+        if (isImage && f.size > 10 * 1024 * 1024) { alert("Photo is too big (max 10 MB)."); return; }
+        if (isVideo && f.size > 50 * 1024 * 1024) { alert("Video is too big (max 50 MB)."); return; }
+        pendingStory = { file: f, kind: isVideo ? "video" : "image" };
+        const box = $("saPreview");
+        box.innerHTML = "";
+        const url = URL.createObjectURL(f);
+        const el = document.createElement(isVideo ? "video" : "img");
+        el.src = url;
+        if (isVideo) { el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true; }
+        box.appendChild(el);
+        $("saCaption").value = "";
+        $("saMsg").textContent = "";
+        $("storyAdd").hidden = false;
+      });
+      $("saCancel").addEventListener("click", () => { $("storyAdd").hidden = true; $("saPreview").innerHTML = ""; pendingStory = null; });
+      $("saShare").addEventListener("click", async () => {
+        if (!pendingStory) return;
+        const { file, kind } = pendingStory;
+        $("saShare").disabled = true;
+        $("saMsg").textContent = "Uploading... please wait.";
+        try {
+          const ext = (file.name.split(".").pop() || (kind === "video" ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const up = await api("/api/stories/upload-url", "POST", { ext });
+          if (up.error) throw new Error(up.error);
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
+          if (error) throw error;
+          const made = await api("/api/stories", "POST", { path: up.path, kind, caption: $("saCaption").value });
+          if (made.error) throw new Error(made.error);
+          $("storyAdd").hidden = true;
+          $("saPreview").innerHTML = "";
+          pendingStory = null;
+          loadStories();
+        } catch (e) {
+          $("saMsg").textContent = "Could not share: " + (e.message || "try again");
+        } finally {
+          $("saShare").disabled = false;
+        }
+      });
+
+      // Story viewer
+      let sv = { g: null, i: 0, timer: null };
+      function stopStoryTimer() { if (sv.timer) { clearTimeout(sv.timer); sv.timer = null; } }
+      function openStories(g) {
+        sv = { g, i: 0, timer: null };
+        const seen = getSeen()[g.user_id] || 0;
+        const firstNew = g.stories.findIndex((s) => s.id > seen);
+        sv.i = firstNew >= 0 ? firstNew : 0;
+        $("storyViewer").hidden = false;
+        showStory();
+      }
+      function closeStories() {
+        stopStoryTimer();
+        document.querySelectorAll("#svStage video").forEach((v) => v.pause());
+        $("svStage").innerHTML = "";
+        $("storyViewer").hidden = true;
+        loadStories();
+      }
+      function nextGroup() {
+        const order = storyGroups;
+        const idx = order.findIndex((x) => x.user_id === sv.g.user_id);
+        if (idx >= 0 && idx < order.length - 1) openStories(order[idx + 1]);
+        else closeStories();
+      }
+      function showStory() {
+        stopStoryTimer();
+        const g = sv.g;
+        const st = g.stories[sv.i];
+        markSeen(g.user_id, st.id);
+        $("svWho").innerHTML = "";
+        const av = smallAvatar(g.avatar, g.username);
+        $("svWho").append(av, document.createTextNode(" @" + g.username + " · " + ago(st.time)));
+        $("svCaption").textContent = st.caption || "";
+        $("svDelete").hidden = !g.mine;
+
+        const bars = $("svBars");
+        bars.innerHTML = "";
+        g.stories.forEach((_, k) => {
+          const b = document.createElement("span");
+          b.className = "svBar" + (k < sv.i ? " done" : "");
+          const f = document.createElement("i");
+          b.appendChild(f);
+          bars.appendChild(b);
+        });
+        const fill = bars.children[sv.i].firstChild;
+        const run = (ms) => {
+          fill.style.transition = "none"; fill.style.width = "0%";
+          void fill.offsetWidth;
+          fill.style.transition = "width " + ms + "ms linear"; fill.style.width = "100%";
+          sv.timer = setTimeout(nextStory, ms);
+        };
+
+        const stage = $("svStage");
+        stage.innerHTML = "";
+        if (st.kind === "video") {
+          const v = document.createElement("video");
+          v.src = st.url; v.playsInline = true; v.autoplay = true;
+          v.onloadedmetadata = () => run(Math.min(Math.max((v.duration || 8) * 1000, 2000), 60000));
+          v.onerror = () => run(4000);
+          const p = v.play(); if (p && p.catch) p.catch(() => { v.muted = true; v.play().catch(() => {}); });
+          stage.appendChild(v);
+        } else {
+          const im = document.createElement("img");
+          im.src = st.url; im.alt = "";
+          im.onload = () => run(5000);
+          im.onerror = () => run(3000);
+          stage.appendChild(im);
+        }
+      }
+      function nextStory() {
+        if (sv.i < sv.g.stories.length - 1) { sv.i++; showStory(); } else nextGroup();
+      }
+      function prevStory() {
+        if (sv.i > 0) { sv.i--; showStory(); } else showStory();
+      }
+      $("svNext").addEventListener("click", nextStory);
+      $("svPrev").addEventListener("click", prevStory);
+      $("svClose").addEventListener("click", closeStories);
+      $("svDelete").addEventListener("click", async () => {
+        if (!confirm("Delete this story?")) return;
+        const st = sv.g.stories[sv.i];
+        stopStoryTimer();
+        await api("/api/stories/delete", "POST", { id: st.id });
+        closeStories();
       });
 
       // ---------- Notifications ----------

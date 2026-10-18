@@ -202,6 +202,88 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
   res.json(await mediaFor(me.id, me.id));
 }));
 
+// ---------- Stories (disappear after 24 hours) ----------
+const STORY_HOURS = 24;
+let lastStoryCleanup = 0;
+
+async function cleanupStories() {
+  if (Date.now() - lastStoryCleanup < 10 * 60 * 1000) return;
+  lastStoryCleanup = Date.now();
+  const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
+  const { data: old } = await supabase.from("stories").select("id, path").lt("created_at", cutoff).limit(200);
+  if (!old || !old.length) return;
+  await supabase.storage.from(REELS_BUCKET).remove(old.map((o) => o.path));
+  await supabase.from("stories").delete().in("id", old.map((o) => o.id));
+}
+
+app.post("/api/stories/upload-url", requireUser, safe(async (req, res) => {
+  const wanted = String(req.body.ext || "").toLowerCase();
+  const ext = ["jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "jpg";
+  const path = req.user.id + "/story-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+
+app.post("/api/stories", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const path = String(req.body.path || "");
+  if (!path.startsWith(req.user.id + "/story-") || path.includes("..")) return res.status(400).json({ error: "Bad file" });
+  const kind = req.body.kind === "video" ? "video" : "image";
+  const caption = String(req.body.caption || "").trim().slice(0, 120);
+  const { error } = await supabase.from("stories").insert({ user_id: me.id, username: me.username, path, kind, caption });
+  if (error) return res.status(500).json({ error: "Could not save. Did you run the stories SQL in Supabase?" });
+  res.json({ ok: true });
+}));
+
+app.post("/api/stories/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: st } = await supabase.from("stories").select("id, user_id, path").eq("id", id).maybeSingle();
+  if (!st || st.user_id !== req.user.id) return res.json({ error: "Story not found." });
+  await supabase.storage.from(REELS_BUCKET).remove([st.path]);
+  await supabase.from("stories").delete().eq("id", id);
+  res.json({ ok: true });
+}));
+
+// My stories + stories of people I follow who follow me back
+app.get("/api/stories", requireUser, safe(async (req, res) => {
+  const meId = req.user.id;
+  cleanupStories().catch(() => {});
+
+  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
+  const { data: inRows } = await supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted");
+  const iFollow = new Set((outRows || []).map((r) => r.following_id));
+  const mutual = (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id));
+  const ids = [meId, ...mutual];
+
+  const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
+  const { data: rows, error } = await supabase
+    .from("stories").select("id, user_id, username, path, kind, caption, created_at")
+    .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(300);
+  if (error) return res.json({ groups: [] });
+  const list = rows || [];
+  if (!list.length) return res.json({ groups: [] });
+
+  const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(list.map((r) => r.path), 3600);
+  const urls = {};
+  (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  const pics = await avatarsFor([...new Set(list.map((r) => r.user_id))]);
+
+  const byUser = {};
+  list.filter((r) => urls[r.path]).forEach((r) => {
+    if (!byUser[r.user_id]) {
+      byUser[r.user_id] = { user_id: r.user_id, username: r.username, avatar: pics[r.user_id] || null, mine: r.user_id === meId, stories: [] };
+    }
+    byUser[r.user_id].stories.push({ id: r.id, url: urls[r.path], kind: r.kind, caption: r.caption || "", time: r.created_at });
+  });
+  const groups = Object.values(byUser).sort((a, b) => {
+    if (a.mine !== b.mine) return a.mine ? -1 : 1;
+    return new Date(b.stories[b.stories.length - 1].time) - new Date(a.stories[a.stories.length - 1].time);
+  });
+  res.json({ groups });
+}));
+
 // ---------- Notifications (built from follows, likes and comments) ----------
 async function buildNotifications(me) {
   const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
