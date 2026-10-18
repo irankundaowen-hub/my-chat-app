@@ -228,7 +228,17 @@ async function buildNotifications(me) {
   const actorIds = [...new Set([...(fRows || []).map((f) => f.follower_id), ...likeRows.map((l) => l.user_id), ...comRows.map((c) => c.user_id)].filter(Boolean))];
   const pics = await avatarsFor(actorIds);
 
+  // Do I already follow these people back?
+  const rel = {};
+  const followerIds = (fRows || []).map((f) => f.follower_id);
+  if (followerIds.length) {
+    const { data: mine } = await supabase
+      .from("follows").select("following_id, status").eq("follower_id", me.id).in("following_id", followerIds);
+    (mine || []).forEach((m) => (rel[m.following_id] = m.status === "pending" ? "pending" : "following"));
+  }
+
   (fRows || []).forEach((f) => items.push({
+    actor_id: f.follower_id, relation: rel[f.follower_id] || "none",
     type: f.status === "pending" ? "request" : "follow", username: names[f.follower_id] || "someone",
     avatar: pics[f.follower_id] || null, text: f.status === "pending" ? "wants to follow you" : "started following you", time: f.created_at,
   }));

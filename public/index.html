@@ -367,6 +367,7 @@
     .nTime { color: var(--muted); font-size: 12px; flex-shrink: 0; }
     #nList li.isNew { background: rgba(139, 92, 246, 0.16); }
     #nList .rowText { flex: 1; }
+    #nList .followBtn { background: var(--grad); border-color: transparent; color: #fff; }
   </style>
 </head>
 <body>
@@ -1011,7 +1012,37 @@
           ul.appendChild(li);
         }
         items.forEach((it) => {
-          const li = row("@" + it.username + " " + it.text, [], it.avatar, it.username);
+          let btns = [];
+          if (it.type === "request") {
+            btns = [
+              ["Accept", async () => {
+                await api("/api/requests/respond", "POST", { follower_id: it.actor_id, accept: true });
+                li.children[1].textContent = "Accepted ✓";
+              }],
+              ["Decline", async () => {
+                await api("/api/requests/respond", "POST", { follower_id: it.actor_id, accept: false });
+                li.remove();
+              }],
+            ];
+          } else if (it.type === "follow") {
+            let state = it.relation;
+            const label = () => (state === "following" ? "Following ✓" : state === "pending" ? "Requested" : "Follow back");
+            btns = [[label(), async function () {
+              if (state === "none") {
+                const r = await api("/api/follow", "POST", { username: it.username });
+                state = r.message && r.message.indexOf("Request sent") === 0 ? "pending" : "following";
+              } else {
+                await api("/api/unfollow", "POST", { username: it.username });
+                state = "none";
+              }
+              this.textContent = label();
+              this.classList.toggle("followBtn", state === "none");
+            }]];
+          }
+          const li = row("@" + it.username + " " + it.text, btns, it.avatar, it.username);
+          const fb = li.querySelector("button");
+          if (fb && it.type === "follow" && it.relation === "none") fb.classList.add("followBtn");
+          if (fb && it.type === "request") fb.classList.add("followBtn");
           li.classList.add("clickRow");
           if (it.is_new) li.classList.add("isNew");
           const t = document.createElement("span");
