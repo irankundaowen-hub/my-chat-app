@@ -395,20 +395,40 @@
     .saPreview img, .saPreview video { width: 100%; height: 100%; object-fit: contain; display: block; }
     .saBox input { width: 100%; margin-bottom: 8px; }
     #saMsg { color: #c9a7ff; font-size: 14px; min-height: 18px; }
-    #storyViewer { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; justify-content: center; }
-    .svStage { position: absolute; inset: 0; max-width: 520px; margin: 0 auto; display: flex; align-items: center; justify-content: center; }
-    .svStage img, .svStage video { width: 100%; height: 100%; object-fit: contain; }
-    .svBars { position: absolute; top: 10px; left: 12px; right: 12px; max-width: 496px; margin: 0 auto; display: flex; gap: 4px; z-index: 3; }
-    .svBar { flex: 1; height: 4px; border-radius: 3px; background: rgba(255,255,255,0.28); overflow: hidden; }
-    .svBar i { display: block; height: 100%; width: 0; background: var(--grad); }
+    #storyViewer { position: fixed; inset: 0; z-index: 60; background: #000; }
+    .svWrap { height: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; background: #000; }
+    .svStage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #111; }
+    .svMedia { position: absolute; inset: 0; }
+    .svMedia img, .svMedia video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .svStage::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 120px; z-index: 2; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0)); }
+    .svBars { position: absolute; top: 8px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 3; }
+    .svBar { flex: 1; height: 3px; border-radius: 3px; background: rgba(255,255,255,0.3); overflow: hidden; }
+    .svBar i { display: block; height: 100%; width: 0; background: #fff; }
     .svBar.done i { width: 100%; }
-    .svHead { position: absolute; top: 22px; left: 12px; right: 12px; max-width: 496px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; z-index: 4; font-weight: 700; text-shadow: 0 1px 6px #000; }
-    .svWho { display: flex; align-items: center; gap: 4px; }
-    .svBtn { background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.25); padding: 7px 13px; font-size: 14px; margin-left: 6px; border-radius: 14px 14px 14px 5px; }
-    .svCaption { position: absolute; left: 14px; right: 14px; bottom: 26px; max-width: 492px; margin: 0 auto; text-align: center; z-index: 3; background: rgba(0,0,0,0.45); backdrop-filter: blur(8px); padding: 10px 14px; border-radius: 20px 20px 20px 6px; }
+    .svHead { position: absolute; top: 18px; left: 10px; right: 8px; display: flex; justify-content: space-between; align-items: center; z-index: 4; font-weight: 700; font-size: 15px; text-shadow: 0 1px 6px #000; }
+    .svWho { display: flex; align-items: center; gap: 8px; }
+    .svRight { display: flex; align-items: center; }
+    .svBtn { background: none; border: none; padding: 6px 11px; font-size: 22px; line-height: 1; color: #fff; text-shadow: 0 1px 6px #000; border-radius: 12px; }
+    .svMenu { position: absolute; top: 62px; right: 10px; z-index: 6; background: var(--surface2); border: 1px solid var(--line); border-radius: 20px 20px 20px 6px; padding: 6px; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    .svMenu button { background: none; color: var(--danger); font-size: 15px; padding: 10px 14px; }
+    .svCaption { position: absolute; left: 12px; bottom: 18px; max-width: 80%; z-index: 3; background: rgba(0,0,0,0.78); padding: 9px 14px; border-radius: 20px 20px 20px 6px; font-size: 15px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; pointer-events: none; }
     .svCaption:empty { display: none; }
-    .svTap { position: absolute; top: 80px; bottom: 90px; width: 40%; z-index: 2; background: none; border-radius: 0; padding: 0; }
+    .svTap { position: absolute; top: 70px; bottom: 70px; width: 38%; z-index: 2; background: none; border-radius: 0; padding: 0; }
     .svTap.left { left: 0; } .svTap.right { right: 0; }
+    .svBottom { display: flex; align-items: center; gap: 8px; padding: 10px 12px calc(12px + env(safe-area-inset-bottom)); background: #000; }
+    .svBottom input { flex: 1; min-width: 0; height: 48px; border-radius: 26px 26px 26px 10px; background: transparent; border: 1.5px solid #555; color: #fff; padding: 0 18px; font-size: 16px; }
+    .svBottom input:focus { border-color: #ec4899; }
+    .svIcon { width: 46px; height: 46px; padding: 0; background: none; color: #fff; font-size: 30px; line-height: 1; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+    .svIcon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .svIcon.on { color: #ff3b5c; }
+    .svBottom.own { justify-content: center; color: #c9c9c9; font-size: 14px; min-height: 70px; }
+
+    /* ===== Login extras (v15.5) ===== */
+    .pwWrap { position: relative; }
+    .pwWrap input { padding-right: 52px; }
+    .pwEye { position: absolute; right: 6px; top: 4px; width: 42px; height: 42px; padding: 0; background: none; color: var(--muted); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+    .pwEye svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+    .linkBtn { background: none; color: #c9a7ff; text-decoration: underline; font-size: 14px; padding: 0; margin: 0 0 12px; font-weight: 500; }
   </style>
 </head>
 <body>
@@ -421,7 +441,6 @@
     <button id="reelsBtn" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg>Reels</button>
     <button id="chatsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg>Chats</button>
     <button id="groupsBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.400 6.500 6"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 14.300c2 .8 3.500 2.600 3.500 5.700"/></svg>Groups</button>
-    <button id="loungeBtn" type="button"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.600 7.100L4 20l1-4.600A8 8 0 1 1 21 12z"/></svg>Lounge</button>
     <button id="profileBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>Me</button>
   </nav>
 
@@ -433,19 +452,14 @@
       <p class="sub" id="authSub">Welcome back! Enter your details.</p>
       <input id="username" type="text" placeholder="Username" maxlength="20" autocomplete="nickname" hidden />
       <input id="email" type="email" placeholder="Email" autocomplete="email" required />
-      <input id="password" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required />
+      <div class="pwWrap">
+        <input id="password" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required />
+        <button type="button" id="pwToggle" class="pwEye" aria-label="Show password" title="Show password"></button>
+      </div>
       <p id="authMsg"></p>
+      <button type="button" id="resendBtn" class="linkBtn" hidden>Send the confirmation email again</button>
       <button class="main" id="authBtn" type="submit">Log in</button>
       <div id="switch">New here? Create an account</div>
-    </form>
-  </div>
-
-  <!-- Chat screen -->
-  <div id="chatBox" hidden>
-    <div id="messages"></div>
-    <form id="form">
-      <input id="input" type="text" placeholder="Type a message" autocomplete="off" />
-      <button type="submit">Send</button>
     </form>
   </div>
 
@@ -695,18 +709,29 @@
 
   <!-- Story viewer -->
   <div id="storyViewer" hidden>
-    <div class="svStage" id="svStage"></div>
-    <div class="svBars" id="svBars"></div>
-    <div class="svHead">
-      <span class="svWho" id="svWho"></span>
-      <span>
-        <button type="button" class="svBtn" id="svDelete" hidden>Delete</button>
-        <button type="button" class="svBtn" id="svClose">✕</button>
-      </span>
+    <div class="svWrap">
+      <div class="svStage" id="svStage">
+        <div class="svMedia" id="svMedia"></div>
+        <div class="svBars" id="svBars"></div>
+        <div class="svHead">
+          <span class="svWho" id="svWho"></span>
+          <span class="svRight">
+            <button type="button" class="svBtn" id="svMenuBtn" aria-label="More" hidden>⋮</button>
+            <button type="button" class="svBtn" id="svClose" aria-label="Close">✕</button>
+          </span>
+        </div>
+        <div class="svMenu" id="svMenu" hidden><button type="button" id="svDelete">🗑 Delete story</button></div>
+        <div class="svCaption" id="svCaption"></div>
+        <button type="button" class="svTap left" id="svPrev" aria-label="Previous"></button>
+        <button type="button" class="svTap right" id="svNext" aria-label="Next"></button>
+      </div>
+      <form class="svBottom" id="svForm" autocomplete="off">
+        <input id="svInput" type="text" maxlength="300" placeholder="Send message" autocomplete="off" />
+        <button type="button" class="svIcon" id="svHeart" aria-label="Like">♡</button>
+        <button type="submit" class="svIcon" id="svSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg></button>
+      </form>
+      <div class="svBottom own" id="svOwn" hidden><span id="svOwnText"></span></div>
     </div>
-    <div class="svCaption" id="svCaption"></div>
-    <button type="button" class="svTap left" id="svPrev" aria-label="Previous"></button>
-    <button type="button" class="svTap right" id="svNext" aria-label="Next"></button>
   </div>
 
   <!-- Libraries: real-time connection + login system -->
@@ -748,6 +773,30 @@
 
       $("switch").addEventListener("click", () => setMode(!signingUp));
 
+      // Eye button: show or hide the password while typing
+      const EYE = '<svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+      const EYE_OFF = '<svg viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M10.6 5.1A9.7 9.7 0 0 1 12 5c6.500 0 10 7 10 7a17 17 0 0 1-3.200 4.200M6.600 6.600A17 17 0 0 0 2 12s3.500 7 10 7c1.600 0 3-.4 4.300-1"/><path d="M9.900 9.900a3 3 0 0 0 4.200 4.200"/></svg>';
+      function paintEye() {
+        const shown = $("password").type === "text";
+        $("pwToggle").innerHTML = shown ? EYE_OFF : EYE;
+        $("pwToggle").setAttribute("aria-label", shown ? "Hide password" : "Show password");
+        $("pwToggle").title = shown ? "Hide password" : "Show password";
+      }
+      $("pwToggle").addEventListener("click", () => {
+        $("password").type = $("password").type === "password" ? "text" : "password";
+        paintEye();
+        $("password").focus();
+      });
+      paintEye();
+
+      const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+      $("resendBtn").addEventListener("click", async () => {
+        const email = $("email").value.trim();
+        if (!EMAIL_OK.test(email)) { showMsg("Type your email first."); return; }
+        const { error } = await sb.auth.resend({ type: "signup", email });
+        showMsg(error ? error.message : "Sent! Check your inbox (and your spam folder).", !error);
+      });
+
       $("authForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         showMsg("");
@@ -755,8 +804,13 @@
 
         const email = $("email").value.trim();
         const password = $("password").value;
+        $("resendBtn").hidden = true;
 
         try {
+          if (!EMAIL_OK.test(email)) {
+            showMsg("That doesn't look like a real email. Check it and try again.");
+            return;
+          }
           if (signingUp) {
             const username = $("username").value.trim();
             if (username.length < 2) {
@@ -769,16 +823,32 @@
               options: { data: { username } },
             });
             if (error) { showMsg(error.message); return; }
+            // Supabase hides "already used" emails by returning a user with no identities
+            if (data.user && data.user.identities && data.user.identities.length === 0) {
+              showMsg("That email already has an account. Tap below to log in.");
+              return;
+            }
             if (data.session) {
               startChat(data.session.user);
             } else {
-              showMsg("Account created! Check your email to confirm it, then log in.", true);
               setMode(false);
-              showMsg("Account created! Check your email to confirm it, then log in.", true);
+              showMsg("Almost done! We sent a link to " + email + ". Open it to confirm your email, then log in here.", true);
+              $("resendBtn").hidden = false;
             }
           } else {
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
-            if (error) { showMsg(error.message); return; }
+            if (error) {
+              const m = String(error.message || "").toLowerCase();
+              if (m.indexOf("not confirmed") >= 0) {
+                showMsg("Please confirm your email first. Open the link we sent you, then log in.");
+                $("resendBtn").hidden = false;
+              } else if (m.indexOf("invalid login") >= 0) {
+                showMsg("Wrong email or password. New here? Tap \"Create an account\".");
+              } else {
+                showMsg(error.message);
+              }
+              return;
+            }
             startChat(data.session.user);
           }
         } catch (err) {
@@ -793,36 +863,9 @@
         location.reload();
       });
 
-      // ---------- Chat screen ----------
-      const messagesDiv = $("messages");
-
-      function addMessage(msg) {
-        const div = document.createElement("div");
-        div.className = "msg" + (me && msg.uid === me.id ? " mine" : "");
-
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = msg.user;
-
-        const text = document.createElement("div");
-        text.textContent = msg.text;
-
-        const time = document.createElement("div");
-        time.className = "time";
-        time.textContent = new Date(msg.time).toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        div.append(name, text, time);
-        messagesDiv.appendChild(div);
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      }
-
       function startChat(user) {
         me = user;
         $("authBox").hidden = true;
-        $("chatBox").hidden = false;
         $("userArea").hidden = false;
         $("searchBtn").hidden = false;
         $("bellBtn").hidden = false;
@@ -847,18 +890,13 @@
           }
         });
 
-        socket.on("history", (list) => {
-          messagesDiv.innerHTML = "";
-          list.forEach(addMessage);
-        });
-        socket.on("chat message", addMessage);
         socket.on("dm", onDm);
         socket.on("dm error", (text) => alert(text));
         goHome();
       }
 
       // ---------- Bottom tabs ----------
-      const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "loungeBtn", "profileBtn"];
+      const tabIds = ["postsBtn", "reelsBtn", "chatsBtn", "groupsBtn", "profileBtn"];
       function closeAllPanels() {
         ["rClose", "pbClose", "cClose", "gClose", "pClose", "sClose", "nClose"].forEach((id) => $(id).click());
         $("viewer").hidden = true;
@@ -872,14 +910,6 @@
         const b = e.target.closest("button");
         if (b) { closeAllPanels(); setActive(b.id); }
       }, true);
-
-      $("form").addEventListener("submit", (e) => {
-        e.preventDefault();
-        const input = $("input");
-        if (!input.value.trim() || !socket) return;
-        socket.emit("chat message", { text: input.value });
-        input.value = "";
-      });
 
       // ---------- Profile panel ----------
       let currentPrivate = false;
@@ -1181,7 +1211,9 @@
       function closeStories() {
         stopStoryTimer();
         document.querySelectorAll("#svStage video").forEach((v) => v.pause());
-        $("svStage").innerHTML = "";
+        $("svMedia").innerHTML = "";
+        $("svInput").value = "";
+        $("svMenu").hidden = true;
         $("storyViewer").hidden = true;
         loadStories();
       }
@@ -1200,7 +1232,18 @@
         const av = smallAvatar(g.avatar, g.username);
         $("svWho").append(av, document.createTextNode(" @" + g.username + " · " + ago(st.time)));
         $("svCaption").textContent = st.caption || "";
-        $("svDelete").hidden = !g.mine;
+        $("svMenuBtn").hidden = !g.mine;
+        $("svMenu").hidden = true;
+        $("svForm").hidden = g.mine;
+        $("svOwn").hidden = !g.mine;
+        if (g.mine) {
+          const left = Math.max(1, Math.ceil((new Date(st.time).getTime() + 24 * 3600 * 1000 - Date.now()) / 3600000));
+          $("svOwnText").textContent = "Your story · disappears in about " + left + "h";
+        }
+        sv.hearted = sv.hearted || {};
+        $("svHeart").textContent = sv.hearted[st.id] ? "♥" : "♡";
+        $("svHeart").classList.toggle("on", !!sv.hearted[st.id]);
+        $("svInput").placeholder = "Reply to @" + g.username + "...";
 
         const bars = $("svBars");
         bars.innerHTML = "";
@@ -1219,7 +1262,7 @@
           sv.timer = setTimeout(nextStory, ms);
         };
 
-        const stage = $("svStage");
+        const stage = $("svMedia");
         stage.innerHTML = "";
         if (st.kind === "video") {
           const v = document.createElement("video");
@@ -1245,6 +1288,41 @@
       $("svNext").addEventListener("click", nextStory);
       $("svPrev").addEventListener("click", prevStory);
       $("svClose").addEventListener("click", closeStories);
+      $("svMenuBtn").addEventListener("click", () => { $("svMenu").hidden = !$("svMenu").hidden; });
+
+      // Reply / like a story (they arrive as a chat message)
+      function sendStoryDm(text) {
+        if (!socket || !sv.g) return false;
+        socket.emit("dm", { to: sv.g.user_id, text });
+        return true;
+      }
+      $("svForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const t = $("svInput").value.trim();
+        if (!t) return;
+        sendStoryDm("↩ Replied to your story: " + t);
+        $("svInput").value = "";
+        $("svInput").blur();
+        $("svInput").placeholder = "Sent ✓";
+      });
+      $("svHeart").addEventListener("click", () => {
+        const st = sv.g.stories[sv.i];
+        sv.hearted = sv.hearted || {};
+        if (sv.hearted[st.id]) return;
+        sv.hearted[st.id] = true;
+        sendStoryDm("❤️ Liked your story");
+        $("svHeart").textContent = "♥";
+        $("svHeart").classList.add("on");
+      });
+      // Typing pauses the story; leaving the box plays it again
+      $("svInput").addEventListener("focus", () => {
+        stopStoryTimer();
+        const f = $("svBars").children[sv.i] && $("svBars").children[sv.i].firstChild;
+        if (f) { const w = getComputedStyle(f).width; f.style.transition = "none"; f.style.width = w; }
+        document.querySelectorAll("#svMedia video").forEach((v) => v.pause());
+      });
+      $("svInput").addEventListener("blur", () => { if (!$("storyViewer").hidden) showStory(); });
+
       $("svDelete").addEventListener("click", async () => {
         if (!confirm("Delete this story?")) return;
         const st = sv.g.stories[sv.i];

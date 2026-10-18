@@ -965,58 +965,6 @@ io.on("connection", async (socket) => {
       console.error(e);
     }
   });
-
-  // Send the last 50 saved messages to the person who just joined
-  const { data, error } = await supabase
-    .from("messages")
-    .select("user_id, username, text, created_at")
-    .order("created_at", { ascending: false })
-    .limit(50);
-
-  if (error) {
-    console.error("Could not load history:", error.message);
-  } else {
-    const history = data.reverse().map((m) => ({
-      uid: m.user_id,
-      user: m.username,
-      text: m.text,
-      time: m.created_at,
-    }));
-    socket.emit("history", history);
-  }
-
-  // When this person sends a message...
-  socket.on("chat message", async (msg) => {
-    const text = String((msg && msg.text) || "").slice(0, 500);
-    if (!text.trim()) return; // ignore empty messages
-
-    // The name comes from the login, so nobody can pretend to be someone else
-    const row = {
-      user_id: socket.data.userId,
-      username: socket.data.username,
-      text,
-    };
-
-    // ...save it in the database...
-    const { data: saved, error: saveError } = await supabase
-      .from("messages")
-      .insert(row)
-      .select("created_at")
-      .single();
-
-    if (saveError) {
-      console.error("Could not save message:", saveError.message);
-      return;
-    }
-
-    // ...and send it to EVERYONE connected
-    io.emit("chat message", {
-      uid: row.user_id,
-      user: row.username,
-      text: row.text,
-      time: saved.created_at,
-    });
-  });
 });
 
 // ---------- Private groups ----------
