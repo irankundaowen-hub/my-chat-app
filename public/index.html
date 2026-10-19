@@ -7,6 +7,7 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -485,6 +486,41 @@
     .audRow .sAv { width: 30px; height: 30px; font-size: 13px; }
     .saPreview { height: 38vh; }
     #ntDelete { background: none; border: 1px solid var(--danger); color: var(--danger); }
+
+    /* v17: loading placeholders + new bits */
+    @keyframes twShim { 0% { background-position: 120% 0; } 100% { background-position: -120% 0; } }
+    .shim, .skimg, .skc, .skl, .pmedia:not(.done), .stCard.sk, .reel:not(.ready)::before {
+      background: linear-gradient(100deg, #17171d 30%, #26262f 50%, #17171d 70%); background-size: 240% 100%; animation: twShim 1.3s linear infinite;
+    }
+    .post.sk .phead { justify-content: flex-start; gap: 10px; }
+    .skc { width: 34px; height: 34px; border-radius: 50%; display: inline-block; }
+    .skl { width: 110px; height: 12px; border-radius: 8px; display: inline-block; }
+    .skimg { width: 100%; aspect-ratio: 4 / 5; border-radius: 26px 26px 26px 6px; }
+    .pmedia { position: relative; width: 100%; aspect-ratio: 4 / 5; max-height: 70vh; border-radius: 26px 26px 26px 6px; overflow: hidden; background: #17171d; }
+    .pmedia img { position: absolute; inset: 0; width: 100%; height: 100%; max-height: none !important; border-radius: 0 !important; object-fit: cover; opacity: 0; transition: opacity 0.35s ease; }
+    .pmedia img.ld { opacity: 1; }
+    .bigHeart { position: absolute; left: 50%; top: 50%; font-size: 88px; transform: translate(-50%, -50%) scale(0); opacity: 0; pointer-events: none; z-index: 3; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.5)); }
+    .bigHeart.go { animation: twHeart 0.8s ease forwards; }
+    @keyframes twHeart { 0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; } 25% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; } 70% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -60%) scale(1); opacity: 0; } }
+    .ptime { padding: 2px 12px 4px; font-size: 11.5px; color: var(--muted); }
+    .pviewall { padding: 2px 12px 4px; font-size: 13.5px; color: var(--muted); cursor: pointer; background: none; border: none; text-align: left; font-weight: 400; }
+    .stCard.sk { border: none; }
+    .stCard img, .stCard video { opacity: 0; transition: opacity 0.35s ease; }
+    .stCard img.ld, .stCard video.ld { opacity: 1; }
+    .stCard .stAv img { opacity: 1; }
+    .reel:not(.ready)::before { content: ""; position: absolute; inset: 0; }
+    .msg.pending { opacity: 0.6; }
+    .msg.failed { background: #5b1f2a; }
+    .msg .fail { font-size: 10px; color: #ffb4b4; text-align: right; }
+    .tg { color: #f9a8d4; font-weight: 700; }
+    .msg.mine .tg { color: #fff; }
+    .nCake { position: absolute; top: 36px; right: 4px; font-size: 18px; z-index: 3; pointer-events: none; }
+    .nBubble.bday { border-color: #f59e0b; }
+    .bdList { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+    .bdChip { padding: 8px 14px; font-size: 13.5px; background: var(--surface2); border: 1px solid #333; color: var(--text); font-weight: 500; border-radius: 16px 16px 16px 5px; }
+    .bdChip.on { border-color: #ec4899; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box; border: 1px solid transparent; }
+    .bdRow { display: flex; gap: 8px; margin-bottom: 8px; }
+    .bdRow select { flex: 1; padding: 12px; background: var(--surface2); color: var(--text); border: 1px solid var(--line); border-radius: 16px 16px 16px 5px; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -563,6 +599,9 @@
         <input id="pNameInput" type="text" maxlength="30" placeholder="Your name (like Owen)" autocomplete="off" />
         <h3>Bio</h3>
         <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
+        <h3>Birthday 🎂</h3>
+        <div class="bdRow"><select id="pBdMonth"></select><select id="pBdDay"></select></div>
+        <p class="hint" style="margin-bottom:10px">Friends can tag you in a note on your birthday. Only day and month are saved.</p>
         <button class="wide" id="pBioSave" type="button">Save</button>
         <p id="pEditMsg"></p>
       </div>
@@ -775,13 +814,9 @@
       <p class="hint">Friends who follow you back see it for 24 hours.</p>
       <input id="ntText" type="text" maxlength="60" placeholder="Share a thought..." autocomplete="off" />
       <div class="ntCount"><span id="ntCount">0</span>/60</div>
-      <label class="audOpt"><input type="checkbox" id="ntMusicOn" /> <span>♪ Add music</span></label>
-      <div id="ntMusicBox" hidden>
-        <input id="ntSong" type="text" maxlength="40" placeholder="Song name" autocomplete="off" />
-        <input id="ntArtist" type="text" maxlength="40" placeholder="Artist" autocomplete="off" />
-        <label class="ntFile">🎧 Attach a clip (optional)<input id="ntAudio" type="file" accept="audio/*" hidden /></label>
-        <div id="ntAudioName" class="hint"></div>
-        <p class="hint">Twik can't play copyrighted songs. Type the song name, or attach your own clip (max 5 MB) that friends can play.</p>
+      <div id="ntBdBox" hidden>
+        <div class="audTitle">🎂 Birthdays today · tap to tag</div>
+        <div id="ntBdList" class="bdList"></div>
       </div>
       <button class="wide" id="ntShare" type="button">Share note</button>
       <button class="wide" id="ntDelete" type="button" hidden>Delete note</button>
@@ -796,8 +831,6 @@
       <div class="nvWho" id="nvWho"></div>
       <div class="nvBubble">
         <div id="nvText"></div>
-        <div id="nvSong"></div>
-        <button type="button" id="nvPlay" class="nvPlay" hidden>▶ Play clip</button>
       </div>
       <form id="nvForm" class="nvForm" autocomplete="off">
         <input id="nvInput" type="text" maxlength="300" placeholder="Reply to this note..." autocomplete="off" />
@@ -862,12 +895,39 @@
       const $ = (id) => document.getElementById(id);
 
       // Ask our server for the public login settings
-      const cfg = await (await fetch("/config")).json();
+      let cfg = null;
+      try { cfg = JSON.parse(localStorage.getItem("twik_cfg") || "null"); } catch (e) {}
+      if (!cfg || !cfg.url) {
+        cfg = await (await fetch("/config")).json();
+        try { localStorage.setItem("twik_cfg", JSON.stringify(cfg)); } catch (e) {}
+      }
       const sb = supabase.createClient(cfg.url, cfg.anonKey);
 
       let me = null;       // the logged-in person
       let socket = null;   // the live connection
       let signingUp = false;
+
+      // v17: times from the server may come without a timezone (UTC). Always read them as UTC.
+      const T = (iso) => {
+        if (!iso) return new Date(NaN);
+        const t = String(iso);
+        return /(Z|[+-]\d\d:?\d\d)$/.test(t) ? new Date(t) : new Date(t.replace(" ", "T") + "Z");
+      };
+      const clock = (iso) => T(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+
+      // v17: small saved copy of feeds so pages open instantly
+      const ckey = (n) => "twik_c_" + (me ? me.id : "x") + "_" + n;
+      function cget(n, maxH) {
+        try {
+          const o = JSON.parse(localStorage.getItem(ckey(n)) || "null");
+          if (o && Date.now() - o.t < (maxH || 5) * 3600 * 1000) return o.d;
+        } catch (e) {}
+        return null;
+      }
+      function cset(n, d) { try { localStorage.setItem(ckey(n), JSON.stringify({ t: Date.now(), d })); } catch (e) {} }
+      function clearCaches() {
+        try { Object.keys(localStorage).forEach((k) => { if (k.indexOf("twik_c_") === 0) localStorage.removeItem(k); }); } catch (e) {}
+      }
 
       // ---------- Login / sign-up screen ----------
       function setMode(isSignUp) {
@@ -979,6 +1039,7 @@
       });
 
       $("logout").addEventListener("click", async () => {
+        clearCaches();
         await sb.auth.signOut();
         location.reload();
       });
@@ -1011,7 +1072,19 @@
         });
 
         socket.on("dm", onDm);
-        socket.on("dm error", (text) => alert(text));
+        socket.on("dm error", (text) => {
+          Object.keys(pendingMsgs).forEach((cid) => {
+            const el = pendingMsgs[cid].el;
+            el.classList.remove("pending");
+            el.classList.add("failed");
+            const f = document.createElement("div");
+            f.className = "fail";
+            f.textContent = "Not sent";
+            el.appendChild(f);
+            delete pendingMsgs[cid];
+          });
+          alert(text);
+        });
         goHome();
       }
 
@@ -1026,9 +1099,10 @@
         tabIds.forEach((t) => $(t).classList.toggle("active", t === id));
       }
       function goHome() { $("postsBtn").click(); }
+      let homeWasOpen = false;
       $("userArea").addEventListener("click", (e) => {
         const b = e.target.closest("button");
-        if (b) { closeAllPanels(); setActive(b.id); }
+        if (b) { homeWasOpen = b.id === "postsBtn" && !$("postsPanel").hidden; closeAllPanels(); setActive(b.id); }
       }, true);
 
       // ---------- Profile panel ----------
@@ -1221,10 +1295,13 @@
         if (st.kind === "video") {
           const v = document.createElement("video");
           v.src = st.url + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true;
+          v.onloadeddata = () => v.classList.add("ld");
           return v;
         }
         const im = document.createElement("img");
-        im.src = st.url; im.alt = ""; im.loading = "lazy";
+        im.alt = ""; im.decoding = "async";
+        im.onload = () => im.classList.add("ld");
+        im.src = st.url;
         return im;
       }
 
@@ -1233,6 +1310,7 @@
         card.type = "button";
         card.className = "stCard" + (g && !groupSeen(g) ? " fresh" : "");
         if (g) card.appendChild(mediaThumb(g.stories[g.stories.length - 1]));
+        if (!g) card.classList.add("noThumb");
         const shade = document.createElement("span");
         shade.className = "stShade";
         card.appendChild(shade);
@@ -1258,16 +1336,39 @@
         return card;
       }
 
-      async function loadStories() {
-        const d = await api("/api/stories");
-        storyGroups = d.groups || [];
+      let storiesAt = 0;
+      let storiesDisk = false;
+      const storySig = (gs) => gs.map((g) => g.user_id + ":" + g.stories.map((x) => x.id).join(",") + ":" + (g.avatar ? 1 : 0)).join("|");
+      function paintStories() {
         const strip = $("storyStrip");
         strip.innerHTML = "";
         const mine = storyGroups.find((g) => g.mine) || null;
         strip.appendChild(storyCard(mine, true));
         storyGroups.filter((g) => !g.mine).forEach((g) => strip.appendChild(storyCard(g, false)));
       }
-      $("postsBtn").addEventListener("click", loadStories);
+      function skeletonStories() {
+        const strip = $("storyStrip");
+        strip.innerHTML = "";
+        strip.appendChild(storyCard(null, true));
+        for (let i = 0; i < 3; i++) { const k = document.createElement("div"); k.className = "stCard sk"; strip.appendChild(k); }
+      }
+      async function loadStories(force) {
+        if (!storiesAt && !storyGroups.length) {
+          const c = cget("stories");
+          if (c) { storyGroups = c; storiesDisk = true; paintStories(); } else skeletonStories();
+        }
+        if (force !== true && storiesAt && Date.now() - storiesAt < 45000) return;
+        const d = await api("/api/stories");
+        if (d.error) return;
+        storiesAt = Date.now();
+        const g = d.groups || [];
+        cset("stories", g);
+        const changed = storySig(g) !== storySig(storyGroups) || storiesDisk || !$("storyStrip").children.length;
+        storiesDisk = false;
+        storyGroups = g;
+        if (changed) paintStories();
+      }
+      $("postsBtn").addEventListener("click", () => loadStories());
 
       // Add a story
       let pendingStory = null;
@@ -1351,7 +1452,7 @@
           $("storyAdd").hidden = true;
           $("saPreview").innerHTML = "";
           pendingStory = null;
-          loadStories();
+          loadStories(true);
         } catch (e) {
           $("saMsg").textContent = "Could not share: " + (e.message || "try again");
         } finally {
@@ -1370,14 +1471,15 @@
         $("storyViewer").hidden = false;
         showStory();
       }
-      function closeStories() {
+      function closeStories(force) {
         stopStoryTimer();
         document.querySelectorAll("#svStage video").forEach((v) => v.pause());
         $("svMedia").innerHTML = "";
         $("svInput").value = "";
         $("svMenu").hidden = true;
         $("storyViewer").hidden = true;
-        loadStories();
+        paintStories();
+        loadStories(force === true);
       }
       function nextGroup() {
         const order = storyGroups;
@@ -1399,7 +1501,7 @@
         $("svForm").hidden = g.mine;
         $("svOwn").hidden = !g.mine;
         if (g.mine) {
-          const left = Math.max(1, Math.ceil((new Date(st.time).getTime() + 24 * 3600 * 1000 - Date.now()) / 3600000));
+          const left = Math.max(1, Math.ceil((T(st.time).getTime() + 24 * 3600 * 1000 - Date.now()) / 3600000));
           $("svOwnText").textContent = "Your story · disappears in about " + left + "h";
         }
         sv.hearted = sv.hearted || {};
@@ -1490,12 +1592,12 @@
         const st = sv.g.stories[sv.i];
         stopStoryTimer();
         await api("/api/stories/delete", "POST", { id: st.id });
-        closeStories();
+        closeStories(true);
       });
 
       // ---------- Notifications ----------
       function ago(iso) {
-        const sec = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+        const sec = Math.max(1, Math.floor((Date.now() - T(iso).getTime()) / 1000));
         if (sec < 60) return "now";
         if (sec < 3600) return Math.floor(sec / 60) + "m";
         if (sec < 86400) return Math.floor(sec / 3600) + "h";
@@ -1667,6 +1769,8 @@
         $("pSettingsBtn").textContent = p.requests.length ? "Settings (" + p.requests.length + ")" : "Settings";
         if (document.activeElement !== $("pBio")) $("pBio").value = p.bio || "";
         if (document.activeElement !== $("pNameInput")) $("pNameInput").value = p.display_name || "";
+        $("pBdMonth").value = p.birthday ? p.birthday.slice(0, 2) : "";
+        $("pBdDay").value = p.birthday ? p.birthday.slice(3, 5) : "";
         $("pPrivacy").textContent = p.is_private
           ? "🔒 Private account (tap to make public)"
           : "🌍 Public account (tap to make private)";
@@ -1695,8 +1799,17 @@
       $("tabPosts").addEventListener("click", () => { profileTab = "posts"; paintGrid(); });
       $("tabReels").addEventListener("click", () => { profileTab = "reels"; paintGrid(); });
 
+      (function fillBirthdaySelects() {
+        const mn = ["Month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        $("pBdMonth").innerHTML = mn.map((m, i) => '<option value="' + (i ? String(i).padStart(2, "0") : "") + '">' + m + "</option>").join("");
+        let d = '<option value="">Day</option>';
+        for (let i = 1; i <= 31; i++) d += '<option value="' + String(i).padStart(2, "0") + '">' + i + "</option>";
+        $("pBdDay").innerHTML = d;
+      })();
       $("pBioSave").addEventListener("click", async () => {
-        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value, name: $("pNameInput").value });
+        const bm = $("pBdMonth").value, bd = $("pBdDay").value;
+        if (!!bm !== !!bd) { $("pEditMsg").textContent = "Pick both the month and the day for your birthday."; return; }
+        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value, name: $("pNameInput").value, birthday: bm && bd ? bm + "-" + bd : "" });
         $("pEditMsg").textContent = r.error || "Saved ✓";
         if (!r.error) loadProfile();
       });
@@ -1756,7 +1869,7 @@
         text.textContent = m.text;
         const time = document.createElement("div");
         time.className = "time";
-        time.textContent = new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        time.textContent = clock(m.time);
         div.append(name, text, time);
         const box = $("gMessages");
         box.appendChild(div);
@@ -1900,7 +2013,7 @@
 
         const time = document.createElement("div");
         time.className = "time";
-        time.textContent = new Date(m.time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        time.textContent = clock(m.time);
         div.appendChild(time);
         return div;
       }
@@ -1908,6 +2021,18 @@
       function addToThread(m) {
         const box = $("cMessages");
         box.appendChild(bubble(m));
+        box.scrollTop = box.scrollHeight;
+      }
+      const threads = {};     // peer id -> messages already loaded
+      const pendingMsgs = {}; // cid -> { to, el }
+      const threadSig = (a) => (a || []).length + ":" + (a && a.length ? (a[a.length - 1].id || a[a.length - 1].time) : "");
+      function renderThread(msgs) {
+        const box = $("cMessages");
+        box.innerHTML = "";
+        const frag = document.createDocumentFragment();
+        msgs.forEach((m) => frag.appendChild(bubble(m)));
+        box.appendChild(frag);
+        Object.keys(pendingMsgs).forEach((cid) => { if (peer && pendingMsgs[cid].to === peer.id) box.appendChild(pendingMsgs[cid].el); });
         box.scrollTop = box.scrollHeight;
       }
 
@@ -1947,7 +2072,7 @@
           ul.appendChild(li);
         }
         list.forEach((c) => {
-          const unread = !c.mine && new Date(c.time) > new Date(rd[c.peer_id] || 0);
+          const unread = !c.mine && T(c.time) > new Date(rd[c.peer_id] || 0);
           const li = document.createElement("li");
           li.className = "convo" + (unread ? " unread" : "");
           const av = smallAvatar(c.avatar, c.username);
@@ -1970,8 +2095,15 @@
       }
 
       async function loadConvos() {
+        if (!convos.length) { const c = cget("convos"); if (c) { convos = c; renderConvos(); } }
         const data = await api("/api/dms");
+        if (data.error) return;
         convos = data.chats || [];
+        cset("convos", convos);
+        convos.filter((c) => !c.request).slice(0, 5).forEach((c) => {
+          if (threads[c.peer_id]) return;
+          api("/api/dms/" + c.peer_id).then((d) => { if (d && d.messages && !threads[c.peer_id]) threads[c.peer_id] = d.messages; }).catch(() => {});
+        });
         let rd = getRead();
         if (!rd) { rd = {}; convos.forEach((c) => { rd[c.peer_id] = c.time; }); setRead(rd); }
         renderConvos();
@@ -2022,12 +2154,23 @@
       $("cTabMsgs").addEventListener("click", () => { cTab = "msgs"; renderConvos(); });
       $("cTabReq").addEventListener("click", () => { cTab = "req"; renderConvos(); });
 
-      // ---------- Notes ----------
+      // ---------- Notes (v17: birthday tags, no music) ----------
       let notes = [];
+      let noteBdays = [];
+      let myBdayToday = false;
       let meNoteAvatar = null;
       let currentNote = null;
-      let noteHadAudio = false;
-      let ntAudioFile = null;
+      let ntTag = "";
+
+      const todayMD = () => { const d = new Date(); return String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+      function tagText(el, text) {
+        el.textContent = "";
+        String(text || "").split(/(@[A-Za-z0-9_.]+)/g).forEach((part) => {
+          if (!part) return;
+          if (part[0] === "@" && part.length > 1) { const sp = document.createElement("span"); sp.className = "tg"; sp.textContent = part; el.appendChild(sp); }
+          else el.appendChild(document.createTextNode(part));
+        });
+      }
 
       function noteCard(n) {
         const mine = !n || n.mine;
@@ -2035,17 +2178,14 @@
         b.type = "button";
         b.className = "nCard";
         const bub = document.createElement("span");
-        bub.className = "nBubble" + (n ? "" : " ghost");
+        bub.className = "nBubble" + (n ? "" : " ghost") + (n && n.birthday ? " bday" : "");
         if (n) {
-          if (n.text) { const t = document.createElement("span"); t.className = "nText"; t.textContent = n.text; bub.appendChild(t); }
-          if (n.song) {
-            const m = document.createElement("span");
-            m.className = "nSong";
-            m.textContent = "♪ " + n.song + (n.artist ? " · " + n.artist : "");
-            bub.appendChild(m);
-          }
+          const t = document.createElement("span");
+          t.className = "nText";
+          tagText(t, n.text);
+          bub.appendChild(t);
         } else {
-          bub.textContent = "Note…";
+          bub.textContent = myBdayToday ? "Happy birthday! 🎂" : "Note…";
         }
         const av = smallAvatar(n ? n.avatar : meNoteAvatar, n ? n.username : (me && me.user_metadata && me.user_metadata.username) || "you");
         av.classList.add("nAv");
@@ -2053,49 +2193,91 @@
         nm.className = "nName";
         nm.textContent = mine ? "Your note" : n.username;
         b.append(bub, av, nm);
+        if ((n && n.birthday) || (mine && myBdayToday)) { const c = document.createElement("span"); c.className = "nCake"; c.textContent = "🎂"; b.appendChild(c); }
         b.onclick = () => { if (mine && !n) openNoteComposer(); else openNote(n); };
         return b;
       }
 
-      async function loadNotes() {
-        const d = await api("/api/notes");
-        notes = d.notes || [];
-        meNoteAvatar = d.me_avatar || null;
+      function bdayCard(f) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "nCard";
+        const bub = document.createElement("span");
+        bub.className = "nBubble ghost bday";
+        bub.textContent = "Birthday 🎂";
+        const av = smallAvatar(f.avatar, f.username);
+        av.classList.add("nAv");
+        const nm = document.createElement("span");
+        nm.className = "nName";
+        nm.textContent = f.username;
+        const c = document.createElement("span");
+        c.className = "nCake";
+        c.textContent = "🎂";
+        b.append(bub, av, nm, c);
+        b.onclick = () => openNoteComposer(f.username);
+        return b;
+      }
+
+      function paintNotes() {
         const row = $("notesRow");
         row.innerHTML = "";
         const mine = notes.find((n) => n.mine) || null;
         row.appendChild(noteCard(mine));
         notes.filter((n) => !n.mine).forEach((n) => row.appendChild(noteCard(n)));
+        noteBdays.filter((f) => !notes.some((n) => n.user_id === f.id)).forEach((f) => row.appendChild(bdayCard(f)));
+      }
+      function takeNotes(d) {
+        notes = d.notes || [];
+        noteBdays = d.birthdays || [];
+        myBdayToday = !!d.my_birthday_today;
+        meNoteAvatar = d.me_avatar || null;
+      }
+      let notesFromDisk = false;
+      async function loadNotes() {
+        if (!notes.length && !$("notesRow").children.length) {
+          const c = cget("notes");
+          if (c) { takeNotes(c); notesFromDisk = true; paintNotes(); } else paintNotes();
+        }
+        const d = await api("/api/notes?md=" + todayMD());
+        if (d.error) return;
+        cset("notes", d);
+        takeNotes(d);
+        paintNotes();
       }
 
-      function openNoteComposer() {
+      function setNtTag(u) {
+        ntTag = u || "";
+        document.querySelectorAll("#ntBdList .bdChip").forEach((c) => c.classList.toggle("on", c.dataset.u === ntTag));
+        const cur = $("ntText").value.trim();
+        if (ntTag && (!cur || /^Happy birthday/i.test(cur))) $("ntText").value = ("Happy birthday @" + ntTag + " 🎂").slice(0, 60);
+        else if (ntTag && cur.toLowerCase().indexOf("@" + ntTag.toLowerCase()) < 0) $("ntText").value = (cur + " @" + ntTag).slice(0, 60);
+        else if (!ntTag && /^Happy birthday @/i.test(cur)) $("ntText").value = "";
+        $("ntCount").textContent = $("ntText").value.length;
+      }
+      function openNoteComposer(tagUser) {
         const mine = notes.find((n) => n.mine) || null;
         $("ntText").value = mine ? mine.text : "";
         $("ntCount").textContent = $("ntText").value.length;
-        $("ntSong").value = mine ? mine.song : "";
-        $("ntArtist").value = mine ? mine.artist : "";
-        noteHadAudio = !!(mine && mine.audio_url);
-        $("ntMusicOn").checked = !!(mine && (mine.song || mine.audio_url));
-        $("ntMusicBox").hidden = !$("ntMusicOn").checked;
-        $("ntAudio").value = "";
-        ntAudioFile = null;
-        $("ntAudioName").textContent = noteHadAudio ? "Clip attached ✓ (pick a new file to replace it)" : "";
+        ntTag = mine && mine.tag ? mine.tag : "";
+        const box = $("ntBdList");
+        box.innerHTML = "";
+        noteBdays.forEach((f) => {
+          const c = document.createElement("button");
+          c.type = "button";
+          c.className = "bdChip";
+          c.dataset.u = f.username;
+          c.textContent = "🎂 @" + f.username;
+          c.onclick = () => setNtTag(ntTag === f.username ? "" : f.username);
+          box.appendChild(c);
+        });
+        $("ntBdBox").hidden = !noteBdays.length;
         $("ntDelete").hidden = !mine;
         $("ntMsg").textContent = "";
         $("noteView").hidden = true;
         $("noteSheet").hidden = false;
+        if (tagUser) setNtTag(tagUser); else setNtTag(ntTag);
       }
       $("ntText").addEventListener("input", () => { $("ntCount").textContent = $("ntText").value.length; });
-      $("ntMusicOn").addEventListener("change", () => { $("ntMusicBox").hidden = !$("ntMusicOn").checked; });
-      $("ntAudio").addEventListener("change", () => {
-        const f = $("ntAudio").files[0];
-        if (!f) return;
-        if (f.type.indexOf("audio") !== 0) { $("ntMsg").textContent = "Pick an audio file."; $("ntAudio").value = ""; return; }
-        if (f.size > 5 * 1024 * 1024) { $("ntMsg").textContent = "Clip is too big (max 5 MB)."; $("ntAudio").value = ""; return; }
-        ntAudioFile = f;
-        $("ntMsg").textContent = "";
-        $("ntAudioName").textContent = "🎧 " + f.name;
-      });
       $("ntCancel").addEventListener("click", () => { $("noteSheet").hidden = true; });
       $("ntDelete").addEventListener("click", async () => {
         await api("/api/notes/delete", "POST", {});
@@ -2104,24 +2286,12 @@
       });
       $("ntShare").addEventListener("click", async () => {
         const text = $("ntText").value.trim();
-        const music = $("ntMusicOn").checked;
-        const song = music ? $("ntSong").value.trim() : "";
-        const artist = music ? $("ntArtist").value.trim() : "";
-        if (!text && !song) { $("ntMsg").textContent = "Write something or add a song."; return; }
+        if (!text) { $("ntMsg").textContent = "Write something first."; return; }
         $("ntShare").disabled = true;
         $("ntMsg").textContent = "Sharing...";
         try {
-          let audio_path = "";
-          if (music && ntAudioFile) {
-            const ext = (ntAudioFile.name.split(".").pop() || "mp3").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
-            const up = await api("/api/notes/audio-url", "POST", { ext });
-            if (up.error) throw new Error(up.error);
-            const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, ntAudioFile, { contentType: ntAudioFile.type });
-            if (error) throw error;
-            audio_path = up.path;
-          }
-          const body = { text, song, artist, audio_path };
-          if (music && !ntAudioFile && noteHadAudio) body.keep_audio = true;
+          const body = { text };
+          if (ntTag && text.toLowerCase().indexOf("@" + ntTag.toLowerCase()) >= 0) body.tag_username = ntTag;
           const r = await api("/api/notes", "POST", body);
           if (r.error) throw new Error(r.error);
           $("noteSheet").hidden = true;
@@ -2134,35 +2304,22 @@
       });
 
       // Looking at a note
-      let nvAudio = null;
-      function stopNoteAudio() { if (nvAudio) { nvAudio.pause(); nvAudio = null; } $("nvPlay").textContent = "▶ Play clip"; }
       function openNote(n) {
         currentNote = n;
-        stopNoteAudio();
         $("nvWho").innerHTML = "";
         const av = smallAvatar(n.avatar, n.username);
         av.classList.add("cAv");
         $("nvWho").append(av, document.createTextNode(" @" + n.username + " · " + ago(n.time)));
-        $("nvText").textContent = n.text;
+        tagText($("nvText"), n.text);
         $("nvText").hidden = !n.text;
-        $("nvSong").textContent = n.song ? "♪ " + n.song + (n.artist ? " · " + n.artist : "") : "";
-        $("nvSong").hidden = !n.song;
-        $("nvPlay").hidden = !n.audio_url;
         $("nvForm").hidden = !!n.mine;
         $("nvEdit").hidden = !n.mine;
         $("nvInput").value = "";
         $("nvMsg").textContent = "";
         $("noteView").hidden = false;
       }
-      $("nvPlay").addEventListener("click", () => {
-        if (nvAudio) { stopNoteAudio(); return; }
-        if (!currentNote || !currentNote.audio_url) return;
-        nvAudio = new Audio(currentNote.audio_url);
-        nvAudio.onended = stopNoteAudio;
-        nvAudio.play().then(() => { $("nvPlay").textContent = "⏸ Pause"; }).catch(() => { $("nvMsg").textContent = "Could not play the clip."; nvAudio = null; });
-      });
-      $("nvClose").addEventListener("click", () => { stopNoteAudio(); $("noteView").hidden = true; });
-      $("nvEdit").addEventListener("click", () => { stopNoteAudio(); openNoteComposer(); });
+      $("nvClose").addEventListener("click", () => { $("noteView").hidden = true; });
+      $("nvEdit").addEventListener("click", () => { openNoteComposer(); });
       $("nvForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const t = $("nvInput").value.trim();
@@ -2179,14 +2336,30 @@
         $("cTitle").textContent = "@" + p.username;
         $("cList").hidden = true;
         $("cThread").hidden = false;
-        $("cMessages").innerHTML = "";
+        const cached = threads[p.id];
+        renderThread(cached || []);
         const data = await api("/api/dms/" + p.id);
-        (data.messages || []).forEach(addToThread);
+        if (!peer || peer.id !== p.id || data.error) return;
+        const fresh = data.messages || [];
+        const changed = !cached || threadSig(cached) !== threadSig(fresh);
+        threads[p.id] = fresh;
+        if (changed) renderThread(fresh);
       }
 
       // A private message arrived (or one you just sent)
       function onDm(m) {
+        const pid = m.from === me.id ? m.to : m.from;
+        const mineEcho = m.cid && pendingMsgs[m.cid];
+        if (threads[pid]) threads[pid].push(m);
         const open = !$("chatsPanel").hidden;
+        if (mineEcho) {
+          const el = mineEcho.el;
+          el.classList.remove("pending");
+          const t = el.querySelector(".time");
+          if (t) t.textContent = clock(m.time);
+          delete pendingMsgs[m.cid];
+          return;
+        }
         if (peer && open && (m.from === peer.id || m.to === peer.id)) {
           addToThread(m);
           markRead(peer.id);
@@ -2220,7 +2393,15 @@
         e.preventDefault();
         const text = $("cInput").value;
         if (!text.trim() || !peer || !socket) return;
-        socket.emit("dm", { to: peer.id, text });
+        const cid = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+        const m = { from: me.id, to: peer.id, text, time: new Date().toISOString(), cid };
+        const el = bubble(m);
+        el.classList.add("pending");
+        pendingMsgs[cid] = { to: peer.id, el };
+        const box = $("cMessages");
+        box.appendChild(el);
+        box.scrollTop = box.scrollHeight;
+        socket.emit("dm", { to: peer.id, text, cid });
         $("cInput").value = "";
       });
 
@@ -2247,7 +2428,7 @@
       });
 
       // ---------- Photo posts ----------
-      function postCard(p) {
+      function postCard(p, idx) {
         const box = document.createElement("div");
         box.className = "post";
 
@@ -2267,15 +2448,24 @@
           d.onclick = async () => {
             if (!confirm("Delete this post?")) return;
             await api("/api/posts/delete", "POST", { id: p.id });
-            loadPosts();
+            loadPosts(true);
           };
           head.appendChild(d);
         }
 
+        const media = document.createElement("div");
+        media.className = "pmedia";
         const img = document.createElement("img");
-        img.src = p.url;
         img.alt = "post by " + p.username;
-        img.loading = "lazy";
+        img.decoding = "async";
+        if (idx < 2) { img.loading = "eager"; img.fetchPriority = "high"; } else img.loading = "lazy";
+        img.onload = () => { img.classList.add("ld"); media.classList.add("done"); };
+        img.onerror = () => { if (!postsRetried) { postsRetried = true; postsAt = 0; loadPosts(true); } };
+        img.src = p.url;
+        const heart = document.createElement("span");
+        heart.className = "bigHeart";
+        heart.textContent = "❤️";
+        media.append(img, heart);
 
         const act = document.createElement("div");
         act.className = "pact";
@@ -2295,13 +2485,33 @@
           count.textContent = likes + (likes === 1 ? " like" : " likes");
         };
         paint();
-        like.onclick = async () => {
+        async function toggleLike(onlyLike) {
+          if (onlyLike && liked) return;
+          const was = { liked, likes };
+          liked = !liked;
+          likes += liked ? 1 : -1;
+          paint();
           const r = await api("/api/posts/like", "POST", { post_id: p.id });
-          if (r.error) return;
+          if (r.error) { liked = was.liked; likes = was.likes; paint(); return; }
           liked = r.liked;
           likes = r.likes;
+          p.liked = liked;
+          p.likes = likes;
           paint();
-        };
+          if (postsList) cset("posts", postsList);
+        }
+        like.onclick = () => toggleLike(false);
+        let lastTap = 0;
+        media.addEventListener("click", () => {
+          const now = Date.now();
+          if (now - lastTap < 320) {
+            lastTap = 0;
+            heart.classList.remove("go");
+            void heart.offsetWidth;
+            heart.classList.add("go");
+            toggleLike(true);
+          } else lastTap = now;
+        });
 
         const cap = document.createElement("div");
         cap.className = "pcap";
@@ -2310,6 +2520,17 @@
           b.textContent = "@" + p.username;
           cap.append(b, document.createTextNode(" " + p.caption));
         }
+
+        const when = document.createElement("div");
+        when.className = "ptime";
+        when.textContent = p.time ? ago(p.time) + " ago" : "";
+        when.hidden = !p.time;
+
+        const viewAll = document.createElement("button");
+        viewAll.type = "button";
+        viewAll.className = "pviewall";
+        viewAll.textContent = "View all " + (p.comments || 0) + " comments";
+        viewAll.hidden = !(p.comments > 0);
 
         const com = document.createElement("div");
         com.className = "pcom";
@@ -2343,6 +2564,7 @@
           com.hidden = !com.hidden;
           if (!com.hidden) loadComments();
         };
+        viewAll.onclick = () => { viewAll.hidden = true; com.hidden = false; loadComments(); };
         form.onsubmit = async (e) => {
           e.preventDefault();
           const t = input.value.trim();
@@ -2350,36 +2572,63 @@
           input.value = "";
           const r = await api("/api/posts/comment", "POST", { post_id: p.id, text: t });
           if (r.error) { alert(r.error); return; }
+          p.comments = (p.comments || 0) + 1;
           loadComments();
         };
 
-        box.append(head, img, act, count, cap, com);
+        box.append(head, media, act, count, cap, viewAll, when, com);
         return box;
       }
 
-      async function loadPosts() {
+      let postsAt = 0;
+      let postsList = null;
+      let postsDisk = false;
+      let postsRetried = false;
+      let pbScroll = 0;
+      const pSig = (ps) => ps.map((p) => p.id + ":" + p.likes + ":" + (p.liked ? 1 : 0) + ":" + (p.comments || 0)).join("|");
+      function renderPosts(posts) {
         const feed = $("pbFeed");
-        feed.innerHTML = '<div class="pbEmpty">Loading...</div>';
-        const d = await api("/api/posts");
+        const top = feed.scrollTop;
         feed.innerHTML = "";
-        if (d.error) {
-          feed.innerHTML = '<div class="pbEmpty"></div>';
-          feed.firstChild.textContent = d.error;
-          return;
-        }
-        if (!d.posts.length) {
+        if (!posts.length) {
           feed.innerHTML = '<div class="pbEmpty">No posts yet. Tap "+ Post" to share the first photo!</div>';
           return;
         }
-        d.posts.forEach((p) => feed.appendChild(postCard(p)));
+        const frag = document.createDocumentFragment();
+        posts.forEach((p, i) => frag.appendChild(postCard(p, i)));
+        feed.appendChild(frag);
+        feed.scrollTop = top;
+      }
+      async function loadPosts(force) {
+        const feed = $("pbFeed");
+        if (!postsList && !feed.children.length) {
+          const c = cget("posts");
+          if (c) { postsList = c; postsDisk = true; renderPosts(c); }
+          else feed.innerHTML = '<div class="post sk"><div class="phead"><span class="skc"></span><span class="skl"></span></div><div class="skimg"></div></div>'.repeat(2);
+        }
+        if (force !== true && postsAt && Date.now() - postsAt < 25000) return;
+        const d = await api("/api/posts");
+        if (d.error) { if (!postsList) { feed.innerHTML = '<div class="pbEmpty"></div>'; feed.firstChild.textContent = d.error; } return; }
+        postsAt = Date.now();
+        postsRetried = false;
+        const changed = !postsList || postsDisk || pSig(d.posts) !== pSig(postsList);
+        postsDisk = false;
+        postsList = d.posts;
+        cset("posts", d.posts);
+        if (changed) renderPosts(d.posts);
       }
 
       $("postsBtn").addEventListener("click", () => {
+        const wasOpen = homeWasOpen;
+        homeWasOpen = false;
         $("postsPanel").hidden = false;
+        const feed = $("pbFeed");
+        if (wasOpen) { feed.scrollTop = pbScroll; feed.scrollTo({ top: 0, behavior: "smooth" }); loadPosts(true); loadStories(true); return; }
         loadPosts();
+        feed.scrollTop = pbScroll;
       });
       $("pbClose").addEventListener("click", () => {
-        $("pbFeed").innerHTML = "";
+        if (!$("postsPanel").hidden) pbScroll = $("pbFeed").scrollTop;
         $("postsPanel").hidden = true;
       });
       $("pbToggle").addEventListener("click", () => {
@@ -2406,7 +2655,7 @@
           $("pbFile").value = "";
           $("pbCaption").value = "";
           $("pbUpload").hidden = true;
-          loadPosts();
+          loadPosts(true);
         } catch (e) {
           msg.textContent = "Upload failed: " + (e.message || "please try again.");
         } finally {
@@ -2418,7 +2667,7 @@
       const MAX_MB = 40;
       let observer = null;
 
-      function reelCard(r) {
+      function reelCard(r, idx) {
         const box = document.createElement("div");
         box.className = "reel";
 
@@ -2428,7 +2677,8 @@
         v.loop = true;
         v.muted = true;
         v.playsInline = true;
-        v.preload = "metadata";
+        v.preload = idx === 0 ? "auto" : "metadata";
+        v.onloadeddata = () => box.classList.add("ready");
 
         const info = document.createElement("div");
         info.className = "reelInfo";
@@ -2464,30 +2714,26 @@
           d.onclick = async () => {
             if (!confirm("Delete this reel?")) return;
             await api("/api/reels/delete", "POST", { id: r.id });
-            loadReels();
+            loadReels(true);
           };
           box.appendChild(d);
         }
         return box;
       }
 
-      async function loadReels() {
+      let reelsAt = 0;
+      let reelsList = null;
+      let reelsDisk = false;
+      let rScroll = 0;
+      const rSig = (rs) => rs.map((r) => r.id).join("|");
+      function renderReels(reels) {
         const feed = $("rFeed");
-        feed.innerHTML = '<div class="reelsEmpty">Loading...</div>';
-        const data = await api("/api/reels");
         feed.innerHTML = "";
         if (observer) observer.disconnect();
-
-        if (data.error) {
-          feed.innerHTML = '<div class="reelsEmpty"></div>';
-          feed.firstChild.textContent = data.error;
-          return;
-        }
-        if (!data.reels.length) {
+        if (!reels.length) {
           feed.innerHTML = '<div class="reelsEmpty">No reels yet. Tap "+ Post" to add the first one!</div>';
           return;
         }
-
         // Play the reel you are looking at, pause the others
         observer = new IntersectionObserver(
           (entries) => {
@@ -2500,22 +2746,43 @@
           },
           { root: feed, threshold: [0, 0.7] }
         );
-        data.reels.forEach((r) => {
-          const card = reelCard(r);
+        reels.forEach((r, i) => {
+          const card = reelCard(r, i);
           feed.appendChild(card);
           observer.observe(card);
         });
       }
+      async function loadReels(force) {
+        const feed = $("rFeed");
+        if (!reelsList && !feed.children.length) {
+          const c = cget("reels");
+          if (c) { reelsList = c; reelsDisk = true; renderReels(c); }
+          else feed.innerHTML = '<div class="reel"></div>';
+        }
+        if (force !== true && reelsAt && Date.now() - reelsAt < 40000) return;
+        const data = await api("/api/reels");
+        if (data.error) { if (!reelsList) { feed.innerHTML = '<div class="reelsEmpty"></div>'; feed.firstChild.textContent = data.error; } return; }
+        reelsAt = Date.now();
+        const changed = !reelsList || reelsDisk || rSig(data.reels) !== rSig(reelsList);
+        reelsDisk = false;
+        reelsList = data.reels;
+        cset("reels", data.reels);
+        if (changed) renderReels(data.reels);
+      }
 
       $("reelsBtn").addEventListener("click", () => {
         $("reelsPanel").hidden = false;
+        const feed = $("rFeed");
         loadReels();
+        feed.scrollTop = rScroll;
+        // start playing the reel in view again
+        if (observer) feed.querySelectorAll(".reel").forEach((c) => observer.observe(c));
       });
 
       $("rClose").addEventListener("click", () => {
+        if (!$("reelsPanel").hidden) rScroll = $("rFeed").scrollTop;
         document.querySelectorAll("#rFeed video").forEach((v) => v.pause());
         if (observer) observer.disconnect();
-        $("rFeed").innerHTML = "";
         $("reelsPanel").hidden = true;
       });
 
@@ -2547,13 +2814,15 @@
           $("rFile").value = "";
           $("rCaption").value = "";
           $("rUpload").hidden = true;
-          loadReels();
+          loadReels(true);
         } catch (e) {
           msg.textContent = "Upload failed: " + (e.message || "please try again.");
         } finally {
           $("rPost").disabled = false;
         }
       });
+
+      if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
 
       // ---------- Start: are we already logged in? ----------
       const { data } = await sb.auth.getSession();

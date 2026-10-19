@@ -30,8 +30,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Serve the chat page from the "public" folder
-app.use(express.static("public"));
+// Make pages and data smaller on the way to the phone (skipped quietly if the package is missing)
+try { app.use(require("compression")()); } catch (e) { console.log("compression not installed, skipping"); }
+
+// Serve the chat page from the "public" folder (the logo is cached for a day)
+app.use(express.static("public", { maxAge: "1d", setHeaders: (res, file) => {
+  if (file.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+} }));
 
 // The web page asks for these two PUBLIC values so it can show the login form.
 // (The secret service key is never sent to the browser.)
@@ -43,13 +48,48 @@ app.get("/config", (req, res) => {
 app.use(express.json());
 
 // Checks the login token on every /api request
+// Remember who a login token belongs to for 60 seconds, so we don't ask Supabase on every request
+const authCache = new Map();
+async function userFromToken(token) {
+  const hit = authCache.get(token);
+  if (hit && hit.exp > Date.now()) return hit.user;
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data || !data.user) return null;
+  if (authCache.size > 500) authCache.clear();
+  authCache.set(token, { user: data.user, exp: Date.now() + 60 * 1000 });
+  return data.user;
+}
+
 async function requireUser(req, res, next) {
   const token = (req.headers.authorization || "").replace("Bearer ", "");
   if (!token) return res.status(401).json({ error: "Not logged in" });
-  const { data, error } = await supabase.auth.getUser(token);
-  if (error || !data || !data.user) return res.status(401).json({ error: "Not logged in" });
-  req.user = data.user;
+  const user = await userFromToken(token);
+  if (!user) return res.status(401).json({ error: "Not logged in" });
+  req.user = user;
   next();
+}
+
+// Picture/video links: made once and reused for ~a day, so the phone can keep the files in its memory
+const signCache = new Map();
+const SIGN_TTL = 24 * 3600;
+async function signMany(paths) {
+  const now = Date.now();
+  const out = [];
+  const need = [];
+  [...new Set((paths || []).filter(Boolean))].forEach((pth) => {
+    const c = signCache.get(pth);
+    if (c && c.exp - now > 3600 * 1000) out.push({ path: pth, signedUrl: c.url });
+    else need.push(pth);
+  });
+  if (need.length) {
+    const { data, error } = await supabase.storage.from("reels").createSignedUrls(need, SIGN_TTL);
+    if (error && !out.length) return { data: null, error };
+    (data || []).forEach((x) => {
+      if (x.signedUrl) { signCache.set(x.path, { url: x.signedUrl, exp: now + SIGN_TTL * 1000 }); out.push({ path: x.path, signedUrl: x.signedUrl }); }
+    });
+    if (signCache.size > 4000) { for (const [k, v] of signCache) if (v.exp < now) signCache.delete(k); }
+  }
+  return { data: out, error: null };
 }
 
 // Stops one error from freezing a request
@@ -93,7 +133,7 @@ async function avatarsFor(ids) {
   const { data } = await supabase.from("profiles").select("id, avatar_path").in("id", uniq);
   const withPic = (data || []).filter((p) => p.avatar_path);
   if (!withPic.length) return map;
-  const { data: signed } = await supabase.storage.from("reels").createSignedUrls(withPic.map((p) => p.avatar_path), 3600);
+  const { data: signed } = await signMany(withPic.map((p) => p.avatar_path), 3600);
   const byPath = {};
   (signed || []).forEach((x) => { if (x.signedUrl) byPath[x.path] = x.signedUrl; });
   withPic.forEach((p) => { if (byPath[p.avatar_path]) map[p.id] = byPath[p.avatar_path]; });
@@ -122,8 +162,8 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
 
   let avatarUrl = null;
   if (me.avatar_path) {
-    const { data: signed } = await supabase.storage.from("reels").createSignedUrl(me.avatar_path, 3600);
-    avatarUrl = signed ? signed.signedUrl : null;
+    const { data: signed } = await signMany([me.avatar_path]);
+    avatarUrl = signed && signed[0] ? signed[0].signedUrl : null;
   }
 
   const { count: postCount } = await supabase.from("photo_posts").select("id", { count: "exact", head: true }).eq("user_id", me.id);
@@ -132,6 +172,7 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
   res.json({
     username: me.username,
     display_name: me.display_name || "",
+    birthday: me.birthday || "",
     posts_count: (postCount || 0) + (reelCount || 0),
     bio: me.bio || "",
     avatar_url: avatarUrl,
@@ -151,6 +192,11 @@ app.post("/api/me/bio", requireUser, safe(async (req, res) => {
   const bio = String(req.body.bio || "").trim().slice(0, 150);
   const update = { bio };
   if (typeof req.body.name === "string") update.display_name = req.body.name.trim().slice(0, 30);
+  if (typeof req.body.birthday === "string") {
+    const b = req.body.birthday.trim();
+    if (b === "") update.birthday = null;
+    else if (MD_RE.test(b)) update.birthday = b;
+  }
   const { error } = await supabase.from("profiles").update(update).eq("id", me.id);
   if (error) return res.status(500).json({ error: "Could not save. Did you run the profile SQL in Supabase?" });
   res.json({ ok: true });
@@ -169,7 +215,7 @@ async function mediaFor(userId, viewerId) {
   const paths = [...posts.map((p) => p.path), ...reels.map((r) => r.path)];
   const urls = {};
   if (paths.length) {
-    const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(paths, 3600);
+    const { data: signed } = await signMany(paths);
     (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
   }
   const ids = posts.map((p) => p.id);
@@ -204,8 +250,10 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
 
 // People who follow me AND I follow them back ("friends")
 async function mutualIds(meId) {
-  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
-  const { data: inRows } = await supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted");
+  const [{ data: outRows }, { data: inRows }] = await Promise.all([
+    supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted"),
+    supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted"),
+  ]);
   const iFollow = new Set((outRows || []).map((r) => r.following_id));
   return (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id));
 }
@@ -219,68 +267,63 @@ app.get("/api/friends", requireUser, safe(async (req, res) => {
     .sort((a, b) => a.username.localeCompare(b.username)) });
 }));
 
-// ---------- Notes (a short thought, with music, for 24 hours) ----------
-app.post("/api/notes/audio-url", requireUser, safe(async (req, res) => {
-  const wanted = String(req.body.ext || "").toLowerCase();
-  const ext = ["mp3", "m4a", "aac", "wav", "ogg", "opus", "webm"].includes(wanted) ? wanted : "mp3";
-  const path = req.user.id + "/note-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
-  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
-  if (error) return res.status(500).json({ error: "Could not start the upload." });
-  res.json({ path, token: data.token });
-}));
+// ---------- Notes (a short thought for 24 hours, can tag a friend on their birthday) ----------
+const MD_RE = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
 app.post("/api/notes", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const text = String(req.body.text || "").trim().slice(0, 60);
-  const song = String(req.body.song || "").trim().slice(0, 40);
-  const artist = String(req.body.artist || "").trim().slice(0, 40);
-  let audio = String(req.body.audio_path || "");
-  if (audio && (!audio.startsWith(req.user.id + "/note-") || audio.includes(".."))) audio = "";
-  if (!text && !song) return res.json({ error: "Write something or add a song." });
+  if (!text) return res.json({ error: "Write something first." });
 
-  const { data: old } = await supabase.from("notes").select("audio_path").eq("user_id", me.id).maybeSingle();
-  if (!audio && req.body.keep_audio && old && old.audio_path) audio = old.audio_path;
-  if (old && old.audio_path && old.audio_path !== audio) await supabase.storage.from(REELS_BUCKET).remove([old.audio_path]);
+  let tagId = null;
+  let tagName = null;
+  const want = String(req.body.tag_username || "").toLowerCase().replace(/[^a-z0-9_]/g, "");
+  if (want) {
+    const friends = new Set(await mutualIds(me.id));
+    const { data: t } = await supabase.from("profiles").select("id, username").eq("username", want).maybeSingle();
+    if (t && friends.has(t.id)) { tagId = t.id; tagName = t.username; }
+  }
 
   const { error } = await supabase.from("notes").upsert({
-    user_id: me.id, username: me.username, text, song, artist, audio_path: audio || null, created_at: new Date().toISOString(),
+    user_id: me.id, username: me.username, text, song: "", artist: "", audio_path: null,
+    tag_user_id: tagId, tag_username: tagName, created_at: new Date().toISOString(),
   });
   if (error) return res.status(500).json({ error: "Could not save. Did you run the notes SQL in Supabase?" });
   res.json({ ok: true });
 }));
 
 app.post("/api/notes/delete", requireUser, safe(async (req, res) => {
-  const { data: old } = await supabase.from("notes").select("audio_path").eq("user_id", req.user.id).maybeSingle();
-  if (old && old.audio_path) await supabase.storage.from(REELS_BUCKET).remove([old.audio_path]);
   await supabase.from("notes").delete().eq("user_id", req.user.id);
   res.json({ ok: true });
 }));
 
+// Notes of me + my friends, and which friends have a birthday today (?md=MM-DD from the phone's own date)
 app.get("/api/notes", requireUser, safe(async (req, res) => {
   const meId = req.user.id;
-  const ids = [meId, ...(await mutualIds(meId))];
+  const md = MD_RE.test(String(req.query.md || "")) ? String(req.query.md) : "";
+  const friendIds = await mutualIds(meId);
+  const ids = [meId, ...friendIds];
   const cutoff = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
-  const { data: rows, error } = await supabase
-    .from("notes").select("user_id, username, text, song, artist, audio_path, created_at")
-    .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: false });
-  if (error) return res.json({ notes: [] });
-  const list = rows || [];
-  const audio = list.filter((n) => n.audio_path).map((n) => n.audio_path);
-  const urls = {};
-  if (audio.length) {
-    const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(audio, 3600);
-    (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
-  }
-  const pics = await avatarsFor(list.map((n) => n.user_id));
+
+  const [noteRes, profRes, pics] = await Promise.all([
+    supabase.from("notes").select("user_id, username, text, tag_username, created_at")
+      .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: false }),
+    supabase.from("profiles").select("id, username, birthday").in("id", ids),
+    avatarsFor(ids),
+  ]);
+  const list = noteRes.error ? [] : noteRes.data || [];
+  const bday = {};
+  const nameOf = {};
+  (profRes.data || []).forEach((pr) => { nameOf[pr.id] = pr.username; if (md && pr.birthday === md) bday[pr.id] = true; });
+
   const notes = list.map((n) => ({
     user_id: n.user_id, username: n.username, avatar: pics[n.user_id] || null, mine: n.user_id === meId,
-    text: n.text || "", song: n.song || "", artist: n.artist || "", audio_url: n.audio_path ? urls[n.audio_path] || null : null,
-    time: n.created_at,
+    text: n.text || "", tag: n.tag_username || "", birthday: !!bday[n.user_id], time: n.created_at,
   }));
   notes.sort((a, b) => (a.mine === b.mine ? 0 : a.mine ? -1 : 1));
-  const mePics = await avatarsFor([meId]);
-  res.json({ notes, me_avatar: mePics[meId] || null });
+  const birthdays = friendIds.filter((id) => bday[id]).map((id) => ({ id, username: nameOf[id] || "unknown", avatar: pics[id] || null }));
+  res.json({ notes, birthdays, me_avatar: pics[meId] || null, my_birthday_today: !!bday[meId] });
 }));
 
 // ---------- Stories (disappear after 24 hours) ----------
@@ -345,10 +388,7 @@ app.get("/api/stories", requireUser, safe(async (req, res) => {
   const meId = req.user.id;
   cleanupStories().catch(() => {});
 
-  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
-  const { data: inRows } = await supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted");
-  const iFollow = new Set((outRows || []).map((r) => r.following_id));
-  const mutual = (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id));
+  const mutual = await mutualIds(meId);
   const ids = [meId, ...mutual];
 
   const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
@@ -365,7 +405,7 @@ app.get("/api/stories", requireUser, safe(async (req, res) => {
   const list = (q.data || []).filter((r) => r.user_id === meId || !r.audience || !r.audience.length || r.audience.includes(meId));
   if (!list.length) return res.json({ groups: [] });
 
-  const { data: signed } = await supabase.storage.from(REELS_BUCKET).createSignedUrls(list.map((r) => r.path), 3600);
+  const { data: signed } = await signMany(list.map((r) => r.path), 3600);
   const urls = {};
   (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
   const pics = await avatarsFor([...new Set(list.map((r) => r.user_id))]);
@@ -430,6 +470,12 @@ async function buildNotifications(me) {
   comRows.forEach((c) => items.push({
     type: "comment", username: c.username || "someone", avatar: pics[c.user_id] || null,
     text: "commented: " + String(c.text || "").slice(0, 80), time: c.created_at,
+  }));
+
+  const { data: tagRows } = await supabase.from("notes").select("user_id, username, created_at")
+    .eq("tag_user_id", me.id).gte("created_at", new Date(Date.now() - 24 * 3600 * 1000).toISOString());
+  (tagRows || []).forEach((t) => items.push({
+    type: "mention", username: t.username, avatar: null, text: "tagged you in a note 🎂", time: t.created_at,
   }));
 
   items.sort((a, b) => new Date(b.time) - new Date(a.time));
@@ -597,7 +643,17 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 // You can message someone if their account is public, if they already
 // messaged you, or if one of you follows the other
+const canMsgCache = new Map();
 async function canMessage(meId, targetId) {
+  const key = meId + ">" + targetId;
+  const hit = canMsgCache.get(key);
+  if (hit && hit.exp > Date.now()) return hit.ok;
+  const ok = await canMessageSlow(meId, targetId);
+  if (canMsgCache.size > 2000) canMsgCache.clear();
+  canMsgCache.set(key, { ok, exp: Date.now() + (ok ? 60000 : 5000) });
+  return ok;
+}
+async function canMessageSlow(meId, targetId) {
   if (!UUID_RE.test(String(targetId)) || meId === targetId) return false;
   const { data: t } = await supabase.from("profiles").select("is_private").eq("id", targetId).maybeSingle();
   if (!t) return false;
@@ -617,17 +673,15 @@ async function canMessage(meId, targetId) {
 // The list of people you chat with (latest message from each)
 app.get("/api/dms", requireUser, safe(async (req, res) => {
   const me = req.user.id;
-  const { data } = await supabase
-    .from("dms")
-    .select("sender_id, receiver_id, text, kind, created_at")
-    .or(`sender_id.eq.${me},receiver_id.eq.${me}`)
-    .order("created_at", { ascending: false })
-    .limit(200);
+  const [{ data }, { data: outRows }] = await Promise.all([
+    supabase.from("dms").select("sender_id, receiver_id, text, kind, created_at")
+      .or(`sender_id.eq.${me},receiver_id.eq.${me}`).order("created_at", { ascending: false }).limit(200),
+    supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted"),
+  ]);
 
   const seen = {};
   const iSentTo = new Set();
   (data || []).forEach((m) => { if (m.sender_id === me) iSentTo.add(m.receiver_id); });
-  const { data: outRows } = await supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted");
   const iFollow = new Set((outRows || []).map((r) => r.following_id));
   const chats = [];
   (data || []).forEach((m) => {
@@ -639,8 +693,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
       chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
   });
-  const names = await namesFor(chats.map((c) => c.peer_id));
-  const pics = await avatarsFor(chats.map((c) => c.peer_id));
+  const [names, pics] = await Promise.all([namesFor(chats.map((c) => c.peer_id)), avatarsFor(chats.map((c) => c.peer_id))]);
   res.json({ chats: chats.map((c) => ({ ...c, username: names[c.peer_id] || "unknown", avatar: pics[c.peer_id] || null })) });
 }));
 
@@ -728,9 +781,7 @@ app.get("/api/reels", requireUser, safe(async (req, res) => {
     .slice(0, 20);
   if (!allowed.length) return res.json({ reels: [] });
 
-  const { data: signed, error } = await supabase.storage
-    .from(REELS_BUCKET)
-    .createSignedUrls(allowed.map((r) => r.path), 3600);
+  const { data: signed, error } = await signMany(allowed.map((r) => r.path), 3600);
   if (error) {
     console.error("Signed URL error:", error.message);
     return res.status(500).json({ error: "Could not load videos." });
@@ -773,7 +824,7 @@ async function shapeDms(rows) {
   const paths = [...rows.map((r) => r.media_path), ...Object.values(reelMap).map((r) => r.path)].filter(Boolean);
   const urls = {};
   if (paths.length) {
-    const { data } = await supabase.storage.from(REELS_BUCKET).createSignedUrls([...new Set(paths)], 3600);
+    const { data } = await signMany([...new Set(paths)]);
     (data || []).forEach((s) => { if (s.signedUrl) urls[s.path] = s.signedUrl; });
   }
   return rows.map((m) => {
@@ -895,12 +946,13 @@ app.post("/api/posts", requireUser, safe(async (req, res) => {
 // The feed: your posts, public accounts, and people you follow
 app.get("/api/posts", requireUser, safe(async (req, res) => {
   const meId = req.user.id;
-  const { data: rows } = await supabase
-    .from("photo_posts")
-    .select("id, user_id, username, path, caption, created_at")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [{ data: rows }, { data: fRows }] = await Promise.all([
+    supabase.from("photo_posts").select("id, user_id, username, path, caption, created_at")
+      .order("created_at", { ascending: false }).limit(100),
+    supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted"),
+  ]);
   const list = rows || [];
+  const following = new Set((fRows || []).map((r) => r.following_id));
 
   const authorIds = [...new Set(list.map((r) => r.user_id))];
   const priv = {};
@@ -908,9 +960,6 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
     const { data: authors } = await supabase.from("profiles").select("id, is_private").in("id", authorIds);
     (authors || []).forEach((a) => (priv[a.id] = a.is_private));
   }
-  const { data: fRows } = await supabase
-    .from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted");
-  const following = new Set((fRows || []).map((r) => r.following_id));
 
   const allowed = list
     .filter((r) => r.user_id === meId || !priv[r.user_id] || following.has(r.user_id))
@@ -918,8 +967,12 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
   if (!allowed.length) return res.json({ posts: [] });
 
   const ids = allowed.map((r) => r.id);
-  const { data: likeRows } = await supabase.from("photo_likes").select("post_id, user_id").in("post_id", ids);
-  const { data: comRows } = await supabase.from("photo_comments").select("post_id").in("post_id", ids);
+  const [{ data: likeRows }, { data: comRows }, signedRes, pics] = await Promise.all([
+    supabase.from("photo_likes").select("post_id, user_id").in("post_id", ids),
+    supabase.from("photo_comments").select("post_id").in("post_id", ids),
+    signMany(allowed.map((r) => r.path)),
+    avatarsFor(allowed.map((r) => r.user_id)),
+  ]);
   const likes = {};
   const liked = {};
   const comments = {};
@@ -929,16 +982,12 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
   });
   (comRows || []).forEach((c) => { comments[c.post_id] = (comments[c.post_id] || 0) + 1; });
 
-  const { data: signed, error } = await supabase.storage
-    .from(REELS_BUCKET)
-    .createSignedUrls(allowed.map((r) => r.path), 3600);
-  if (error) {
-    console.error("Post signed URL error:", error.message);
+  if (signedRes.error) {
+    console.error("Post signed URL error:", signedRes.error.message);
     return res.status(500).json({ error: "Could not load photos." });
   }
   const urls = {};
-  (signed || []).forEach((s) => { if (s.signedUrl) urls[s.path] = s.signedUrl; });
-  const pics = await avatarsFor(allowed.map((r) => r.user_id));
+  (signedRes.data || []).forEach((x) => { urls[x.path] = x.signedUrl; });
 
   res.json({
     posts: allowed
@@ -949,6 +998,7 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
         avatar: pics[r.user_id] || null,
         caption: r.caption,
         url: urls[r.path],
+        time: r.created_at,
         mine: r.user_id === meId,
         likes: likes[r.id] || 0,
         liked: !!liked[r.id],
@@ -1021,10 +1071,9 @@ io.use(async (socket, next) => {
     const token = socket.handshake.auth && socket.handshake.auth.token;
     if (!token) return next(new Error("Not logged in"));
 
-    const { data, error } = await supabase.auth.getUser(token);
-    if (error || !data || !data.user) return next(new Error("Not logged in"));
+    const user = await userFromToken(token);
+    if (!user) return next(new Error("Not logged in"));
 
-    const user = data.user;
     const name =
       (user.user_metadata && user.user_metadata.username) ||
       String(user.email || "user").split("@")[0];
@@ -1063,7 +1112,8 @@ io.on("connection", async (socket) => {
         socket.emit("dm error", "Could not send that message.");
         return;
       }
-      const payload = { from: socket.data.userId, to, text, time: saved.created_at };
+      const cid = String((msg && msg.cid) || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
+      const payload = { from: socket.data.userId, to, text, time: saved.created_at, cid };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
     } catch (e) {
