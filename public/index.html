@@ -521,6 +521,45 @@
     .bdChip.on { border-color: #ec4899; background: linear-gradient(var(--surface2), var(--surface2)) padding-box, var(--grad) border-box; border: 1px solid transparent; }
     .bdRow { display: flex; gap: 8px; margin-bottom: 8px; }
     .bdRow select { flex: 1; padding: 12px; background: var(--surface2); color: var(--text); border: 1px solid var(--line); border-radius: 16px 16px 16px 5px; font-size: 15px; }
+
+    /* v18: reels like a real reels screen */
+    .reel { background: #000; }
+    .rShade { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(transparent, rgba(0,0,0,0.7)); pointer-events: none; z-index: 2; }
+    .rActs { position: absolute; right: 10px; bottom: 84px; display: flex; flex-direction: column; align-items: center; gap: 18px; z-index: 4; }
+    .rAct { background: none; border: none; padding: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; color: #fff; font-size: 12px; font-weight: 600; min-height: 34px; }
+    .rAct svg { width: 30px; height: 30px; stroke: #fff; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.6)); }
+    .rAct.on svg { fill: #ec4899; stroke: #ec4899; }
+    .rAct .dots { font-size: 26px; line-height: 20px; letter-spacing: 2px; }
+    .rBottom { position: absolute; left: 14px; right: 74px; bottom: 22px; z-index: 4; text-shadow: 0 1px 6px #000; }
+    .rUserRow { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; min-width: 0; }
+    .rUserRow .sAv { width: 36px; height: 36px; font-size: 15px; }
+    .rUserRow .rn { font-weight: 700; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 40vw; }
+    .rFollow { padding: 5px 14px; font-size: 13px; font-weight: 700; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.6); backdrop-filter: blur(6px); border-radius: 12px 12px 12px 4px; color: #fff; }
+    .rCap { font-size: 14px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+    .rCap.open { -webkit-line-clamp: unset; max-height: 30vh; overflow-y: auto; }
+    .rMore { color: rgba(255,255,255,0.7); background: none; padding: 0; font-weight: 500; font-size: 14px; border: none; margin-top: 2px; }
+    .rMute { position: absolute; right: 12px; bottom: 20px; width: 36px; height: 36px; border-radius: 50%; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.2); padding: 0; font-size: 16px; z-index: 5; display: flex; align-items: center; justify-content: center; }
+    .rProg { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,0.2); z-index: 5; }
+    .rProg i { display: block; height: 100%; width: 0; background: var(--grad); }
+    .rFlash { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%) scale(0.6); font-size: 58px; opacity: 0; pointer-events: none; z-index: 3; text-shadow: 0 2px 14px rgba(0,0,0,0.6); }
+    .rFlash.go { animation: twFlash 0.6s ease forwards; }
+    @keyframes twFlash { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+    #rv { position: fixed; inset: 0; z-index: 90; background: #000; }
+    #rvFeed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; }
+    #rv .reel { height: 100vh; height: 100dvh; }
+    .rvClose { position: absolute; top: 12px; left: 12px; z-index: 8; background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.2); padding: 8px 14px; font-size: 14px; }
+    #rcSheet { position: fixed; inset: 0; z-index: 95; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; }
+    .rcBox { width: 100%; max-height: 72vh; background: var(--surface); border-radius: 28px 28px 0 0; padding: 14px 14px 18px; display: flex; flex-direction: column; }
+    .rcHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 700; }
+    .rcHead button { background: none; padding: 6px 10px; }
+    #rcList { overflow-y: auto; flex: 1; min-height: 90px; margin-bottom: 10px; }
+    #rcList .cl { padding: 6px 0; font-size: 14.5px; overflow-wrap: anywhere; }
+    #rcList .cl strong { margin-right: 4px; }
+    #rcForm { display: flex; gap: 8px; }
+    #rcForm input { flex: 1; }
+    .pmedia video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s ease; }
+    .pmedia video.ld { opacity: 1; }
+    .reelTag { position: absolute; top: 10px; right: 10px; z-index: 3; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); padding: 4px 10px; border-radius: 12px 12px 12px 4px; font-size: 12px; font-weight: 700; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -600,8 +639,8 @@
         <h3>Bio</h3>
         <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
         <h3>Birthday 🎂</h3>
-        <div class="bdRow"><select id="pBdMonth"></select><select id="pBdDay"></select></div>
-        <p class="hint" style="margin-bottom:10px">Friends can tag you in a note on your birthday. Only day and month are saved.</p>
+        <div class="bdRow"><select id="pBdMonth"></select><select id="pBdDay"></select><select id="pBdYear"></select></div>
+        <p class="hint" style="margin-bottom:10px">Friends can tag you in a note on your birthday and see how old you turn.</p>
         <button class="wide" id="pBioSave" type="button">Save</button>
         <p id="pEditMsg"></p>
       </div>
@@ -794,9 +833,9 @@
       </span>
     </div>
     <div id="pbUpload" hidden>
-      <input id="pbFile" type="file" accept="image/*" />
+      <input id="pbFile" type="file" accept="image/*,video/*" />
       <input id="pbCaption" type="text" maxlength="200" placeholder="Write a caption..." />
-      <button id="pbPost" type="button">Share photo</button>
+      <button id="pbPost" type="button">Share</button>
       <p id="pbMsg"></p>
     </div>
     <div id="pbScroll">
@@ -806,6 +845,24 @@
   </div>
 
   <input id="stFile" type="file" accept="image/*,video/*" hidden />
+
+  <!-- Reel viewer (opens when you tap any video) -->
+  <div id="rv" hidden>
+    <button type="button" class="rvClose" id="rvClose">✕ Close</button>
+    <div id="rvFeed"></div>
+  </div>
+
+  <!-- Reel comments -->
+  <div id="rcSheet" hidden>
+    <div class="rcBox">
+      <div class="rcHead"><span id="rcTitle">Comments</span><button type="button" id="rcClose">✕</button></div>
+      <div id="rcList"></div>
+      <form id="rcForm" autocomplete="off">
+        <input id="rcInput" type="text" maxlength="300" placeholder="Add a comment..." autocomplete="off" />
+        <button type="submit">Post</button>
+      </form>
+    </div>
+  </div>
 
   <!-- Write a note -->
   <div id="noteSheet" hidden>
@@ -1094,6 +1151,7 @@
         ["rClose", "pbClose", "cClose", "gClose", "pClose", "sClose", "nClose"].forEach((id) => $(id).click());
         $("viewer").hidden = true;
         $("userView").hidden = true;
+        closeRv();
       }
       function setActive(id) {
         tabIds.forEach((t) => $(t).classList.toggle("active", t === id));
@@ -1213,7 +1271,7 @@
           grid.appendChild(e);
           return;
         }
-        items.forEach((it) => {
+        items.forEach((it, ii) => {
           const cell = document.createElement("button");
           cell.type = "button";
           cell.className = "cell";
@@ -1229,7 +1287,7 @@
             const tag = document.createElement("span");
             tag.className = "playTag"; tag.textContent = "▶";
             cell.appendChild(tag);
-            cell.onclick = () => openViewer(reelCard(it));
+            cell.onclick = () => openReelViewer(items, ii);
           }
           grid.appendChild(cell);
         });
@@ -1725,7 +1783,7 @@
           grid.appendChild(e);
           return;
         }
-        items.forEach((it) => {
+        items.forEach((it, ii) => {
           const cell = document.createElement("button");
           cell.type = "button";
           cell.className = "cell";
@@ -1741,7 +1799,7 @@
             const tag = document.createElement("span");
             tag.className = "playTag"; tag.textContent = "▶";
             cell.appendChild(tag);
-            cell.onclick = () => openViewer(reelCard(it));
+            cell.onclick = () => openReelViewer(items, ii);
           }
           grid.appendChild(cell);
         });
@@ -1771,6 +1829,7 @@
         if (document.activeElement !== $("pNameInput")) $("pNameInput").value = p.display_name || "";
         $("pBdMonth").value = p.birthday ? p.birthday.slice(0, 2) : "";
         $("pBdDay").value = p.birthday ? p.birthday.slice(3, 5) : "";
+        $("pBdYear").value = p.birth_year ? String(p.birth_year) : "";
         $("pPrivacy").textContent = p.is_private
           ? "🔒 Private account (tap to make public)"
           : "🌍 Public account (tap to make private)";
@@ -1805,11 +1864,14 @@
         let d = '<option value="">Day</option>';
         for (let i = 1; i <= 31; i++) d += '<option value="' + String(i).padStart(2, "0") + '">' + i + "</option>";
         $("pBdDay").innerHTML = d;
+        let y = '<option value="">Year</option>';
+        for (let i = new Date().getFullYear(); i >= 1930; i--) y += '<option value="' + i + '">' + i + "</option>";
+        $("pBdYear").innerHTML = y;
       })();
       $("pBioSave").addEventListener("click", async () => {
         const bm = $("pBdMonth").value, bd = $("pBdDay").value;
         if (!!bm !== !!bd) { $("pEditMsg").textContent = "Pick both the month and the day for your birthday."; return; }
-        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value, name: $("pNameInput").value, birthday: bm && bd ? bm + "-" + bd : "" });
+        const r = await api("/api/me/bio", "POST", { bio: $("pBio").value, name: $("pNameInput").value, birthday: bm && bd ? bm + "-" + bd : "", birth_year: bm && bd ? $("pBdYear").value : "" });
         $("pEditMsg").textContent = r.error || "Saved ✓";
         if (!r.error) loadProfile();
       });
@@ -1994,10 +2056,11 @@
           if (m.reel && m.reel.url) {
             const v = document.createElement("video");
             v.src = m.reel.url;
-            v.controls = true;
             v.muted = true;
             v.playsInline = true;
             v.preload = "metadata";
+            v.style.cursor = "pointer";
+            v.onclick = () => openReelViewer([m.reel], 0);
             const tag = document.createElement("div");
             tag.className = "rtag";
             tag.textContent = "🎬 Reel by @" + m.reel.username + (m.reel.caption ? ": " + m.reel.caption : "");
@@ -2238,7 +2301,7 @@
           const c = cget("notes");
           if (c) { takeNotes(c); notesFromDisk = true; paintNotes(); } else paintNotes();
         }
-        const d = await api("/api/notes?md=" + todayMD());
+        const d = await api("/api/notes?md=" + todayMD() + "&y=" + new Date().getFullYear());
         if (d.error) return;
         cset("notes", d);
         takeNotes(d);
@@ -2249,9 +2312,12 @@
         ntTag = u || "";
         document.querySelectorAll("#ntBdList .bdChip").forEach((c) => c.classList.toggle("on", c.dataset.u === ntTag));
         const cur = $("ntText").value.trim();
-        if (ntTag && (!cur || /^Happy birthday/i.test(cur))) $("ntText").value = ("Happy birthday @" + ntTag + " 🎂").slice(0, 60);
+        const bd = noteBdays.find((f) => f.username === ntTag);
+        const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
+        const wish = ntTag ? "Happy " + (bd && bd.turns ? ord(bd.turns) + " " : "") + "birthday @" + ntTag + " 🎂" : "";
+        if (ntTag && (!cur || /^Happy( \d+\w\w)? birthday/i.test(cur))) $("ntText").value = wish.slice(0, 60);
         else if (ntTag && cur.toLowerCase().indexOf("@" + ntTag.toLowerCase()) < 0) $("ntText").value = (cur + " @" + ntTag).slice(0, 60);
-        else if (!ntTag && /^Happy birthday @/i.test(cur)) $("ntText").value = "";
+        else if (!ntTag && /^Happy( \d+\w\w)? birthday @/i.test(cur)) $("ntText").value = "";
         $("ntCount").textContent = $("ntText").value.length;
       }
       function openNoteComposer(tagUser) {
@@ -2266,7 +2332,7 @@
           c.type = "button";
           c.className = "bdChip";
           c.dataset.u = f.username;
-          c.textContent = "🎂 @" + f.username;
+          c.textContent = "🎂 @" + f.username + (f.turns ? " · turns " + f.turns : "");
           c.onclick = () => setNtTag(ntTag === f.username ? "" : f.username);
           box.appendChild(c);
         });
@@ -2447,25 +2513,41 @@
           d.textContent = "Delete";
           d.onclick = async () => {
             if (!confirm("Delete this post?")) return;
-            await api("/api/posts/delete", "POST", { id: p.id });
+            await api(isReel ? "/api/reels/delete" : "/api/posts/delete", "POST", { id: p.id });
             loadPosts(true);
           };
           head.appendChild(d);
         }
 
+        const isReel = p.kind === "reel";
         const media = document.createElement("div");
-        media.className = "pmedia";
-        const img = document.createElement("img");
-        img.alt = "post by " + p.username;
-        img.decoding = "async";
-        if (idx < 2) { img.loading = "eager"; img.fetchPriority = "high"; } else img.loading = "lazy";
-        img.onload = () => { img.classList.add("ld"); media.classList.add("done"); };
-        img.onerror = () => { if (!postsRetried) { postsRetried = true; postsAt = 0; loadPosts(true); } };
-        img.src = p.url;
+        media.className = "pmedia" + (isReel ? " isReel" : "");
         const heart = document.createElement("span");
         heart.className = "bigHeart";
         heart.textContent = "❤️";
-        media.append(img, heart);
+        if (isReel) {
+          const vid = document.createElement("video");
+          vid.loop = true;
+          vid.muted = reelMuted;
+          vid.playsInline = true;
+          vid.preload = idx < 2 ? "auto" : "metadata";
+          vid.onloadeddata = () => { vid.classList.add("ld"); media.classList.add("done"); };
+          vid.onerror = () => { if (!postsRetried) { postsRetried = true; postsAt = 0; loadPosts(true); } };
+          vid.src = p.url;
+          const tag = document.createElement("span");
+          tag.className = "reelTag";
+          tag.textContent = "▶ Reel";
+          media.append(vid, tag, heart);
+        } else {
+          const img = document.createElement("img");
+          img.alt = "post by " + p.username;
+          img.decoding = "async";
+          if (idx < 2) { img.loading = "eager"; img.fetchPriority = "high"; } else img.loading = "lazy";
+          img.onload = () => { img.classList.add("ld"); media.classList.add("done"); };
+          img.onerror = () => { if (!postsRetried) { postsRetried = true; postsAt = 0; loadPosts(true); } };
+          img.src = p.url;
+          media.append(img, heart);
+        }
 
         const act = document.createElement("div");
         act.className = "pact";
@@ -2491,7 +2573,7 @@
           liked = !liked;
           likes += liked ? 1 : -1;
           paint();
-          const r = await api("/api/posts/like", "POST", { post_id: p.id });
+          const r = await api(isReel ? "/api/reels/like" : "/api/posts/like", "POST", isReel ? { reel_id: p.id } : { post_id: p.id });
           if (r.error) { liked = was.liked; likes = was.likes; paint(); return; }
           liked = r.liked;
           likes = r.likes;
@@ -2501,16 +2583,27 @@
           if (postsList) cset("posts", postsList);
         }
         like.onclick = () => toggleLike(false);
-        let lastTap = 0;
+        let lastTap = 0, tapTimer = null;
         media.addEventListener("click", () => {
           const now = Date.now();
           if (now - lastTap < 320) {
+            clearTimeout(tapTimer);
             lastTap = 0;
             heart.classList.remove("go");
             void heart.offsetWidth;
             heart.classList.add("go");
             toggleLike(true);
-          } else lastTap = now;
+          } else {
+            lastTap = now;
+            if (isReel) {
+              // one tap on a video opens it as a reel
+              tapTimer = setTimeout(() => {
+                const reels = (postsList || []).filter((x) => x.kind === "reel");
+                const at = reels.findIndex((x) => x.id === p.id);
+                openReelViewer(at >= 0 ? reels : [p], at >= 0 ? at : 0);
+              }, 320);
+            }
+          }
         });
 
         const cap = document.createElement("div");
@@ -2549,7 +2642,7 @@
         com.append(list, form);
 
         async function loadComments() {
-          const d = await api("/api/posts/" + p.id + "/comments");
+          const d = await api((isReel ? "/api/reels/" : "/api/posts/") + p.id + "/comments");
           list.innerHTML = "";
           (d.comments || []).forEach((c) => {
             const l = document.createElement("div");
@@ -2570,7 +2663,7 @@
           const t = input.value.trim();
           if (!t) return;
           input.value = "";
-          const r = await api("/api/posts/comment", "POST", { post_id: p.id, text: t });
+          const r = await api(isReel ? "/api/reels/comment" : "/api/posts/comment", "POST", isReel ? { reel_id: p.id, text: t } : { post_id: p.id, text: t });
           if (r.error) { alert(r.error); return; }
           p.comments = (p.comments || 0) + 1;
           loadComments();
@@ -2585,7 +2678,7 @@
       let postsDisk = false;
       let postsRetried = false;
       let pbScroll = 0;
-      const pSig = (ps) => ps.map((p) => p.id + ":" + p.likes + ":" + (p.liked ? 1 : 0) + ":" + (p.comments || 0)).join("|");
+      const pSig = (ps) => ps.map((p) => (p.kind === "reel" ? "r" : "p") + p.id + ":" + p.likes + ":" + (p.liked ? 1 : 0) + ":" + (p.comments || 0)).join("|");
       function renderPosts(posts) {
         const feed = $("pbFeed");
         const top = feed.scrollTop;
@@ -2598,6 +2691,24 @@
         posts.forEach((p, i) => frag.appendChild(postCard(p, i)));
         feed.appendChild(frag);
         feed.scrollTop = top;
+        observeFeedVideos();
+      }
+      // videos on Home play (muted) while you look at them
+      let feedObserver = null;
+      function observeFeedVideos() {
+        if (feedObserver) feedObserver.disconnect();
+        feedObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              const v = e.target.querySelector("video");
+              if (!v) return;
+              if (e.isIntersecting && e.intersectionRatio >= 0.6 && !$("postsPanel").hidden && $("rv").hidden) v.play().catch(() => {});
+              else v.pause();
+            });
+          },
+          { root: $("pbFeed"), threshold: [0, 0.6] }
+        );
+        $("pbFeed").querySelectorAll(".pmedia.isReel").forEach((m) => feedObserver.observe(m));
       }
       async function loadPosts(force) {
         const feed = $("pbFeed");
@@ -2607,7 +2718,11 @@
           else feed.innerHTML = '<div class="post sk"><div class="phead"><span class="skc"></span><span class="skl"></span></div><div class="skimg"></div></div>'.repeat(2);
         }
         if (force !== true && postsAt && Date.now() - postsAt < 25000) return;
-        const d = await api("/api/posts");
+        const [d, rd] = await Promise.all([api("/api/posts"), api("/api/reels")]);
+        if (!d.error) {
+          const reels = (rd && rd.reels ? rd.reels : []).map((r) => Object.assign({}, r, { kind: "reel" }));
+          d.posts = (d.posts || []).concat(reels).sort((a, b) => T(b.time) - T(a.time));
+        }
         if (d.error) { if (!postsList) { feed.innerHTML = '<div class="pbEmpty"></div>'; feed.firstChild.textContent = d.error; } return; }
         postsAt = Date.now();
         postsRetried = false;
@@ -2626,9 +2741,11 @@
         if (wasOpen) { feed.scrollTop = pbScroll; feed.scrollTo({ top: 0, behavior: "smooth" }); loadPosts(true); loadStories(true); return; }
         loadPosts();
         feed.scrollTop = pbScroll;
+        observeFeedVideos();
       });
       $("pbClose").addEventListener("click", () => {
         if (!$("postsPanel").hidden) pbScroll = $("pbFeed").scrollTop;
+        document.querySelectorAll("#pbFeed video").forEach((x) => x.pause());
         $("postsPanel").hidden = true;
       });
       $("pbToggle").addEventListener("click", () => {
@@ -2638,8 +2755,25 @@
       $("pbPost").addEventListener("click", async () => {
         const f = $("pbFile").files[0];
         const msg = $("pbMsg");
-        if (!f) { msg.textContent = "Choose a photo first."; return; }
-        if (!f.type.startsWith("image/")) { msg.textContent = "That file is not a photo."; return; }
+        if (!f) { msg.textContent = "Choose a photo or a video first."; return; }
+        if (f.type.startsWith("video/")) {
+          $("pbPost").disabled = true;
+          try {
+            await uploadReelFile(f, $("pbCaption").value, (t) => { msg.textContent = t; });
+            msg.textContent = "";
+            $("pbFile").value = "";
+            $("pbCaption").value = "";
+            $("pbUpload").hidden = true;
+            reelsAt = 0;
+            loadPosts(true);
+          } catch (e) {
+            msg.textContent = e.message || "Upload failed, please try again.";
+          } finally {
+            $("pbPost").disabled = false;
+          }
+          return;
+        }
+        if (!f.type.startsWith("image/")) { msg.textContent = "That file is not a photo or a video."; return; }
         if (f.size > 10 * 1024 * 1024) { msg.textContent = "Photo is too big (max 10 MB)."; return; }
 
         $("pbPost").disabled = true;
@@ -2663,40 +2797,225 @@
         }
       });
 
+      // ---------- Is this video downloaded from another app? (v18) ----------
+      const SRC_MARKERS = ["tiktok", "douyin", "musical.ly", "bytedance", "snaptik", "ssstik", "tikmate", "musicaldown", "savetik", "snapinsta", "instagram", "kuaishou", "likee", "snackvideo", "com.zhiliaoapp"];
+      function visualCheck(file) {
+        return new Promise((resolve) => {
+          const url = URL.createObjectURL(file);
+          const v = document.createElement("video");
+          v.muted = true; v.playsInline = true; v.preload = "auto";
+          let finished = false;
+          const done = (r) => { if (finished) return; finished = true; clearTimeout(bail); try { URL.revokeObjectURL(url); } catch (e) {} v.removeAttribute("src"); resolve(r); };
+          const bail = setTimeout(() => done(""), 25000);
+          v.onerror = () => done("");
+          v.onloadedmetadata = async () => {
+            try {
+              const dur = v.duration;
+              if (!isFinite(dur) || dur < 2 || !v.videoWidth) { done(""); return; }
+              const W = 96, H = Math.max(8, Math.round((W * v.videoHeight) / v.videoWidth));
+              const cv = document.createElement("canvas");
+              cv.width = W; cv.height = H;
+              const g = cv.getContext("2d", { willReadFrequently: true });
+              const grab = (t) => new Promise((res, rej) => {
+                const t0 = setTimeout(() => rej(new Error("seek")), 6000);
+                const on = () => {
+                  v.removeEventListener("seeked", on);
+                  clearTimeout(t0);
+                  g.drawImage(v, 0, 0, W, H);
+                  const d = g.getImageData(0, 0, W, H).data;
+                  const lum = new Uint8Array(W * H);
+                  for (let i = 0; i < W * H; i++) lum[i] = (d[i * 4] * 77 + d[i * 4 + 1] * 150 + d[i * 4 + 2] * 29) >> 8;
+                  res(lum);
+                };
+                v.addEventListener("seeked", on);
+                v.currentTime = Math.min(Math.max(0.05, t), dur - 0.05);
+              });
+
+              // 1) a logo that stays in a corner
+              const N = 8;
+              const usable = Math.max(dur * 0.55, dur - 3);
+              const frames = [];
+              for (let i = 0; i < N; i++) frames.push(await grab(0.1 + (usable - 0.1) * (i / (N - 1))));
+              const need = 3;
+              const cnt = new Uint8Array(W * H);
+              frames.forEach((f) => { for (let i = 0; i < W * H; i++) if (f[i] > 215) cnt[i]++; });
+              const frac = (x0, x1, y0, y1) => {
+                let tot = 0, per = 0, edge = 0;
+                for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+                  tot++;
+                  if (cnt[y * W + x] >= need) {
+                    per++;
+                    const nb = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
+                    if (nb.some(([a, b]) => a >= x0 && a < x1 && b >= y0 && b < y1 && cnt[b * W + a] < need)) edge++;
+                  }
+                }
+                return { f: per / tot, e: per ? edge / per : 0 };
+              };
+              const mid = frac(Math.round(W * 0.15), Math.round(W * 0.85), Math.round(H * 0.2), Math.round(H * 0.8));
+              const cw = Math.round(W * 0.38), ch = Math.round(H * 0.13);
+              const corners = [
+                frac(0, cw, 0, ch), frac(W - cw, W, 0, ch),
+                frac(0, cw, H - ch, H), frac(W - cw, W, H - ch, H),
+              ];
+              if (corners.some((c) => c.f >= 0.015 && c.f >= mid.f * 3 + 0.01 && c.e >= 0.35)) { done("it has a logo or watermark in the corner"); return; }
+
+              // 2) a dark end screen with a logo
+              const dark = (f) => { let n = 0; for (let i = 0; i < f.length; i++) if (f[i] < 45) n++; return n / f.length; };
+              const brightCenter = (f) => {
+                let n = 0, t = 0;
+                for (let y = Math.round(H * 0.3); y < Math.round(H * 0.7); y++) for (let x = Math.round(W * 0.15); x < Math.round(W * 0.85); x++) { t++; if (f[y * W + x] > 200) n++; }
+                return n / t;
+              };
+              const e1 = await grab(dur - 0.2), e2 = await grab(dur - 0.8), before = await grab(Math.max(0.1, dur - 3.2));
+              const isCard = (f) => dark(f) >= 0.85 && brightCenter(f) >= 0.004 && brightCenter(f) <= 0.3;
+              if (isCard(e1) && isCard(e2) && dark(before) < 0.6) { done("it ends with a logo screen from another app"); return; }
+              done("");
+            } catch (e) { done(""); }
+          };
+          v.src = url;
+        });
+      }
+      async function checkVideoOrigin(file) {
+        const name = String(file.name || "").toLowerCase();
+        if (/(tiktok|snaptik|ssstik|tikmate|musicaldown|savetik|douyin|snapinsta|instasave|savefrom|snapsave|kuaishou)/.test(name) || /v0\d{4}[a-z]\d0000/.test(name)) return "its file name looks like a download from another app";
+        try {
+          const text = async (blob) => new TextDecoder("latin1").decode(new Uint8Array(await blob.arrayBuffer())).toLowerCase();
+          const head = await text(file.slice(0, 1048576));
+          const tail = file.size > 1048576 ? await text(file.slice(Math.max(0, file.size - 1048576))) : "";
+          if (SRC_MARKERS.some((m) => head.indexOf(m) >= 0 || tail.indexOf(m) >= 0)) return "it has marks from another app inside the file";
+        } catch (e) {}
+        return await visualCheck(file);
+      }
+
+      async function uploadReelFile(f, caption, setMsg) {
+        if (!f.type.startsWith("video/")) throw new Error("That file is not a video.");
+        if (f.size > MAX_MB * 1024 * 1024) throw new Error("Video is too big (max " + MAX_MB + " MB).");
+        setMsg("Checking your video...");
+        const why = await checkVideoOrigin(f);
+        if (why) throw new Error("This video can't be posted: " + why + ". Please post your own video, without logos from other apps.");
+        setMsg("Uploading... please wait.");
+        const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
+        const up = await api("/api/reels/upload-url", "POST", { ext });
+        if (up.error) throw new Error(up.error);
+        const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+        if (error) throw error;
+        const made = await api("/api/reels", "POST", { path: up.path, caption });
+        if (made.error) throw new Error(made.error);
+      }
+
       // ---------- Reels ----------
       const MAX_MB = 40;
       let observer = null;
 
+      let reelMuted = true;
+      const fmtN = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1).replace(".0", "") + "M" : n >= 1e3 ? (n / 1e3).toFixed(1).replace(".0", "") + "K" : String(n || 0));
+      const ICON_HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.6 4.5 6.9 4.5c2 0 3.7 1.1 5.1 3 1.4-1.9 3.1-3 5.1-3 3.3 0 5.3 3.1 4.1 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
+      const ICON_COMMENT = '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg>';
+      const ICON_SEND = '<svg viewBox="0 0 24 24"><path d="M21.5 3 10.5 14M21.5 3l-7 18-4-7-7-4z"/></svg>';
+
+      // Comments for a reel (a sheet that slides up)
+      let rcReel = null;
+      let rcOnCount = null;
+      async function loadReelComments() {
+        const d = await api("/api/reels/" + rcReel.id + "/comments");
+        const list = $("rcList");
+        list.innerHTML = "";
+        const cs = d.comments || [];
+        if (!cs.length) list.innerHTML = '<div class="pbEmpty">No comments yet. Say something nice!</div>';
+        cs.forEach((c) => {
+          const l = document.createElement("div");
+          l.className = "cl";
+          const b = document.createElement("strong");
+          b.textContent = "@" + c.username;
+          l.append(b, document.createTextNode(c.text));
+          list.appendChild(l);
+        });
+        list.scrollTop = list.scrollHeight;
+        rcReel.comments = cs.length;
+        if (rcOnCount) rcOnCount(cs.length);
+      }
+      function openReelComments(r, onCount) {
+        rcReel = r;
+        rcOnCount = onCount;
+        $("rcList").innerHTML = "";
+        $("rcInput").value = "";
+        $("rcSheet").hidden = false;
+        loadReelComments();
+      }
+      $("rcClose").addEventListener("click", () => { $("rcSheet").hidden = true; });
+      $("rcSheet").addEventListener("click", (e) => { if (e.target === $("rcSheet")) $("rcSheet").hidden = true; });
+      $("rcForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const t = $("rcInput").value.trim();
+        if (!t || !rcReel) return;
+        $("rcInput").value = "";
+        const res = await api("/api/reels/comment", "POST", { reel_id: rcReel.id, text: t });
+        if (res.error) { alert(res.error); return; }
+        loadReelComments();
+      });
+
       function reelCard(r, idx) {
         const box = document.createElement("div");
         box.className = "reel";
+        box.dataset.id = r.id;
 
         const v = document.createElement("video");
         v.src = r.url;
-        v.controls = true;
         v.loop = true;
-        v.muted = true;
+        v.muted = reelMuted;
         v.playsInline = true;
         v.preload = idx === 0 ? "auto" : "metadata";
         v.onloadeddata = () => box.classList.add("ready");
 
-        const info = document.createElement("div");
-        info.className = "reelInfo";
-        const n = document.createElement("div");
-        n.className = "rname";
-        n.textContent = "@" + r.username;
-        const c = document.createElement("div");
-        c.textContent = r.caption || "";
-        info.append(n, c);
+        const shade = document.createElement("div");
+        shade.className = "rShade";
+        const flash = document.createElement("div");
+        flash.className = "rFlash";
+        const prog = document.createElement("div");
+        prog.className = "rProg";
+        const bar = document.createElement("i");
+        prog.appendChild(bar);
+        v.ontimeupdate = () => { if (v.duration) bar.style.width = (v.currentTime / v.duration) * 100 + "%"; };
 
-        box.append(v, info);
+        // Right-hand buttons
+        const acts = document.createElement("div");
+        acts.className = "rActs";
+        const likeB = document.createElement("button");
+        likeB.type = "button";
+        likeB.className = "rAct";
+        const comB = document.createElement("button");
+        comB.type = "button";
+        comB.className = "rAct";
+        const sendB = document.createElement("button");
+        sendB.type = "button";
+        sendB.className = "rAct";
+        sendB.innerHTML = ICON_SEND + "<span>Send</span>";
+        acts.append(likeB, comB, sendB);
 
-        // Send this reel to a friend in a private chat
-        const s = document.createElement("button");
-        s.type = "button";
-        s.className = "reelSend";
-        s.textContent = "Send to a friend";
-        s.onclick = async () => {
+        let liked = !!r.liked, likes = r.likes || 0;
+        const paintLike = () => {
+          likeB.classList.toggle("on", liked);
+          likeB.innerHTML = ICON_HEART + "<span>" + fmtN(likes) + "</span>";
+        };
+        const paintCom = () => { comB.innerHTML = ICON_COMMENT + "<span>" + fmtN(r.comments || 0) + "</span>"; };
+        paintLike();
+        paintCom();
+        async function toggleLike(onlyLike) {
+          if (onlyLike && liked) return;
+          const was = { liked, likes };
+          liked = !liked;
+          likes += liked ? 1 : -1;
+          paintLike();
+          const res = await api("/api/reels/like", "POST", { reel_id: r.id });
+          if (res.error) { liked = was.liked; likes = was.likes; paintLike(); return; }
+          liked = res.liked; likes = res.likes;
+          r.liked = liked; r.likes = likes;
+          paintLike();
+        }
+        likeB.onclick = (e) => { e.stopPropagation(); toggleLike(false); };
+        comB.onclick = (e) => { e.stopPropagation(); openReelComments(r, (n) => { r.comments = n; paintCom(); }); };
+        sendB.onclick = async (e) => {
+          e.stopPropagation();
           const who = prompt("Send this reel to which username?");
           if (!who) return;
           const t = await api("/api/dms/start", "POST", { username: who });
@@ -2704,21 +3023,134 @@
           const res = await api("/api/dms/send", "POST", { to: t.user.id, kind: "reel", reel_id: r.id });
           alert(res.error || "Sent!");
         };
-        box.appendChild(s);
-
         if (r.mine) {
           const d = document.createElement("button");
           d.type = "button";
-          d.className = "reelDel";
-          d.textContent = "Delete";
-          d.onclick = async () => {
+          d.className = "rAct";
+          d.innerHTML = '<span class="dots">⋯</span>';
+          d.onclick = async (e) => {
+            e.stopPropagation();
             if (!confirm("Delete this reel?")) return;
             await api("/api/reels/delete", "POST", { id: r.id });
+            box.remove();
+            reelsAt = 0; postsAt = 0;
+            reelsList = null; postsList = null;
             loadReels(true);
+            loadPosts(true);
           };
-          box.appendChild(d);
+          acts.appendChild(d);
         }
+
+        // Bottom: who posted it + caption
+        const bottom = document.createElement("div");
+        bottom.className = "rBottom";
+        const row = document.createElement("div");
+        row.className = "rUserRow";
+        const av = smallAvatar(r.avatar, r.username);
+        const nm = document.createElement("span");
+        nm.className = "rn";
+        nm.textContent = r.username;
+        row.append(av, nm);
+        if (!r.mine && r.following === false) {
+          const f = document.createElement("button");
+          f.type = "button";
+          f.className = "rFollow";
+          f.textContent = "Follow";
+          f.onclick = async (e) => {
+            e.stopPropagation();
+            f.disabled = true;
+            const res = await api("/api/follow", "POST", { username: r.username });
+            if (res.error) { f.disabled = false; alert(res.error); return; }
+            f.textContent = res.message && res.message.indexOf("Request sent") === 0 ? "Requested" : "Following";
+            if (f.textContent === "Following") r.following = true;
+          };
+          row.appendChild(f);
+        }
+        row.onclick = () => { if (!r.mine) { closeRv(); openUser(r.username); } };
+        bottom.appendChild(row);
+        if (r.caption) {
+          const cap = document.createElement("div");
+          cap.className = "rCap";
+          cap.textContent = r.caption;
+          bottom.appendChild(cap);
+          if (r.caption.length > 60) {
+            const more = document.createElement("button");
+            more.type = "button";
+            more.className = "rMore";
+            more.textContent = "more";
+            more.onclick = (e) => { e.stopPropagation(); const open = cap.classList.toggle("open"); more.textContent = open ? "less" : "more"; };
+            bottom.appendChild(more);
+          }
+        }
+
+        // Sound button
+        const mute = document.createElement("button");
+        mute.type = "button";
+        mute.className = "rMute";
+        mute.textContent = reelMuted ? "🔇" : "🔊";
+        mute.onclick = (e) => {
+          e.stopPropagation();
+          reelMuted = !reelMuted;
+          document.querySelectorAll(".reel video, .pmedia video").forEach((x) => { x.muted = reelMuted; });
+          document.querySelectorAll(".rMute").forEach((x) => { x.textContent = reelMuted ? "🔇" : "🔊"; });
+        };
+
+        // Tap = play / pause, double tap = like
+        let lastTap = 0, tapTimer = null;
+        box.addEventListener("click", (e) => {
+          if (e.target.closest("button")) return;
+          const now = Date.now();
+          if (now - lastTap < 300) {
+            clearTimeout(tapTimer);
+            lastTap = 0;
+            flash.textContent = "❤️";
+            flash.classList.remove("go"); void flash.offsetWidth; flash.classList.add("go");
+            toggleLike(true);
+            return;
+          }
+          lastTap = now;
+          tapTimer = setTimeout(() => {
+            if (v.paused) { v.play().catch(() => {}); flash.textContent = "▶"; } else { v.pause(); flash.textContent = "⏸"; }
+            flash.classList.remove("go"); void flash.offsetWidth; flash.classList.add("go");
+          }, 300);
+        });
+
+        box.append(v, shade, flash, acts, bottom, mute, prog);
         return box;
+      }
+
+      // Opens a list of reels full screen, starting at one of them
+      let rvObserver = null;
+      function closeRv() {
+        if ($("rv").hidden) return;
+        document.querySelectorAll("#rvFeed video").forEach((x) => x.pause());
+        if (rvObserver) rvObserver.disconnect();
+        $("rvFeed").innerHTML = "";
+        $("rv").hidden = true;
+        $("rcSheet").hidden = true;
+      }
+      $("rvClose").addEventListener("click", closeRv);
+      function openReelViewer(list, idx) {
+        if (!list || !list.length) return;
+        const feed = $("rvFeed");
+        feed.innerHTML = "";
+        if (rvObserver) rvObserver.disconnect();
+        rvObserver = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              const v = e.target.querySelector("video");
+              if (!v) return;
+              if (e.isIntersecting && e.intersectionRatio >= 0.7) v.play().catch(() => {});
+              else v.pause();
+            });
+          },
+          { root: feed, threshold: [0, 0.7] }
+        );
+        list.forEach((r, i) => { const c = reelCard(r, i); feed.appendChild(c); rvObserver.observe(c); });
+        $("rv").hidden = false;
+        // pause the other screens' videos
+        document.querySelectorAll("#rFeed video, #pbFeed video").forEach((x) => x.pause());
+        requestAnimationFrame(() => { feed.scrollTop = (idx || 0) * feed.clientHeight; });
       }
 
       let reelsAt = 0;
@@ -2795,28 +3227,17 @@
         const f = $("rFile").files[0];
         const msg = $("rMsg");
         if (!f) { msg.textContent = "Choose a video first."; return; }
-        if (!f.type.startsWith("video/")) { msg.textContent = "That file is not a video."; return; }
-        if (f.size > MAX_MB * 1024 * 1024) { msg.textContent = "Video is too big (max " + MAX_MB + " MB)."; return; }
-
         $("rPost").disabled = true;
-        msg.textContent = "Uploading... please wait.";
         try {
-          const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
-          const up = await api("/api/reels/upload-url", "POST", { ext });
-          if (up.error) throw new Error(up.error);
-
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
-          if (error) throw error;
-
-          const made = await api("/api/reels", "POST", { path: up.path, caption: $("rCaption").value });
-          if (made.error) throw new Error(made.error);
-
+          await uploadReelFile(f, $("rCaption").value, (t) => { msg.textContent = t; });
+          msg.textContent = "";
           $("rFile").value = "";
           $("rCaption").value = "";
           $("rUpload").hidden = true;
           loadReels(true);
+          postsAt = 0;
         } catch (e) {
-          msg.textContent = "Upload failed: " + (e.message || "please try again.");
+          msg.textContent = e.message || "Upload failed, please try again.";
         } finally {
           $("rPost").disabled = false;
         }

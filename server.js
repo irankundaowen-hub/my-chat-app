@@ -173,6 +173,7 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
     username: me.username,
     display_name: me.display_name || "",
     birthday: me.birthday || "",
+    birth_year: me.birth_year || "",
     posts_count: (postCount || 0) + (reelCount || 0),
     bio: me.bio || "",
     avatar_url: avatarUrl,
@@ -197,18 +198,56 @@ app.post("/api/me/bio", requireUser, safe(async (req, res) => {
     if (b === "") update.birthday = null;
     else if (MD_RE.test(b)) update.birthday = b;
   }
+  if (req.body.birth_year !== undefined) {
+    const y = Number(req.body.birth_year);
+    if (req.body.birth_year === "" || req.body.birth_year === null) update.birth_year = null;
+    else if (Number.isInteger(y) && y >= 1920 && y <= new Date().getFullYear()) update.birth_year = y;
+  }
   const { error } = await supabase.from("profiles").update(update).eq("id", me.id);
   if (error) return res.status(500).json({ error: "Could not save. Did you run the profile SQL in Supabase?" });
   res.json({ ok: true });
 }));
 
 // Someone's photos and reels, ready for a grid (viewerId decides which are "mine" / "liked")
+// likes / comments / liked-by-me for a list of reel ids
+async function reelExtras(ids, viewerId) {
+  const likes = {}, liked = {}, comments = {};
+  if (!ids.length) return { likes, liked, comments };
+  const [l, c] = await Promise.all([
+    supabase.from("reel_likes").select("reel_id, user_id").in("reel_id", ids),
+    supabase.from("reel_comments").select("reel_id").in("reel_id", ids),
+  ]);
+  (l.data || []).forEach((x) => { likes[x.reel_id] = (likes[x.reel_id] || 0) + 1; if (x.user_id === viewerId) liked[x.reel_id] = true; });
+  (c.data || []).forEach((x) => { comments[x.reel_id] = (comments[x.reel_id] || 0) + 1; });
+  return { likes, liked, comments };
+}
+
+// Signs that a video was downloaded from another app (TikTok, Instagram...) are often written inside the file
+const SOURCE_MARKERS = ["tiktok", "douyin", "musical.ly", "bytedance", "snaptik", "ssstik", "tikmate", "musicaldown", "savetik", "snapinsta", "instagram", "kuaishou", "likee", "snackvideo", "com.zhiliaoapp"];
+async function foundSourceMark(path) {
+  try {
+    const { data } = await signMany([path]);
+    const url = data && data[0] && data[0].signedUrl;
+    if (!url) return false;
+    const grab = async (range) => {
+      const r = await fetch(url, { headers: { Range: range } });
+      if (!r.ok) return "";
+      const b = Buffer.from(await r.arrayBuffer());
+      return b.subarray(0, 1100000).toString("latin1").toLowerCase();
+    };
+    const [a, b] = await Promise.all([grab("bytes=0-1048575"), grab("bytes=-1048576")]);
+    return SOURCE_MARKERS.some((m) => a.includes(m) || b.includes(m));
+  } catch (e) {
+    return false;
+  }
+}
+
 async function mediaFor(userId, viewerId) {
   const { data: pRows } = await supabase
     .from("photo_posts").select("id, username, path, caption").eq("user_id", userId)
     .order("created_at", { ascending: false }).limit(60);
   const { data: rRows } = await supabase
-    .from("reels").select("id, username, path, caption").eq("user_id", userId)
+    .from("reels").select("id, username, path, caption, created_at").eq("user_id", userId)
     .order("created_at", { ascending: false }).limit(60);
   const posts = pRows || [];
   const reels = rRows || [];
@@ -230,13 +269,15 @@ async function mediaFor(userId, viewerId) {
     (comRows || []).forEach((c) => { comments[c.post_id] = (comments[c.post_id] || 0) + 1; });
   }
   const mine = userId === viewerId;
+  const rx = await reelExtras(reels.map((r) => r.id), viewerId);
   return {
     posts: posts.filter((p) => urls[p.path]).map((p) => ({
       id: p.id, username: p.username, avatar: null, caption: p.caption, url: urls[p.path], mine,
       likes: likes[p.id] || 0, liked: !!liked[p.id], comments: comments[p.id] || 0,
     })),
     reels: reels.filter((r) => urls[r.path]).map((r) => ({
-      id: r.id, username: r.username, caption: r.caption, url: urls[r.path], mine,
+      id: r.id, username: r.username, caption: r.caption, url: urls[r.path], mine, time: r.created_at,
+      likes: rx.likes[r.id] || 0, liked: !!rx.liked[r.id], comments: rx.comments[r.id] || 0, following: true,
     })),
   };
 }
@@ -309,20 +350,22 @@ app.get("/api/notes", requireUser, safe(async (req, res) => {
   const [noteRes, profRes, pics] = await Promise.all([
     supabase.from("notes").select("user_id, username, text, tag_username, created_at")
       .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: false }),
-    supabase.from("profiles").select("id, username, birthday").in("id", ids),
+    supabase.from("profiles").select("id, username, birthday, birth_year").in("id", ids),
     avatarsFor(ids),
   ]);
   const list = noteRes.error ? [] : noteRes.data || [];
   const bday = {};
   const nameOf = {};
-  (profRes.data || []).forEach((pr) => { nameOf[pr.id] = pr.username; if (md && pr.birthday === md) bday[pr.id] = true; });
+  const yearOf = {};
+  const yr = Number(req.query.y) > 1900 ? Number(req.query.y) : new Date().getFullYear();
+  (profRes.data || []).forEach((pr) => { nameOf[pr.id] = pr.username; if (pr.birth_year) yearOf[pr.id] = yr - pr.birth_year; if (md && pr.birthday === md) bday[pr.id] = true; });
 
   const notes = list.map((n) => ({
     user_id: n.user_id, username: n.username, avatar: pics[n.user_id] || null, mine: n.user_id === meId,
     text: n.text || "", tag: n.tag_username || "", birthday: !!bday[n.user_id], time: n.created_at,
   }));
   notes.sort((a, b) => (a.mine === b.mine ? 0 : a.mine ? -1 : 1));
-  const birthdays = friendIds.filter((id) => bday[id]).map((id) => ({ id, username: nameOf[id] || "unknown", avatar: pics[id] || null }));
+  const birthdays = friendIds.filter((id) => bday[id]).map((id) => ({ id, username: nameOf[id] || "unknown", avatar: pics[id] || null, turns: yearOf[id] || null }));
   res.json({ notes, birthdays, me_avatar: pics[meId] || null, my_birthday_today: !!bday[meId] });
 }));
 
@@ -746,6 +789,10 @@ app.post("/api/reels", requireUser, safe(async (req, res) => {
   const path = String(req.body.path || "");
   if (!me || !path.startsWith(req.user.id + "/")) return res.status(400).json({ error: "Bad request" });
   const caption = String(req.body.caption || "").trim().slice(0, 150);
+  if (await foundSourceMark(path)) {
+    await supabase.storage.from(REELS_BUCKET).remove([path]);
+    return res.status(400).json({ error: "This video looks like it was downloaded from another app (TikTok, Instagram...). Please post your own video." });
+  }
   const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path, caption });
   if (error) {
     console.error("Reel save error:", error.message);
@@ -789,15 +836,22 @@ app.get("/api/reels", requireUser, safe(async (req, res) => {
   const urlByPath = {};
   (signed || []).forEach((s) => { if (s.signedUrl) urlByPath[s.path] = s.signedUrl; });
 
+  const [rx, pics] = await Promise.all([reelExtras(allowed.map((r) => r.id), me.id), avatarsFor([...new Set(allowed.map((r) => r.user_id))])]);
   res.json({
     reels: allowed
       .filter((r) => urlByPath[r.path])
       .map((r) => ({
         id: r.id,
         username: r.username,
+        avatar: pics[r.user_id] || null,
         caption: r.caption,
         url: urlByPath[r.path],
         mine: r.user_id === me.id,
+        time: r.created_at,
+        likes: rx.likes[r.id] || 0,
+        liked: !!rx.liked[r.id],
+        comments: rx.comments[r.id] || 0,
+        following: r.user_id === me.id || following.has(r.user_id),
       })),
   });
 }));
@@ -809,6 +863,42 @@ app.post("/api/reels/delete", requireUser, safe(async (req, res) => {
   if (!r || r.user_id !== req.user.id) return res.status(404).json({ error: "Not found" });
   await supabase.storage.from(REELS_BUCKET).remove([r.path]);
   await supabase.from("reels").delete().eq("id", id);
+  await supabase.from("reel_likes").delete().eq("reel_id", id);
+  await supabase.from("reel_comments").delete().eq("reel_id", id);
+  res.json({ ok: true });
+}));
+
+// Like or unlike a reel
+app.post("/api/reels/like", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.reel_id) || 0;
+  const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
+  if (!r || !(await canSeeUser(req.user.id, r.user_id))) return res.json({ error: "Reel not found." });
+  const { data: ex } = await supabase.from("reel_likes").select("reel_id").eq("reel_id", id).eq("user_id", req.user.id).maybeSingle();
+  if (ex) await supabase.from("reel_likes").delete().eq("reel_id", id).eq("user_id", req.user.id);
+  else await supabase.from("reel_likes").insert({ reel_id: id, user_id: req.user.id });
+  const { count } = await supabase.from("reel_likes").select("reel_id", { count: "exact", head: true }).eq("reel_id", id);
+  res.json({ liked: !ex, likes: count || 0 });
+}));
+
+app.get("/api/reels/:id/comments", requireUser, safe(async (req, res) => {
+  const id = Number(req.params.id) || 0;
+  const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
+  if (!r || !(await canSeeUser(req.user.id, r.user_id))) return res.json({ error: "Reel not found." });
+  const { data } = await supabase.from("reel_comments").select("username, text, created_at").eq("reel_id", id)
+    .order("created_at", { ascending: true }).limit(100);
+  res.json({ comments: data || [] });
+}));
+
+app.post("/api/reels/comment", requireUser, safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const id = Number(req.body.reel_id) || 0;
+  const text = String(req.body.text || "").trim().slice(0, 300);
+  if (!text) return res.json({ error: "Write a comment first." });
+  const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
+  if (!r || !(await canSeeUser(me.id, r.user_id))) return res.json({ error: "Reel not found." });
+  const { error } = await supabase.from("reel_comments").insert({ reel_id: id, user_id: me.id, username: me.username, text });
+  if (error) { console.error("Reel comment error:", error.message); return res.status(500).json({ error: "Could not post the comment. Did you run the v18 SQL?" }); }
   res.json({ ok: true });
 }));
 
@@ -836,7 +926,7 @@ async function shapeDms(rows) {
       text: m.text || "",
       time: m.created_at,
       image: m.media_path ? urls[m.media_path] || null : null,
-      reel: reel ? { username: reel.username, caption: reel.caption, url: urls[reel.path] || null } : null,
+      reel: reel ? { id: reel.id, username: reel.username, caption: reel.caption, url: urls[reel.path] || null } : null,
     };
   });
 }
