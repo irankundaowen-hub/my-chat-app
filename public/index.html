@@ -816,6 +816,7 @@
     </div>
     <div id="rUpload" hidden>
       <input id="rFile" type="file" accept="video/*" />
+      <p class="hint" style="margin:0 0 8px">Videos from TikTok are fine. Twik removes the logo for you.</p>
       <input id="rCaption" type="text" maxlength="150" placeholder="Caption (optional)" />
       <button id="rPost" type="button">Post reel</button>
       <p id="rMsg"></p>
@@ -834,6 +835,7 @@
     </div>
     <div id="pbUpload" hidden>
       <input id="pbFile" type="file" accept="image/*,video/*" />
+      <p class="hint" style="margin:0 0 8px">Photos or videos. Videos from TikTok are fine, Twik removes the logo for you.</p>
       <input id="pbCaption" type="text" maxlength="200" placeholder="Write a caption..." />
       <button id="pbPost" type="button">Share</button>
       <p id="pbMsg"></p>
@@ -2797,102 +2799,9 @@
         }
       });
 
-      // ---------- Is this video downloaded from another app? (v18) ----------
-      const SRC_MARKERS = ["tiktok", "douyin", "musical.ly", "bytedance", "snaptik", "ssstik", "tikmate", "musicaldown", "savetik", "snapinsta", "instagram", "kuaishou", "likee", "snackvideo", "com.zhiliaoapp"];
-      function visualCheck(file) {
-        return new Promise((resolve) => {
-          const url = URL.createObjectURL(file);
-          const v = document.createElement("video");
-          v.muted = true; v.playsInline = true; v.preload = "auto";
-          let finished = false;
-          const done = (r) => { if (finished) return; finished = true; clearTimeout(bail); try { URL.revokeObjectURL(url); } catch (e) {} v.removeAttribute("src"); resolve(r); };
-          const bail = setTimeout(() => done(""), 25000);
-          v.onerror = () => done("");
-          v.onloadedmetadata = async () => {
-            try {
-              const dur = v.duration;
-              if (!isFinite(dur) || dur < 2 || !v.videoWidth) { done(""); return; }
-              const W = 96, H = Math.max(8, Math.round((W * v.videoHeight) / v.videoWidth));
-              const cv = document.createElement("canvas");
-              cv.width = W; cv.height = H;
-              const g = cv.getContext("2d", { willReadFrequently: true });
-              const grab = (t) => new Promise((res, rej) => {
-                const t0 = setTimeout(() => rej(new Error("seek")), 6000);
-                const on = () => {
-                  v.removeEventListener("seeked", on);
-                  clearTimeout(t0);
-                  g.drawImage(v, 0, 0, W, H);
-                  const d = g.getImageData(0, 0, W, H).data;
-                  const lum = new Uint8Array(W * H);
-                  for (let i = 0; i < W * H; i++) lum[i] = (d[i * 4] * 77 + d[i * 4 + 1] * 150 + d[i * 4 + 2] * 29) >> 8;
-                  res(lum);
-                };
-                v.addEventListener("seeked", on);
-                v.currentTime = Math.min(Math.max(0.05, t), dur - 0.05);
-              });
-
-              // 1) a logo that stays in a corner
-              const N = 8;
-              const usable = Math.max(dur * 0.55, dur - 3);
-              const frames = [];
-              for (let i = 0; i < N; i++) frames.push(await grab(0.1 + (usable - 0.1) * (i / (N - 1))));
-              const need = 3;
-              const cnt = new Uint8Array(W * H);
-              frames.forEach((f) => { for (let i = 0; i < W * H; i++) if (f[i] > 215) cnt[i]++; });
-              const frac = (x0, x1, y0, y1) => {
-                let tot = 0, per = 0, edge = 0;
-                for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
-                  tot++;
-                  if (cnt[y * W + x] >= need) {
-                    per++;
-                    const nb = [[x - 1, y], [x + 1, y], [x, y - 1], [x, y + 1]];
-                    if (nb.some(([a, b]) => a >= x0 && a < x1 && b >= y0 && b < y1 && cnt[b * W + a] < need)) edge++;
-                  }
-                }
-                return { f: per / tot, e: per ? edge / per : 0 };
-              };
-              const mid = frac(Math.round(W * 0.15), Math.round(W * 0.85), Math.round(H * 0.2), Math.round(H * 0.8));
-              const cw = Math.round(W * 0.38), ch = Math.round(H * 0.13);
-              const corners = [
-                frac(0, cw, 0, ch), frac(W - cw, W, 0, ch),
-                frac(0, cw, H - ch, H), frac(W - cw, W, H - ch, H),
-              ];
-              if (corners.some((c) => c.f >= 0.015 && c.f >= mid.f * 3 + 0.01 && c.e >= 0.35)) { done("it has a logo or watermark in the corner"); return; }
-
-              // 2) a dark end screen with a logo
-              const dark = (f) => { let n = 0; for (let i = 0; i < f.length; i++) if (f[i] < 45) n++; return n / f.length; };
-              const brightCenter = (f) => {
-                let n = 0, t = 0;
-                for (let y = Math.round(H * 0.3); y < Math.round(H * 0.7); y++) for (let x = Math.round(W * 0.15); x < Math.round(W * 0.85); x++) { t++; if (f[y * W + x] > 200) n++; }
-                return n / t;
-              };
-              const e1 = await grab(dur - 0.2), e2 = await grab(dur - 0.8), before = await grab(Math.max(0.1, dur - 3.2));
-              const isCard = (f) => dark(f) >= 0.85 && brightCenter(f) >= 0.004 && brightCenter(f) <= 0.3;
-              if (isCard(e1) && isCard(e2) && dark(before) < 0.6) { done("it ends with a logo screen from another app"); return; }
-              done("");
-            } catch (e) { done(""); }
-          };
-          v.src = url;
-        });
-      }
-      async function checkVideoOrigin(file) {
-        const name = String(file.name || "").toLowerCase();
-        if (/(tiktok|snaptik|ssstik|tikmate|musicaldown|savetik|douyin|snapinsta|instasave|savefrom|snapsave|kuaishou)/.test(name) || /v0\d{4}[a-z]\d0000/.test(name)) return "its file name looks like a download from another app";
-        try {
-          const text = async (blob) => new TextDecoder("latin1").decode(new Uint8Array(await blob.arrayBuffer())).toLowerCase();
-          const head = await text(file.slice(0, 1048576));
-          const tail = file.size > 1048576 ? await text(file.slice(Math.max(0, file.size - 1048576))) : "";
-          if (SRC_MARKERS.some((m) => head.indexOf(m) >= 0 || tail.indexOf(m) >= 0)) return "it has marks from another app inside the file";
-        } catch (e) {}
-        return await visualCheck(file);
-      }
-
       async function uploadReelFile(f, caption, setMsg) {
         if (!f.type.startsWith("video/")) throw new Error("That file is not a video.");
         if (f.size > MAX_MB * 1024 * 1024) throw new Error("Video is too big (max " + MAX_MB + " MB).");
-        setMsg("Checking your video...");
-        const why = await checkVideoOrigin(f);
-        if (why) throw new Error("This video can't be posted: " + why + ". Please post your own video, without logos from other apps.");
         setMsg("Uploading... please wait.");
         const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
         const up = await api("/api/reels/upload-url", "POST", { ext });
@@ -2901,6 +2810,16 @@
         if (error) throw error;
         const made = await api("/api/reels", "POST", { path: up.path, caption });
         if (made.error) throw new Error(made.error);
+        // Twik cleans the video (logos from other apps are removed). Wait for it.
+        const until = Date.now() + 9 * 60 * 1000;
+        while (Date.now() < until) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const j = await api("/api/reels/job/" + made.job);
+          if (j.status === "done") return;
+          if (j.status === "error") throw new Error(j.error || "Could not save the reel.");
+          setMsg(j.stage || "Cleaning your video...");
+        }
+        throw new Error("This is taking too long. Check Reels in a minute.");
       }
 
       // ---------- Reels ----------

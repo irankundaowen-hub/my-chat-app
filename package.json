@@ -13,6 +13,7 @@
     "@supabase/supabase-js": "^2.45.0",
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
-    "compression": "^1.7.4"
+    "compression": "^1.7.4",
+    "@ffmpeg-installer/ffmpeg": "^1.1.0"
   }
 }

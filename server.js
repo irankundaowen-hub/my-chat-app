@@ -222,26 +222,6 @@ async function reelExtras(ids, viewerId) {
   return { likes, liked, comments };
 }
 
-// Signs that a video was downloaded from another app (TikTok, Instagram...) are often written inside the file
-const SOURCE_MARKERS = ["tiktok", "douyin", "musical.ly", "bytedance", "snaptik", "ssstik", "tikmate", "musicaldown", "savetik", "snapinsta", "instagram", "kuaishou", "likee", "snackvideo", "com.zhiliaoapp"];
-async function foundSourceMark(path) {
-  try {
-    const { data } = await signMany([path]);
-    const url = data && data[0] && data[0].signedUrl;
-    if (!url) return false;
-    const grab = async (range) => {
-      const r = await fetch(url, { headers: { Range: range } });
-      if (!r.ok) return "";
-      const b = Buffer.from(await r.arrayBuffer());
-      return b.subarray(0, 1100000).toString("latin1").toLowerCase();
-    };
-    const [a, b] = await Promise.all([grab("bytes=0-1048575"), grab("bytes=-1048576")]);
-    return SOURCE_MARKERS.some((m) => a.includes(m) || b.includes(m));
-  } catch (e) {
-    return false;
-  }
-}
-
 async function mediaFor(userId, viewerId) {
   const { data: pRows } = await supabase
     .from("photo_posts").select("id, username, path, caption").eq("user_id", userId)
@@ -783,22 +763,68 @@ app.post("/api/reels/upload-url", requireUser, safe(async (req, res) => {
   res.json({ path, token: data.token });
 }));
 
-// Step 2 of posting: save the reel with its caption
+// Step 2 of posting: Twik cleans the video (removes TikTok-style logos and end screens), then saves the reel
+let videoClean = null;
+try { videoClean = require("./videoclean"); } catch (e) { console.error("Video cleaner not available:", e.message); }
+const reelJobs = new Map();
+let reelQueue = Promise.resolve();
+
+async function processReel(job, me, path, caption) {
+  const fsx = require("fs");
+  const dir = fsx.mkdtempSync(require("path").join(require("os").tmpdir(), "twik-"));
+  try {
+    let finalPath = path;
+    if (videoClean) {
+      try {
+        job.stage = "Cleaning your video... (this can take a minute)";
+        const { data } = await signMany([path]);
+        const url = data && data[0] && data[0].signedUrl;
+        if (!url) throw new Error("no link");
+        const resp = await fetch(url);
+        if (!resp.ok) throw new Error("download " + resp.status);
+        const inFile = dir + "/in.bin", outFile = dir + "/out.mp4";
+        fsx.writeFileSync(inFile, Buffer.from(await resp.arrayBuffer()));
+        const r = await videoClean.cleanVideo(inFile, outFile);
+        console.log("[clean]", me.username, r.changed ? "cleaned" : r.failed ? "FAILED" : "nothing to remove", (r.notes || []).join(" | "));
+        if (r.changed) {
+          job.stage = "Saving...";
+          const np = me.id + "/clean-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + ".mp4";
+          const up = await supabase.storage.from(REELS_BUCKET).upload(np, fsx.readFileSync(outFile), { contentType: "video/mp4", upsert: true });
+          if (up.error) console.error("Cleaned upload error:", up.error.message);
+          else { await supabase.storage.from(REELS_BUCKET).remove([path]); finalPath = np; }
+        }
+      } catch (e) {
+        console.error("Cleaning problem (posting the original):", e.message);
+      }
+    }
+    const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path: finalPath, caption });
+    if (error) throw new Error(error.message);
+    job.status = "done";
+  } catch (e) {
+    console.error("Reel save error:", e.message);
+    job.status = "error";
+    job.error = "Could not save the reel. Please try again.";
+  } finally {
+    try { fsx.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
+    setTimeout(() => reelJobs.delete(job.id), 15 * 60 * 1000);
+  }
+}
+
 app.post("/api/reels", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   const path = String(req.body.path || "");
   if (!me || !path.startsWith(req.user.id + "/")) return res.status(400).json({ error: "Bad request" });
   const caption = String(req.body.caption || "").trim().slice(0, 150);
-  if (await foundSourceMark(path)) {
-    await supabase.storage.from(REELS_BUCKET).remove([path]);
-    return res.status(400).json({ error: "This video looks like it was downloaded from another app (TikTok, Instagram...). Please post your own video." });
-  }
-  const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path, caption });
-  if (error) {
-    console.error("Reel save error:", error.message);
-    return res.status(500).json({ error: "Could not save the reel." });
-  }
-  res.json({ ok: true });
+  const job = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), user: me.id, status: "working", stage: "Waiting...", error: "" };
+  reelJobs.set(job.id, job);
+  reelQueue = reelQueue.then(() => processReel(job, me, path, caption)).catch(() => {});
+  res.json({ job: job.id });
+}));
+
+app.get("/api/reels/job/:id", requireUser, safe(async (req, res) => {
+  const job = reelJobs.get(String(req.params.id));
+  if (!job || job.user !== req.user.id) return res.json({ status: "error", error: "Not found" });
+  res.json({ status: job.status, stage: job.stage, error: job.error });
 }));
 
 // The reels you are allowed to watch: yours, public accounts, and people you follow
