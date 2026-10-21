@@ -323,7 +323,7 @@
     #rUpload, #pbUpload { border-radius: 24px 24px 24px 8px; margin: 0 8px 8px; border: 1px solid var(--line); }
 
     /* ===== Profile page (v11) ===== */
-    #pMain, #pEdit, #pSettings, #pLists { width: 100%; }
+    #pMain, #pEdit, #pSettings, #pLists, #pLang { width: 100%; }
     .pHead { display: flex; align-items: center; gap: 20px; margin: 6px 0 14px; }
     .avatar.big { width: 96px; height: 96px; font-size: 42px; }
     .pRight { flex: 1; min-width: 0; }
@@ -603,6 +603,90 @@
     button.danger, .wide.danger { color: #ff6b81; border: 1px solid #ff6b81; background: none; }
     #svViewers { background: rgba(255,255,255,0.14); padding: 6px 12px; font-size: 13px; margin-left: 10px; }
     .offline { position: fixed; top: 0; left: 0; right: 0; z-index: 130; background: #3a2a00; color: #ffd27a; text-align: center; font-size: 12.5px; padding: 4px; }
+
+    /* ===== v21: create screen, live, languages ===== */
+    .mkPlus { width: 38px; height: 38px; padding: 0 !important; margin: 0 !important; border-radius: 14px 14px 14px 5px !important; background: var(--surface2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+    .mkPlus svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2.400; stroke-linecap: round; }
+    #mk { position: fixed; inset: 0; z-index: 150; background: #000; display: flex; flex-direction: column; }
+    .mkStage { position: relative; flex: 1; min-height: 0; margin: 6px 6px 0; border-radius: 30px 30px 30px 10px; overflow: hidden; background: #15151a; }
+    #mkVid { width: 100%; height: 100%; object-fit: cover; display: block; background: #15151a; }
+    #mkVid.mirror { transform: scaleX(-1); }
+    #mkNone { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; padding: 30px; text-align: center; color: var(--muted); font-size: 15px; }
+    #mkNone[hidden] { display: none; }
+    .mkTop { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; align-items: center; justify-content: space-between; z-index: 3; }
+    .mkRound { width: 42px; height: 42px; padding: 0 !important; border-radius: 50% !important; background: rgba(0,0,0,0.38) !important; backdrop-filter: blur(8px); border: none !important; display: flex; align-items: center; justify-content: center; }
+    .mkRound svg, .mkThumb svg, #mkAud svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .mkRound.on svg { fill: #ffd54a; stroke: #ffd54a; }
+    #mkRec { background: #e5254f; color: #fff; font-weight: 800; font-size: 13px; padding: 5px 12px; border-radius: 12px 12px 12px 4px; }
+    #mk.isLive .mkBar, #mk.isLive .mkTabs, #mk.isLive .mkTop, #mk.isLive #mkAud, #mk.isLive #mkTip { display: none; }
+    #mk.isLive .mkStage { margin: 0; border-radius: 0; }
+    #mkRec[hidden], #mkAud[hidden], #mkRev[hidden], #mkLive[hidden], #lv[hidden], #mk[hidden], #liveStrip[hidden] { display: none; }
+    #mkAud { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 3; background: rgba(40,40,46,0.8) !important; backdrop-filter: blur(8px); border: none !important; border-radius: 20px 20px 20px 6px !important; padding: 9px 16px !important; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 15px; }
+    #mkTip { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center; font-size: 12.500px; color: rgba(255,255,255,0.75); text-shadow: 0 1px 6px #000; pointer-events: none; }
+    .mkBar { display: flex; align-items: center; justify-content: space-between; padding: 14px 26px 6px; }
+    .mkThumb { width: 46px; height: 46px; padding: 0 !important; border-radius: 14px 14px 14px 5px !important; background: var(--surface2) !important; border: 1.500px solid #555 !important; display: flex; align-items: center; justify-content: center; }
+    #mkShut { width: 74px; height: 74px; padding: 0 !important; border-radius: 50% !important; background: transparent !important; border: 4px solid #fff !important; display: flex; align-items: center; justify-content: center; margin: 0 !important; touch-action: none; }
+    #mkShut span { width: 54px; height: 54px; border-radius: 50%; background: #fff; transition: all 0.15s ease; }
+    #mkShut.rec span { width: 30px; height: 30px; border-radius: 9px; background: #e5254f; }
+    #mkShut.live span { background: #e5254f; }
+    .mkTabs { display: flex; justify-content: center; gap: 6px; padding: 8px 10px calc(14px + env(safe-area-inset-bottom)); }
+    .mkTabs button { background: transparent !important; border: none !important; color: #7d7d86; font-weight: 800; letter-spacing: 1px; font-size: 14px; padding: 8px 16px !important; border-radius: 16px !important; }
+    .mkTabs button.on { color: #fff; background: rgba(255,255,255,0.14) !important; }
+    #mkRev { position: absolute; inset: 0; z-index: 5; background: #000; display: flex; flex-direction: column; }
+    #mkPrev { flex: 1; min-height: 0; margin: 6px 6px 0; border-radius: 30px 30px 30px 10px; overflow: hidden; background: #111; }
+    #mkPrev img, #mkPrev video { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .mkRevBox { padding: 12px 14px calc(14px + env(safe-area-inset-bottom)); }
+    .mkRevBox input { margin-bottom: 8px; }
+    #mkMsg { color: var(--muted); font-size: 13px; min-height: 18px; margin: 0 0 6px; }
+    .mkRevBtns { display: flex; gap: 10px; }
+    .mkRevBtns button { flex: 1; padding: 13px; font-size: 15px; border-radius: 20px 20px 20px 6px; }
+    #mkLive { position: absolute; inset: 0; z-index: 6; background: #000; }
+    #mkLive::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5), transparent 25%, transparent 55%, rgba(0,0,0,0.7)); pointer-events: none; }
+    .lvTop { position: absolute; top: 14px; left: 14px; right: 14px; display: flex; align-items: center; gap: 10px; z-index: 4; text-shadow: 0 1px 6px #000; }
+    .lvTop #lvX { margin-left: auto; }
+    .liveTag { background: linear-gradient(135deg, #e5254f, #ff7a3c); color: #fff; font-weight: 800; font-size: 12px; letter-spacing: 1px; padding: 4px 10px; border-radius: 10px 10px 10px 3px; }
+    .lvN { font-size: 13px; font-weight: 700; background: rgba(0,0,0,0.45); padding: 4px 10px; border-radius: 10px; }
+    .lvChat { position: absolute; left: 12px; right: 90px; bottom: 74px; max-height: 38%; overflow-y: auto; z-index: 4; display: flex; flex-direction: column; gap: 5px; scrollbar-width: none; }
+    .lvChat div { background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); padding: 6px 12px; border-radius: 16px 16px 16px 4px; font-size: 14px; align-self: flex-start; max-width: 100%; overflow-wrap: anywhere; }
+    .lvChat b { margin-right: 6px; }
+    .lvForm { position: absolute; left: 12px; right: 12px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 4; display: flex; gap: 8px; }
+    .lvForm input { flex: 1; background: rgba(30,30,36,0.8); border-radius: 22px 22px 22px 6px; }
+    .lvForm button { padding: 10px 16px; border-radius: 18px 18px 18px 5px; }
+    .lvEnd { position: absolute; right: 14px; top: 62px; z-index: 5; background: #e5254f !important; padding: 8px 16px !important; border-radius: 14px 14px 14px 4px !important; font-size: 14px; }
+    #mkLive .lvForm { right: 12px; }
+    #lv { position: fixed; inset: 0; z-index: 150; background: #000; }
+    #lvVid { width: 100%; height: 100%; object-fit: contain; background: #000; }
+    #lvWait { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 15px; pointer-events: none; }
+    #lvWait[hidden] { display: none; }
+    .liveStrip { display: flex; gap: 8px; overflow-x: auto; padding: 4px 12px 2px; scrollbar-width: none; }
+    .liveStrip::-webkit-scrollbar { display: none; }
+    .livePill { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 7px 14px 7px 8px; background: var(--surface2); border: 1.500px solid #e5254f; border-radius: 20px 20px 20px 6px; color: #fff; font-size: 13.500px; font-weight: 700; }
+    .livePill .dot { width: 9px; height: 9px; border-radius: 50%; background: #e5254f; box-shadow: 0 0 0 0 rgba(229,37,79,0.7); animation: livePulse 1.400s infinite; margin-left: 6px; }
+    @keyframes livePulse { 70% { box-shadow: 0 0 0 8px rgba(229,37,79,0); } 100% { box-shadow: 0 0 0 0 rgba(229,37,79,0); } }
+    /* settings rows (like Instagram) */
+    .setRow { width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; background: transparent !important; border: none !important; border-radius: 18px !important; padding: 15px 6px !important; margin: 0 0 4px !important; color: #fff; font-size: 17px; font-weight: 600; }
+    .setRow:active { background: var(--surface2) !important; }
+    .setRow .srIco { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 1.700; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .setRow .srTxt { flex: 1; }
+    .setRow .srCur { color: var(--muted); font-size: 14px; font-weight: 500; }
+    .setRow .srChev { width: 20px; height: 20px; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .setRow.plain { font-weight: 500; font-size: 17px; }
+    .langBar { display: flex; align-items: center; gap: 12px; margin: 2px 0 14px; }
+    .langBar h2 { margin: 0; font-size: 21px; }
+    .arrowBtn { width: 40px; height: 40px; padding: 0 !important; background: transparent !important; border: none !important; display: flex; align-items: center; justify-content: center; }
+    .arrowBtn svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2.200; stroke-linecap: round; stroke-linejoin: round; }
+    .langH { margin: 22px 0 4px !important; font-size: 18px !important; }
+    .langNote { font-size: 13px; margin: 2px 6px 0; }
+    input.sw { appearance: none; -webkit-appearance: none; width: 50px !important; height: 30px; border-radius: 16px !important; background: #3a3a44; position: relative; padding: 0 !important; margin: 0 !important; border: none !important; flex-shrink: 0; cursor: pointer; transition: background 0.2s; }
+    input.sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+    input.sw:checked { background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b); }
+    input.sw:checked::after { transform: translateX(20px); }
+    .langRow { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; background: transparent !important; border: none !important; border-radius: 14px !important; padding: 12px 8px !important; margin: 0 !important; color: #fff; font-size: 16px; }
+    .langRow small { display: block; color: var(--muted); font-size: 12.500px; margin-top: 2px; }
+    .langRow .tick { color: #ec4899; font-weight: 800; }
+    #shBody .langSearch { margin-bottom: 8px; }
+    #shBody .langList { max-height: 56vh; overflow-y: auto; }
+    .trLink { background: none !important; border: none !important; color: var(--muted); font-size: 12.500px; padding: 2px 0 !important; margin: 0 !important; display: block; text-align: left; }
   </style>
 </head>
 <body>
@@ -700,6 +784,7 @@
         <p id="pMsg"></p>
         <h3>Follow requests</h3>
         <ul id="pReqList"></ul>
+        <button class="setRow" id="langOpen" type="button"><svg viewBox="0 0 24 24" class="srIco"><path d="M4 5h9a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H9l-3 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M6.500 8.500h5M9 7v1.500M7 11c1.500-.5 3-1.500 3.500-2.500"/><path d="M15 10h3a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1v3l-3-3h-1"/></svg><span class="srTxt">Language and translations</span><svg viewBox="0 0 24 24" class="srChev"><path d="M9 5l7 7-7 7"/></svg></button>
         <h3>Security</h3>
         <button class="wide" id="pwOpen" type="button">Change password</button>
         <button class="wide" id="blkOpen" type="button">Blocked accounts</button>
@@ -707,6 +792,17 @@
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
         <button class="close" id="pClose" type="button" hidden>Close</button>
+      </div>
+
+      <!-- Language and translations -->
+      <div id="pLang" hidden>
+        <div class="langBar"><button id="langBack" class="arrowBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><h2>Language and translations</h2></div>
+        <h3 class="langH">Twik language</h3>
+        <button class="setRow plain" id="langSet" type="button"><span class="srTxt">Set language</span><span class="srCur" id="langCur" data-notr></span><svg viewBox="0 0 24 24" class="srChev"><path d="M9 5l7 7-7 7"/></svg></button>
+        <h3 class="langH">Reels translations</h3>
+        <button class="setRow plain" id="langPref" type="button"><span class="srTxt">Preferred languages</span><svg viewBox="0 0 24 24" class="srChev"><path d="M9 5l7 7-7 7"/></svg></button>
+        <label class="setRow plain" for="langCap"><span class="srTxt">Translate captions</span><input type="checkbox" id="langCap" class="sw" /></label>
+        <p class="hint langNote">Shows a "See translation" link under captions written in another language.</p>
       </div>
 
       <!-- Followers / following lists -->
@@ -868,7 +964,7 @@
     </div>
     <div id="rUpload" hidden>
       <input id="rFile" type="file" accept="video/*" />
-      <p class="hint" style="margin:0 0 8px">Videos from TikTok are fine. Twik removes the logo for you.</p>
+      <p class="hint" style="margin:0 0 8px">Choose a video from your phone.</p>
       <input id="rCaption" type="text" maxlength="150" placeholder="Caption (optional)" />
       <button id="rPost" type="button">Post reel</button>
       <p id="rMsg"></p>
@@ -879,26 +975,75 @@
   <!-- Photo posts panel -->
   <div id="postsPanel" hidden>
     <div class="pbBar">
+      <button id="mkBtn" class="mkPlus" type="button" aria-label="Create"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></button>
       <strong>🏠 Home</strong>
       <span>
-        <button id="pbToggle" type="button">+ Post</button>
+        <button id="pbToggle" type="button" hidden>+ Post</button>
         <button id="pbClose" type="button">Close</button>
       </span>
     </div>
     <div id="pbUpload" hidden>
       <input id="pbFile" type="file" accept="image/*,video/*" />
-      <p class="hint" style="margin:0 0 8px">Photos or videos. Videos from TikTok are fine, Twik removes the logo for you.</p>
+      <p class="hint" style="margin:0 0 8px">Photos or videos.</p>
       <input id="pbCaption" type="text" maxlength="200" placeholder="Write a caption..." />
       <button id="pbPost" type="button">Share</button>
       <p id="pbMsg"></p>
     </div>
     <div id="pbScroll">
+      <div id="liveStrip" class="liveStrip" hidden></div>
       <div id="storyStrip" class="storyStrip"></div>
       <div id="pbFeed"></div>
     </div>
   </div>
 
   <input id="stFile" type="file" accept="image/*,video/*" hidden />
+
+  <!-- Create screen: Post / Story / Reel / Live -->
+  <div id="mk" hidden>
+    <div class="mkStage">
+      <video id="mkVid" playsinline muted autoplay></video>
+      <div id="mkNone" hidden><p>Camera not available. You can choose from your gallery.</p></div>
+      <div class="mkTop">
+        <button id="mkX" class="mkRound" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+        <button id="mkFlash" class="mkRound" type="button" aria-label="Flash" hidden><svg viewBox="0 0 24 24"><path d="M13 2L5 14h6l-1 8 8-12h-6z"/></svg></button>
+        <span id="mkRec" hidden></span>
+      </div>
+      <button id="mkAud" type="button" hidden><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M3 20c0-3.500 3-6 6-6s6 2.500 6 6"/></svg><b id="mkAudTxt">Everyone</b> ⌄</button>
+      <div id="mkTip" data-notr></div>
+    </div>
+    <div class="mkBar">
+      <button id="mkGal" class="mkThumb" type="button" aria-label="Choose from gallery"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.800"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg></button>
+      <button id="mkShut" type="button" aria-label="Capture"><span></span></button>
+      <button id="mkFlip" class="mkRound" type="button" aria-label="Flip camera"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></svg></button>
+    </div>
+    <div class="mkTabs" id="mkTabs">
+      <button type="button" data-m="post">POST</button><button type="button" data-m="story">STORY</button><button type="button" data-m="reel">REEL</button><button type="button" data-m="live">LIVE</button>
+    </div>
+    <input id="mkFile" type="file" accept="image/*,video/*" hidden />
+    <div id="mkRev" hidden>
+      <div id="mkPrev"></div>
+      <div class="mkRevBox">
+        <input id="mkCap" type="text" maxlength="200" placeholder="Write a caption..." />
+        <p id="mkMsg"></p>
+        <div class="mkRevBtns"><button id="mkDiscard" class="ghost" type="button">Discard</button><button id="mkShare" type="button">Share</button></div>
+      </div>
+    </div>
+    <div id="mkLive" hidden>
+      <div class="lvTop"><span class="liveTag">LIVE</span><span class="lvN" id="mkLvN" data-notr>0</span></div>
+      <div class="lvChat" id="mkLvChat"></div>
+      <form class="lvForm" id="mkLvForm" autocomplete="off"><input id="mkLvIn" type="text" maxlength="200" placeholder="Say something..." /><button type="submit">Send</button></form>
+      <button id="mkLvEnd" class="lvEnd" type="button">End live</button>
+    </div>
+  </div>
+
+  <!-- Watching someone's live -->
+  <div id="lv" hidden>
+    <video id="lvVid" playsinline autoplay></video>
+    <div id="lvWait">Waiting for video...</div>
+    <div class="lvTop"><b id="lvName" data-notr></b><span class="liveTag">LIVE</span><span class="lvN" id="lvN" data-notr>0</span><button id="lvX" class="mkRound" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button></div>
+    <div class="lvChat" id="lvChat"></div>
+    <form class="lvForm" id="lvForm" autocomplete="off"><input id="lvIn" type="text" maxlength="200" placeholder="Say something..." /><button type="submit">Send</button></form>
+  </div>
 
   <!-- One sheet for menus, sharing, reporting and settings questions -->
   <div id="sh" hidden>
@@ -1415,6 +1560,7 @@
 
       function startChat(user) {
         me = user;
+        if (typeof I18N !== "undefined" && I18N.lang !== "en") setTimeout(() => fetchMissing(I18N.lang).catch(() => {}), 600);
         $("authBox").hidden = true;
         $("userArea").hidden = false;
         $("searchBtn").hidden = false;
@@ -1441,6 +1587,7 @@
         });
 
         socket.on("dm", onDm);
+        initLiveSocket();
         let typingT = null;
         socket.on("typing", (d) => {
           if (peer && d && d.from === peer.id) {
@@ -1567,7 +1714,7 @@
 
       function showProfileView(name) {
         profileView = name;
-        ["pMain", "pEdit", "pSettings", "pLists"].forEach((id) => {
+        ["pMain", "pEdit", "pSettings", "pLists", "pLang"].forEach((id) => {
           $(id).hidden = id !== "p" + name.charAt(0).toUpperCase() + name.slice(1);
         });
         $("panel").scrollTop = 0;
@@ -1724,9 +1871,9 @@
           const plus = document.createElement("span");
           plus.className = "stPlus";
           plus.textContent = "+";
-          plus.onclick = (e) => { e.stopPropagation(); $("stFile").click(); };
+          plus.onclick = (e) => { e.stopPropagation(); openCreate("story"); };
           card.appendChild(plus);
-          card.onclick = () => { if (g) openStories(g); else $("stFile").click(); };
+          card.onclick = () => { if (g) openStories(g); else openCreate("story"); };
           if (!g) card.classList.add("empty");
         } else {
           card.onclick = () => openStories(g);
@@ -1766,14 +1913,12 @@
         storyGroups = g;
         if (changed) paintStories();
       }
-      $("postsBtn").addEventListener("click", () => loadStories());
+      $("postsBtn").addEventListener("click", () => { loadStories(); loadLives(); });
 
       // Add a story
       let pendingStory = null;
-      $("stFile").addEventListener("change", () => {
-        const f = $("stFile").files[0];
-        $("stFile").value = "";
-        if (!f) return;
+      $("stFile").addEventListener("change", () => { const f = $("stFile").files[0]; $("stFile").value = ""; if (f) startStory(f); });
+      function startStory(f) {
         const isVideo = f.type.indexOf("video") === 0;
         const isImage = f.type.indexOf("image") === 0;
         if (!isVideo && !isImage) { alert("Pick a photo or a video."); return; }
@@ -1793,7 +1938,7 @@
         $("audList").hidden = true;
         loadFriendsForStory();
         $("storyAdd").hidden = false;
-      });
+      }
 
       // Who can see this story?
       async function loadFriendsForStory() {
@@ -3136,6 +3281,7 @@
           const ct = document.createElement("span");
           mentionText(ct, " " + p.caption);
           cap.append(b, ct);
+          addTrLink(cap, p.caption);
         }
 
         const when = document.createElement("div");
@@ -3548,6 +3694,7 @@
           cap.className = "rCap";
           mentionText(cap, r.caption);
           bottom.appendChild(cap);
+          addTrLink(bottom, r.caption);
           if (r.caption.length > 60) {
             const more = document.createElement("button");
             more.type = "button";
@@ -3693,10 +3840,7 @@
         $("reelsPanel").hidden = true;
       });
 
-      $("rUploadToggle").addEventListener("click", () => {
-        $("rUpload").hidden = !$("rUpload").hidden;
-        $("rMsg").textContent = "";
-      });
+      $("rUploadToggle").addEventListener("click", () => openCreate("reel"));
 
       $("rPost").addEventListener("click", async () => {
         const f = $("rFile").files[0];
@@ -3717,6 +3861,551 @@
           $("rPost").disabled = false;
         }
       });
+
+
+      // ================= v21: languages =================
+      const LANG_LIST = "af:Afrikaans,sq:Albanian,am:Amharic,ar:Arabic,hy:Armenian,az:Azerbaijani,eu:Basque,be:Belarusian,bn:Bengali,bs:Bosnian,bg:Bulgarian,ca:Catalan,ceb:Cebuano,zh-CN:Chinese (Simplified),zh-TW:Chinese (Traditional),co:Corsican,hr:Croatian,cs:Czech,da:Danish,nl:Dutch,en:English,eo:Esperanto,et:Estonian,fi:Finnish,fr:French,fy:Frisian,gl:Galician,ka:Georgian,de:German,el:Greek,gu:Gujarati,ht:Haitian Creole,ha:Hausa,haw:Hawaiian,he:Hebrew,hi:Hindi,hmn:Hmong,hu:Hungarian,is:Icelandic,ig:Igbo,id:Indonesian,ga:Irish,it:Italian,ja:Japanese,jv:Javanese,kn:Kannada,kk:Kazakh,km:Khmer,rw:Kinyarwanda,ko:Korean,ku:Kurdish,ky:Kyrgyz,lo:Lao,la:Latin,lv:Latvian,lt:Lithuanian,lb:Luxembourgish,mk:Macedonian,mg:Malagasy,ms:Malay,ml:Malayalam,mt:Maltese,mi:Maori,mr:Marathi,mn:Mongolian,my:Myanmar (Burmese),ne:Nepali,no:Norwegian,ny:Nyanja (Chichewa),or:Odia (Oriya),ps:Pashto,fa:Persian,pl:Polish,pt:Portuguese,pa:Punjabi,ro:Romanian,ru:Russian,sm:Samoan,gd:Scots Gaelic,sr:Serbian,st:Sesotho,sn:Shona,sd:Sindhi,si:Sinhala,sk:Slovak,sl:Slovenian,so:Somali,es:Spanish,su:Sundanese,sw:Swahili,sv:Swedish,tl:Filipino (Tagalog),tg:Tajik,ta:Tamil,tt:Tatar,te:Telugu,th:Thai,tr:Turkish,tk:Turkmen,uk:Ukrainian,ur:Urdu,ug:Uyghur,uz:Uzbek,vi:Vietnamese,cy:Welsh,xh:Xhosa,yi:Yiddish,yo:Yoruba,zu:Zulu".split(",").map((x) => { const i = x.indexOf(":"); return { code: x.slice(0, i), en: x.slice(i + 1) }; });
+      const LANG_EN = {};
+      LANG_LIST.forEach((l) => { LANG_EN[l.code] = l.en; });
+      const RTL_LANGS = ["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"];
+      const I18N_KEYS = ["+ Post", "Accepted ✓", "Add", "Add a comment...", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Back", "Back online", "Bio", "Birthday 🎂", "Blocked accounts", "Camera not available", "Camera not available. You can choose from your gallery.", "Cancel", "Caption (optional)", "Change password", "Change picture", "Chat", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose from gallery", "Close", "Comments", "Copy text", "Create a group", "Create account", "Create group", "Current password", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit profile", "Edit your note", "Email", "End live", "Everyone", "Explore", "False information", "Find people", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group name", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Home", "LIVE", "Language and translations", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Message", "Messages", "More", "Name", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Spam or scam", "Start a chat: their username", "Start chat", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Waiting for video...", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "You can't message this person.", "You haven't blocked anyone.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story"];
+      const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."}};
+      const I18N = { lang: "en", dict: {}, loading: false };
+      const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+      const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+      function nativeName(code) {
+        let nat = LANG_EN[code] || code;
+        try { const n = new Intl.DisplayNames([code], { type: "language" }).of(code); if (n && n.toLowerCase() !== code.toLowerCase()) nat = n.charAt(0).toUpperCase() + n.slice(1); } catch (e) {}
+        return nat;
+      }
+      function buildDict(code) {
+        let cached = {};
+        try { cached = JSON.parse(lsGet("twik_i18n_" + code) || "{}"); } catch (e) {}
+        return Object.assign({}, cached, I18N_PACKS[code] || {});
+      }
+      function lookup(core) {
+        const d = I18N.dict;
+        if (d[core] !== undefined) return d[core];
+        if (/\d/.test(core)) {
+          const nums = core.match(/\d+/g);
+          const key = core.replace(/\d+/g, "{n}");
+          if (d[key] !== undefined) { let i = 0; return d[key].replace(/\{n\}/g, () => nums[i++] || ""); }
+        }
+        return undefined;
+      }
+      function trString(str) {
+        if (I18N.lang === "en" || !str) return str;
+        const m = String(str).match(/^(\s*)([\s\S]*?)(\s*)$/);
+        const core = m[2].replace(/\s+/g, " ");
+        let t = lookup(core);
+        if (t !== undefined) return m[1] + t + m[3];
+        const p = core.match(/^([^A-Za-z0-9{]+)(.+)$/);
+        if (p) { t = lookup(p[2]); if (t !== undefined) return m[1] + p[1] + t + m[3]; }
+        return str;
+      }
+      const txtOrig = new WeakMap(), txtShown = new WeakMap(), attrState = new WeakMap();
+      const SKIP_TAGS = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, INPUT: 1, SELECT: 1, NOSCRIPT: 1 };
+      const SKIP_SEL = ".pcap, .rCap, .cl, .msg, .bText, [data-notr]";
+      function trText(n) {
+        const p = n.parentElement;
+        if (!p || SKIP_TAGS[p.tagName] || (p.closest && p.closest(SKIP_SEL))) return;
+        const cur = n.nodeValue;
+        let orig;
+        if (txtShown.has(n) && cur === txtShown.get(n)) orig = txtOrig.get(n);
+        else { orig = cur; txtOrig.set(n, cur); txtShown.delete(n); }
+        if (!/[A-Za-z]/.test(orig)) return;
+        const t = I18N.lang === "en" ? orig : trString(orig);
+        if (t !== cur) { n.nodeValue = t; }
+        if (t !== orig) txtShown.set(n, t);
+      }
+      const ATTRS = ["placeholder", "aria-label", "title"];
+      function trAttrs(el) {
+        if (SKIP_TAGS[el.tagName] && el.tagName !== "INPUT") return;
+        let st = attrState.get(el);
+        ATTRS.forEach((a) => {
+          if (!el.hasAttribute(a)) return;
+          const cur = el.getAttribute(a);
+          st = st || {}; const rec = st[a];
+          let orig;
+          if (rec && rec.shown === cur) orig = rec.orig; else orig = cur;
+          const t = I18N.lang === "en" ? orig : trString(orig);
+          if (t !== cur) el.setAttribute(a, t);
+          st[a] = { orig, shown: t };
+        });
+        if (st) attrState.set(el, st);
+      }
+      function trTree(root) {
+        if (!root) return;
+        if (root.nodeType === 3) { trText(root); return; }
+        if (root.nodeType !== 1) return;
+        if (root.closest && root.closest("[data-notr]")) return;
+        trAttrs(root);
+        const w = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
+        let n;
+        while ((n = w.nextNode())) { if (n.nodeType === 3) trText(n); else trAttrs(n); }
+      }
+      let trObs = null, trBusy = false;
+      function trStartObserver() {
+        if (trObs) return;
+        trObs = new MutationObserver((muts) => {
+          if (trBusy || I18N.lang === "en") return;
+          trBusy = true;
+          try {
+            muts.forEach((m) => {
+              if (m.type === "childList") m.addedNodes.forEach((n) => trTree(n));
+              else if (m.type === "characterData") trText(m.target);
+              else if (m.type === "attributes") trAttrs(m.target);
+            });
+          } finally { trObs.takeRecords(); trBusy = false; }
+        });
+        trObs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
+      }
+      function trApplyAll() {
+        trBusy = true;
+        try { trTree(document.body); } finally { if (trObs) trObs.takeRecords(); trBusy = false; }
+      }
+      function trW(en) { return trString(en); }
+      async function fetchMissing(code) {
+        const missing = I18N_KEYS.filter((k) => I18N.dict[k] === undefined);
+        if (!missing.length || !me) return;
+        const d = await api("/api/i18n", "POST", { lang: code, strings: missing });
+        if (!d || !d.map || I18N.lang !== code) return;
+        const merged = Object.assign({}, JSON.parse(lsGet("twik_i18n_" + code) || "{}"), d.map);
+        lsSet("twik_i18n_" + code, JSON.stringify(merged));
+        Object.assign(I18N.dict, d.map, I18N_PACKS[code] || {});
+        trApplyAll();
+      }
+      function setLanguage(code, silent) {
+        I18N.lang = code;
+        I18N.dict = code === "en" ? {} : buildDict(code);
+        lsSet("twik_lang", code);
+        document.documentElement.lang = code.split("-")[0];
+        document.documentElement.dir = RTL_LANGS.indexOf(code) >= 0 ? "rtl" : "ltr";
+        trStartObserver();
+        trApplyAll();
+        if ($("langCur")) $("langCur").textContent = nativeName(code);
+        if (code !== "en") fetchMissing(code).catch(() => {});
+        if (!silent) toast(code === "en" ? "Language: English" : nativeName(code));
+      }
+      // first paint: use the saved language straight away
+      (function () {
+        const saved = lsGet("twik_lang");
+        if (saved && saved !== "en" && LANG_EN[saved]) setLanguage(saved, true);
+      })();
+      function prefLangs() { try { return JSON.parse(lsGet("twik_pref_langs") || "[]"); } catch (e) { return []; } }
+      function langListSheet(title, onPick, isOn, multi) {
+        openSheet(title, (b) => {
+          const q = document.createElement("input");
+          q.type = "text"; q.className = "langSearch"; q.placeholder = "Search"; q.autocomplete = "off";
+          const list = document.createElement("div");
+          list.className = "langList";
+          const rows = LANG_LIST.map((l) => ({ l, nat: nativeName(l.code) }));
+          const paint = () => {
+            const f = q.value.trim().toLowerCase();
+            list.innerHTML = "";
+            rows.filter((r) => !f || r.nat.toLowerCase().indexOf(f) >= 0 || r.l.en.toLowerCase().indexOf(f) >= 0 || r.l.code.toLowerCase() === f).forEach((r) => {
+              const btn = document.createElement("button");
+              btn.type = "button"; btn.className = "langRow"; btn.setAttribute("data-notr", "");
+              const left = document.createElement("span");
+              left.textContent = r.nat;
+              if (r.nat !== r.l.en) { const sm = document.createElement("small"); sm.textContent = r.l.en; left.appendChild(sm); }
+              btn.appendChild(left);
+              if (isOn(r.l.code)) { const t = document.createElement("span"); t.className = "tick"; t.textContent = "✓"; btn.appendChild(t); }
+              btn.onclick = () => { onPick(r.l.code); if (multi) paint(); };
+              list.appendChild(btn);
+            });
+          };
+          q.addEventListener("input", paint);
+          b.append(q, list);
+          paint();
+        });
+      }
+      $("langOpen").addEventListener("click", () => { $("langCur").textContent = nativeName(I18N.lang); $("langCap").checked = lsGet("twik_tr_caps") === "1"; showProfileView("lang"); });
+      $("langBack").addEventListener("click", () => showProfileView("settings"));
+      $("langSet").addEventListener("click", () => {
+        langListSheet("Set language", (c) => { closeSheet(); setLanguage(c); }, (c) => c === I18N.lang, false);
+      });
+      $("langPref").addEventListener("click", () => {
+        langListSheet("Preferred languages", (c) => {
+          let a = prefLangs();
+          a = a.indexOf(c) >= 0 ? a.filter((x) => x !== c) : a.concat(c);
+          lsSet("twik_pref_langs", JSON.stringify(a));
+        }, (c) => prefLangs().indexOf(c) >= 0, true);
+      });
+      $("langCap").addEventListener("change", () => lsSet("twik_tr_caps", $("langCap").checked ? "1" : "0"));
+      // "See translation" under captions (only when you turned it on)
+      function addTrLink(parent, text) {
+        if (lsGet("twik_tr_caps") !== "1" || !text || text.length < 3) return;
+        const target = I18N.lang !== "en" ? I18N.lang : (prefLangs()[0] || "en");
+        const btn = document.createElement("button");
+        btn.type = "button"; btn.className = "trLink"; btn.textContent = trW("See translation");
+        let shown = false, box = null;
+        btn.onclick = async (e) => {
+          e.stopPropagation();
+          if (shown) { box.remove(); shown = false; btn.textContent = trW("See translation"); return; }
+          btn.textContent = "...";
+          const d = await api("/api/i18n", "POST", { lang: target, strings: [text], auto: true });
+          const t = d && d.map && d.map[text];
+          btn.textContent = trW("See translation");
+          if (!t) { toast("Could not translate"); return; }
+          box = document.createElement("div");
+          box.setAttribute("data-notr", ""); box.className = "trBox"; box.textContent = t; box.style.cssText = "font-size:13.5px;opacity:.9;margin:2px 0";
+          btn.before(box); shown = true;
+        };
+        parent.appendChild(btn);
+      }
+
+      // ================= v21: create screen =================
+      const mk = { mode: "post", stream: null, facing: "environment", rec: null, chunks: [], recTimer: null, file: null, audience: "all", token: 0, holdT: null, isLive: false };
+      const RTC_CFG = { iceServers: [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }] };
+      const MK_TIP = { post: "", story: "Tap to take a photo, hold to record", reel: "Tap to start or stop recording", live: "" };
+      function openCreate(mode) {
+        $("mk").hidden = false;
+        $("mkRev").hidden = true;
+        $("mkLive").hidden = true;
+        mkSetMode(mode || "post");
+      }
+      function mkStopStream() {
+        mk.token++;
+        if (mk.stream) { mk.stream.getTracks().forEach((t) => t.stop()); mk.stream = null; }
+        $("mkVid").srcObject = null;
+      }
+      function mkClose() {
+        if (mk.rec) { try { mk.rec.onstop = null; mk.rec.stop(); } catch (e) {} mk.rec = null; }
+        clearInterval(mk.recTimer);
+        if (mk.isLive) endLive();
+        mkStopStream();
+        $("mk").hidden = true;
+        $("mkRev").hidden = true;
+        $("mkRec").hidden = true;
+        $("mkShut").classList.remove("rec", "live");
+      }
+      function mkSetMode(m) {
+        if (mk.rec) return;
+        mk.mode = m;
+        document.querySelectorAll("#mkTabs button").forEach((b) => b.classList.toggle("on", b.dataset.m === m));
+        $("mkAud").hidden = m !== "live";
+        $("mkTip").textContent = trW(MK_TIP[m] || "");
+        $("mkShut").classList.toggle("live", m === "live");
+        $("mkGal").style.visibility = m === "live" ? "hidden" : "visible";
+        mkStartStream();
+      }
+      async function mkStartStream() {
+        mkStopStream();
+        const my = ++mk.token;
+        $("mkNone").hidden = true;
+        const wantAudio = mk.mode !== "post";
+        const base = { facingMode: mk.facing, width: { ideal: 1280 }, height: { ideal: 1920 } };
+        let st = null;
+        try { st = await navigator.mediaDevices.getUserMedia({ video: base, audio: wantAudio }); }
+        catch (e) {
+          if (wantAudio) { try { st = await navigator.mediaDevices.getUserMedia({ video: base, audio: false }); } catch (e2) {} }
+        }
+        if (my !== mk.token) { if (st) st.getTracks().forEach((t) => t.stop()); return; }
+        if (!st) { $("mkNone").hidden = false; $("mkFlash").hidden = true; return; }
+        mk.stream = st;
+        const v = $("mkVid");
+        v.srcObject = st;
+        v.classList.toggle("mirror", mk.facing === "user");
+        v.play().catch(() => {});
+        const tr0 = st.getVideoTracks()[0];
+        const caps = tr0 && tr0.getCapabilities ? tr0.getCapabilities() : {};
+        $("mkFlash").hidden = !caps.torch;
+        $("mkFlash").classList.remove("on");
+      }
+      $("mkX").addEventListener("click", mkClose);
+      $("mkFlip").addEventListener("click", () => { if (mk.rec || mk.isLive) return; mk.facing = mk.facing === "user" ? "environment" : "user"; mkStartStream(); });
+      $("mkFlash").addEventListener("click", async () => {
+        const t = mk.stream && mk.stream.getVideoTracks()[0];
+        if (!t) return;
+        const on = !$("mkFlash").classList.contains("on");
+        try { await t.applyConstraints({ advanced: [{ torch: on }] }); $("mkFlash").classList.toggle("on", on); } catch (e) {}
+      });
+      document.querySelectorAll("#mkTabs button").forEach((b) => b.addEventListener("click", () => mkSetMode(b.dataset.m)));
+      $("mkAud").addEventListener("click", () => {
+        mk.audience = mk.audience === "all" ? "friends" : "all";
+        $("mkAudTxt").textContent = trW(mk.audience === "all" ? "Everyone" : "Friends");
+      });
+      $("mkGal").addEventListener("click", () => $("mkFile").click());
+      $("mkFile").addEventListener("change", () => {
+        const f = $("mkFile").files[0];
+        $("mkFile").value = "";
+        if (f) mkAfter(f);
+      });
+      function mkPhoto() {
+        const v = $("mkVid");
+        if (!mk.stream || !v.videoWidth) { toast("Camera not available"); return; }
+        const c = document.createElement("canvas");
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        const x = c.getContext("2d");
+        if (mk.facing === "user") { x.translate(c.width, 0); x.scale(-1, 1); }
+        x.drawImage(v, 0, 0);
+        c.toBlob((blob) => { if (blob) mkAfter(new File([blob], "photo.jpg", { type: "image/jpeg" })); }, "image/jpeg", 0.9);
+      }
+      function mkStartRec(maxSec) {
+        if (!mk.stream) { toast("Camera not available"); return; }
+        if (!window.MediaRecorder) { toast("Recording is not supported on this phone. Choose from your gallery."); return; }
+        const types = ["video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
+        const mime = types.find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+        let rec;
+        try { rec = new MediaRecorder(mk.stream, mime ? { mimeType: mime } : {}); } catch (e) { toast("Recording is not supported on this phone. Choose from your gallery."); return; }
+        mk.chunks = [];
+        rec.ondataavailable = (e) => { if (e.data && e.data.size) mk.chunks.push(e.data); };
+        rec.onstop = () => {
+          clearInterval(mk.recTimer);
+          $("mkRec").hidden = true;
+          $("mkShut").classList.remove("rec");
+          mk.rec = null;
+          const type = (rec.mimeType || mime || "video/webm").split(";")[0];
+          const blob = new Blob(mk.chunks, { type });
+          if (blob.size < 2000) return;
+          mkAfter(new File([blob], "clip." + (type.indexOf("mp4") >= 0 ? "mp4" : "webm"), { type }));
+        };
+        mk.rec = rec;
+        rec.start(500);
+        const t0 = Date.now();
+        $("mkShut").classList.add("rec");
+        $("mkRec").hidden = false;
+        $("mkRec").textContent = "● 0:00";
+        mk.recTimer = setInterval(() => {
+          const sec = Math.floor((Date.now() - t0) / 1000);
+          $("mkRec").textContent = "● " + Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+          if (sec >= maxSec) mkStopRec();
+        }, 250);
+      }
+      function mkStopRec() { if (mk.rec && mk.rec.state !== "inactive") mk.rec.stop(); }
+      $("mkShut").addEventListener("pointerdown", () => {
+        if (mk.mode !== "story" || mk.rec) return;
+        mk.holdT = setTimeout(() => { mk.holdT = null; mkStartRec(30); }, 450);
+      });
+      $("mkShut").addEventListener("pointerup", () => {
+        if (mk.mode !== "story") return;
+        if (mk.holdT) { clearTimeout(mk.holdT); mk.holdT = null; mkPhoto(); }
+        else if (mk.rec) mkStopRec();
+      });
+      $("mkShut").addEventListener("pointercancel", () => { clearTimeout(mk.holdT); mk.holdT = null; });
+      $("mkShut").addEventListener("click", () => {
+        if (mk.mode === "post") mkPhoto();
+        else if (mk.mode === "reel") { if (mk.rec) mkStopRec(); else mkStartRec(90); }
+        else if (mk.mode === "live") goLive();
+      });
+      // after a photo/video is ready
+      function mkAfter(f) {
+        const isVideo = f.type.indexOf("video") === 0, isImg = f.type.indexOf("image") === 0;
+        if (!isVideo && !isImg) { toast("Pick a photo or a video."); return; }
+        if (mk.mode === "story") { mkClose(); startStory(f); return; }
+        if (mk.mode === "reel" && !isVideo) { toast("Reels are videos. Pick a video."); return; }
+        mk.file = f;
+        const box = $("mkPrev");
+        box.innerHTML = "";
+        const el = document.createElement(isVideo ? "video" : "img");
+        el.src = URL.createObjectURL(f);
+        if (isVideo) { el.muted = true; el.loop = true; el.autoplay = true; el.playsInline = true; el.controls = false; el.play().catch(() => {}); }
+        box.appendChild(el);
+        $("mkCap").value = "";
+        $("mkMsg").textContent = "";
+        $("mkRev").hidden = false;
+        if (mk.stream) mk.stream.getTracks().forEach((t) => { t.enabled = false; });
+      }
+      function mkBackToCamera() {
+        $("mkRev").hidden = true;
+        $("mkPrev").innerHTML = "";
+        mk.file = null;
+        mkStartStream();
+      }
+      $("mkDiscard").addEventListener("click", mkBackToCamera);
+      async function uploadPhotoPost(f, caption) {
+        if (f.size > 12 * 1024 * 1024) throw new Error("Photo is too big (max 10 MB).");
+        const pre = await shrinkImage(f, 1440);
+        const up = await api("/api/posts/upload-url", "POST", { ext: pre.ext });
+        if (up.error) throw new Error(up.error);
+        const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
+        if (error) throw error;
+        const made = await api("/api/posts", "POST", { path: up.path, caption });
+        if (made.error) throw new Error(made.error);
+      }
+      $("mkShare").addEventListener("click", async () => {
+        const f = mk.file;
+        if (!f) return;
+        const msg = $("mkMsg");
+        $("mkShare").disabled = true;
+        try {
+          if (f.type.indexOf("video") === 0) {
+            await uploadReelFile(f, $("mkCap").value, (t) => { msg.textContent = t; });
+            reelsAt = 0;
+            if (typeof loadReels === "function" && !$("reelsPanel").hidden) loadReels(true);
+          } else {
+            msg.textContent = "Uploading... please wait.";
+            await uploadPhotoPost(f, $("mkCap").value);
+          }
+          postsAt = 0;
+          mkClose();
+          if (!$("postsPanel").hidden) loadPosts(true);
+          toast("Shared ✓");
+        } catch (e) {
+          msg.textContent = (e && e.message) || "Upload failed, please try again.";
+        } finally {
+          $("mkShare").disabled = false;
+        }
+      });
+      $("mkBtn").addEventListener("click", () => openCreate("post"));
+
+      // ================= v21: live video =================
+      const LIVE = { pcs: {}, host: false };
+      const WATCH = { host: null, name: "", pc: null, sid: null, queue: [] };
+      const pcChain = (pc, fn) => { pc._q = (pc._q || Promise.resolve()).then(fn).catch(() => {}); return pc._q; };
+      function liveSay(boxId, user, text) {
+        const box = $(boxId);
+        const d = document.createElement("div");
+        d.setAttribute("data-notr", "");
+        const b = document.createElement("b");
+        b.textContent = user;
+        d.append(b, document.createTextNode(text));
+        box.appendChild(d);
+        while (box.children.length > 60) box.firstChild.remove();
+        box.scrollTop = box.scrollHeight;
+      }
+      function goLive() {
+        if (!mk.stream) { toast("Camera not available"); return; }
+        if (!socket) { toast("You're offline."); return; }
+        mk.isLive = true;
+        $("mk").classList.add("isLive");
+        LIVE.host = true;
+        LIVE.pcs = {};
+        socket.emit("live start", { audience: mk.audience });
+        $("mkLvChat").innerHTML = "";
+        $("mkLvN").textContent = "👁 0";
+        $("mkLive").hidden = false;
+        // the camera stays visible behind the live screen
+        $("mkLive").style.background = "transparent";
+      }
+      function endLive() {
+        if (!mk.isLive) return;
+        mk.isLive = false;
+        $("mk").classList.remove("isLive");
+        LIVE.host = false;
+        Object.keys(LIVE.pcs).forEach((k) => { try { LIVE.pcs[k].close(); } catch (e) {} });
+        LIVE.pcs = {};
+        if (socket) socket.emit("live stop");
+        $("mkLive").hidden = true;
+      }
+      $("mkLvEnd").addEventListener("click", () => { endLive(); mkClose(); toast("Live ended"); });
+      $("mkLvForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const t = $("mkLvIn").value.trim();
+        if (!t || !socket || !me) return;
+        socket.emit("live chat", { host: me.id, text: t });
+        $("mkLvIn").value = "";
+      });
+      async function hostPc(sid) {
+        if (!mk.stream) return;
+        const pc = new RTCPeerConnection(RTC_CFG);
+        LIVE.pcs[sid] = pc;
+        mk.stream.getTracks().forEach((t) => pc.addTrack(t, mk.stream));
+        pc.onicecandidate = (e) => { if (e.candidate) socket.emit("live signal", { to: sid, data: { ice: e.candidate } }); };
+        pc.onconnectionstatechange = () => { if (pc.connectionState === "failed" || pc.connectionState === "closed") { try { pc.close(); } catch (e) {} delete LIVE.pcs[sid]; } };
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        socket.emit("live signal", { to: sid, data: { sdp: pc.localDescription } });
+      }
+      function leaveWatch(silent) {
+        if (WATCH.host && socket) socket.emit("live leave", { host: WATCH.host });
+        if (WATCH.pc) { try { WATCH.pc.close(); } catch (e) {} }
+        WATCH.pc = null; WATCH.host = null; WATCH.sid = null; WATCH.queue = [];
+        $("lvVid").srcObject = null;
+        $("lv").hidden = true;
+        if (!silent) loadLives();
+      }
+      function watchLive(hostId, name) {
+        if (!socket) return;
+        leaveWatch(true);
+        WATCH.host = hostId; WATCH.name = name;
+        $("lvName").textContent = "@" + name;
+        $("lvN").textContent = "👁";
+        $("lvChat").innerHTML = "";
+        $("lvWait").hidden = false;
+        $("lv").hidden = false;
+        socket.emit("live join", { host: hostId });
+      }
+      $("lvX").addEventListener("click", () => leaveWatch());
+      $("lvForm").addEventListener("submit", (e) => {
+        e.preventDefault();
+        const t = $("lvIn").value.trim();
+        if (!t || !socket || !WATCH.host) return;
+        socket.emit("live chat", { host: WATCH.host, text: t });
+        $("lvIn").value = "";
+      });
+      async function viewerOffer(from, sdp) {
+        if (WATCH.pc) { try { WATCH.pc.close(); } catch (e) {} }
+        const pc = new RTCPeerConnection(RTC_CFG);
+        WATCH.pc = pc; WATCH.sid = from;
+        pc.ontrack = (e) => {
+          const v = $("lvVid");
+          v.srcObject = e.streams[0];
+          $("lvWait").hidden = true;
+          v.muted = false;
+          v.play().catch(() => { v.muted = true; v.play().catch(() => {}); toast("Tap to unmute"); });
+        };
+        pc.onicecandidate = (e) => { if (e.candidate) socket.emit("live signal", { to: from, data: { ice: e.candidate } }); };
+        await pc.setRemoteDescription(sdp);
+        for (const c of WATCH.queue.splice(0)) { try { await pc.addIceCandidate(c); } catch (e) {} }
+        const ans = await pc.createAnswer();
+        await pc.setLocalDescription(ans);
+        socket.emit("live signal", { to: from, data: { sdp: pc.localDescription } });
+      }
+      $("lvVid").addEventListener("click", () => { const v = $("lvVid"); if (v.muted) { v.muted = false; v.play().catch(() => {}); } });
+      function initLiveSocket() {
+        socket.on("live viewer", (d) => { if (LIVE.host) hostPc(d.viewer).catch(() => {}); });
+        socket.on("live signal", (m) => {
+          const data = m.data || {};
+          if (LIVE.host) {
+            const pc = LIVE.pcs[m.from];
+            if (!pc) return;
+            pcChain(pc, async () => {
+              if (data.sdp) await pc.setRemoteDescription(data.sdp);
+              else if (data.ice) await pc.addIceCandidate(data.ice);
+            });
+          } else if (WATCH.host) {
+            if (data.sdp && data.sdp.type === "offer") viewerOffer(m.from, data.sdp).catch(() => {});
+            else if (data.ice) {
+              if (WATCH.pc && WATCH.pc.remoteDescription) WATCH.pc.addIceCandidate(data.ice).catch(() => {});
+              else WATCH.queue.push(data.ice);
+            }
+          }
+        });
+        socket.on("live count", (d) => {
+          if (LIVE.host && me && d.host === me.id) $("mkLvN").textContent = "👁 " + d.n;
+          else if (WATCH.host === d.host) $("lvN").textContent = "👁 " + d.n;
+        });
+        socket.on("live chat", (d) => {
+          if (LIVE.host && me && d.host === me.id) liveSay("mkLvChat", d.user, d.text);
+          else if (WATCH.host === d.host) liveSay("lvChat", d.user, d.text);
+        });
+        socket.on("live ended", (d) => {
+          if (WATCH.host && d.host === WATCH.host) { leaveWatch(true); toast(d.reason === "private" ? "You can't watch this live." : "Live ended"); }
+          loadLives();
+        });
+      }
+      // who is live right now
+      async function loadLives() {
+        const strip = $("liveStrip");
+        const d = await api("/api/live");
+        const list = (d && d.lives) || [];
+        strip.innerHTML = "";
+        strip.hidden = !list.length;
+        list.forEach((l) => {
+          const b = document.createElement("button");
+          b.type = "button"; b.className = "livePill";
+          const dot = document.createElement("span"); dot.className = "dot";
+          const nm = document.createElement("span"); nm.textContent = "@" + l.username; nm.setAttribute("data-notr", "");
+          const tag = document.createElement("span"); tag.textContent = "LIVE"; tag.style.cssText = "font-size:11px;letter-spacing:1px;color:#ff6b88";
+          b.append(smallAvatar(l.avatar, l.username), dot, nm, tag);
+          b.onclick = () => watchLive(l.id, l.username);
+          strip.appendChild(b);
+        });
+        if (I18N.lang !== "en") trApplyAll();
+      }
+      setInterval(() => { if (me && !$("postsPanel").hidden && document.visibilityState === "visible") loadLives(); }, 25000);
 
       if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
 

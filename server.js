@@ -39,7 +39,7 @@ app.use((req, res, next) => {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=()");
   res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
   res.setHeader("Content-Security-Policy", [
     "default-src 'self'",
@@ -1644,6 +1644,121 @@ app.get("/api/groups/:id/messages", requireUser, safe(async (req, res) => {
     messages: (data || []).reverse().map((m) => ({ uid: m.user_id, user: m.username, text: m.text, time: m.created_at })),
   });
 }));
+
+// ---------- Languages: translate the app's words (cached, so it is fast) ----------
+const i18nCache = new Map();
+const LANG_RE = /^[a-z]{2,3}(-[A-Za-z]{2,4})?$/;
+async function gtx(lang, text, sl) {
+  const url = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=" + (sl || "en") + "&tl=" + encodeURIComponent(lang) + "&dt=t&q=" + encodeURIComponent(text);
+  const r = await fetch(url, { signal: AbortSignal.timeout(9000) });
+  if (!r.ok) throw new Error("translate " + r.status);
+  const j = await r.json();
+  return (j[0] || []).map((x) => x[0]).join("");
+}
+async function translateMany(lang, strings, sl) {
+  const out = {};
+  const todo = [];
+  strings.forEach((t) => {
+    const hit = i18nCache.get(lang + "|" + (sl || "") + "|" + t);
+    if (hit) out[t] = hit; else todo.push(t);
+  });
+  const chunks = [];
+  for (let i = 0; i < todo.length; i += 25) chunks.push(todo.slice(i, i + 25));
+  await Promise.all(chunks.map(async (chunk) => {
+    try {
+      const res = await gtx(lang, chunk.join("\n"), sl);
+      const parts = res.split("\n");
+      if (parts.length === chunk.length) {
+        chunk.forEach((t, i) => { const v = parts[i].trim(); if (v) { out[t] = v; i18nCache.set(lang + "|" + (sl || "") + "|" + t, v); } });
+        return;
+      }
+      for (const t of chunk) {
+        try { const v = (await gtx(lang, t, sl)).trim(); if (v) { out[t] = v; i18nCache.set(lang + "|" + (sl || "") + "|" + t, v); } } catch (e) {}
+      }
+    } catch (e) {}
+  }));
+  return out;
+}
+app.post("/api/i18n", requireUser, limiter("i18n", 40, 60000), safe(async (req, res) => {
+  const lang = String((req.body && req.body.lang) || "");
+  if (!LANG_RE.test(lang)) return res.status(400).json({ error: "Bad language" });
+  const strings = (Array.isArray(req.body && req.body.strings) ? req.body.strings : [])
+    .filter((t) => typeof t === "string" && t.length > 0 && t.length <= 300 && !t.includes("\n")).slice(0, 400);
+  res.json({ lang, map: await translateMany(lang, strings, req.body && req.body.auto ? "auto" : "") });
+}));
+
+// ---------- Live video (people go live, friends watch) ----------
+const lives = new Map(); // userId -> { username, audience, sid, viewers:Set }
+async function canWatchLive(viewerId, hostId, audience) {
+  if (viewerId === hostId) return true;
+  if ((await blockedIds(viewerId)).has(hostId) || (await blockedIds(hostId)).has(viewerId)) return false;
+  const { data } = await supabase.from("follows").select("status").eq("follower_id", viewerId).eq("following_id", hostId).eq("status", "accepted").maybeSingle();
+  if (!data) return false;
+  if (audience !== "friends") return true;
+  const { data: back } = await supabase.from("follows").select("status").eq("follower_id", hostId).eq("following_id", viewerId).eq("status", "accepted").maybeSingle();
+  return !!back;
+}
+app.get("/api/live", requireUser, safe(async (req, res) => {
+  const out = [];
+  for (const [uid, l] of lives) {
+    if (uid === req.user.id) continue;
+    if (await canWatchLive(req.user.id, uid, l.audience)) {
+      const pics = await avatarsFor([uid]);
+      out.push({ id: uid, username: l.username, avatar: pics[uid] || null, viewers: l.viewers.size });
+    }
+  }
+  res.json({ lives: out });
+}));
+function endLive(uid, reason) {
+  const l = lives.get(uid);
+  if (!l) return;
+  lives.delete(uid);
+  io.to("live:" + uid).emit("live ended", { host: uid, reason: reason || "ended" });
+  io.in("live:" + uid).socketsLeave("live:" + uid);
+}
+io.on("connection", (socket) => {
+  const uid = socket.data.userId;
+  socket.on("live start", (msg) => {
+    if (!allow("lv:" + uid, 5, 60000)) return;
+    endLive(uid);
+    lives.set(uid, { username: socket.data.username, audience: msg && msg.audience === "friends" ? "friends" : "all", sid: socket.id, viewers: new Set() });
+    socket.emit("live started", { ok: true });
+  });
+  socket.on("live stop", () => endLive(uid));
+  socket.on("live join", async (msg) => {
+    const host = String((msg && msg.host) || "");
+    const l = lives.get(host);
+    if (!UUID_RE.test(host) || !l || !allow("lj:" + uid, 20, 60000)) return socket.emit("live ended", { host, reason: "gone" });
+    if (!(await canWatchLive(uid, host, l.audience))) return socket.emit("live ended", { host, reason: "private" });
+    socket.join("live:" + host);
+    l.viewers.add(socket.id);
+    io.to(l.sid).emit("live viewer", { viewer: socket.id, username: socket.data.username });
+    io.to("live:" + host).to(l.sid).emit("live count", { host, n: l.viewers.size });
+  });
+  socket.on("live leave", (msg) => {
+    const host = String((msg && msg.host) || "");
+    const l = lives.get(host);
+    socket.leave("live:" + host);
+    if (l) { l.viewers.delete(socket.id); io.to("live:" + host).to(l.sid).emit("live count", { host, n: l.viewers.size }); }
+  });
+  socket.on("live signal", (msg) => {
+    const to = String((msg && msg.to) || "");
+    if (!to || !allow("ls:" + uid, 400, 10000)) return;
+    io.to(to).emit("live signal", { from: socket.id, data: msg.data });
+  });
+  socket.on("live chat", (msg) => {
+    const host = String((msg && msg.host) || "");
+    const l = lives.get(host);
+    const text = String((msg && msg.text) || "").trim().slice(0, 200);
+    if (!l || !text || !allow("lc:" + uid, 20, 10000)) return;
+    if (host !== uid && !l.viewers.has(socket.id)) return;
+    io.to("live:" + host).to(l.sid).emit("live chat", { host, user: socket.data.username, text });
+  });
+  socket.on("disconnect", () => {
+    if (lives.has(uid) && lives.get(uid).sid === socket.id) endLive(uid, "ended");
+    lives.forEach((l, host) => { if (l.viewers.delete(socket.id)) io.to("live:" + host).to(l.sid).emit("live count", { host, n: l.viewers.size }); });
+  });
+});
 
 // Live group chat
 io.on("connection", (socket) => {
