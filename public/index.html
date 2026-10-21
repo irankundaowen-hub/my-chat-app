@@ -6,6 +6,12 @@
   <title>Twik Chat</title>
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Twik" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800&display=swap" rel="stylesheet" />
@@ -560,6 +566,43 @@
     .pmedia video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.35s ease; }
     .pmedia video.ld { opacity: 1; }
     .reelTag { position: absolute; top: 10px; right: 10px; z-index: 3; background: rgba(0,0,0,0.55); backdrop-filter: blur(6px); padding: 4px 10px; border-radius: 12px 12px 12px 4px; font-size: 12px; font-weight: 700; pointer-events: none; }
+
+    /* v20: sheets, menus, toasts and the small things that make it feel finished */
+    #sh { position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.6); display: flex; align-items: flex-end; justify-content: center; }
+    .shBox { width: 100%; max-width: 520px; max-height: 78vh; background: var(--surface); border-radius: 28px 28px 0 0; padding: 14px 14px 22px; display: flex; flex-direction: column; animation: shUp 0.22s ease; }
+    @keyframes shUp { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+    .shHead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-weight: 700; font-size: 16px; }
+    .shHead button { background: none; padding: 6px 10px; }
+    #shBody { overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+    .shBtn { width: 100%; text-align: left; padding: 14px 16px; background: var(--surface2); border: 1px solid var(--line); border-radius: 18px 18px 18px 5px; font-weight: 600; font-size: 15px; color: var(--text); }
+    .shBtn.danger { color: #ff6b81; }
+    .shRow { display: flex; align-items: center; gap: 12px; padding: 6px 2px; }
+    .shRow > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+    .shRow .sAv { width: 42px; height: 42px; font-size: 17px; }
+    .shRow button { padding: 8px 16px; font-size: 13.5px; }
+    .shBox input[type="text"], .shBox input[type="password"] { width: 100%; }
+    .shNote { color: var(--muted); font-size: 13.5px; line-height: 1.4; margin: 2px 2px 4px; }
+    #toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 20px); background: #26262e; color: #fff; padding: 11px 18px; border-radius: 18px 18px 18px 5px; font-size: 14px; font-weight: 600; opacity: 0; pointer-events: none; transition: all 0.25s ease; z-index: 120; max-width: 88vw; text-align: center; border: 1px solid #3a3a46; }
+    #toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .ico svg { width: 25px; height: 25px; stroke: #fff; fill: none; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; display: block; }
+    .pact .ico { background: none; padding: 0; min-height: 0; }
+    .pact .push { margin-left: auto; }
+    .ico.on svg { fill: #fff; }
+    .pmore { background: none; padding: 4px 10px; font-size: 22px; line-height: 1; letter-spacing: 2px; color: var(--muted); }
+    .mention { color: #f9a8d4; font-weight: 600; cursor: pointer; }
+    .hashtag { color: #c9a7ff; }
+    .cl { display: flex; gap: 6px; align-items: baseline; }
+    .cl > span { flex: 1; overflow-wrap: anywhere; }
+    .cdel { background: none; padding: 0 6px; font-size: 13px; color: var(--muted); min-height: 0; }
+    .feedMore { padding: 22px; text-align: center; color: var(--muted); font-size: 13px; }
+    .typing { color: var(--muted); font-size: 13px; padding: 2px 10px 6px; }
+    .seen { align-self: flex-end; color: var(--muted); font-size: 11.5px; margin: -4px 8px 2px 0; }
+    .sharedPost { cursor: pointer; width: 220px; max-width: 100%; }
+    .sharedPost img { width: 100%; border-radius: 16px 16px 16px 5px; display: block; }
+    .exTitle { margin: 16px 0 8px; }
+    button.danger, .wide.danger { color: #ff6b81; border: 1px solid #ff6b81; background: none; }
+    #svViewers { background: rgba(255,255,255,0.14); padding: 6px 12px; font-size: 13px; margin-left: 10px; }
+    .offline { position: fixed; top: 0; left: 0; right: 0; z-index: 130; background: #3a2a00; color: #ffd27a; text-align: center; font-size: 12.5px; padding: 4px; }
   </style>
 </head>
 <body>
@@ -620,6 +663,7 @@
         <div class="pTabs">
           <button type="button" id="tabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
           <button type="button" id="tabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg></button>
+          <button type="button" id="tabSaved" aria-label="Saved"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
         </div>
         <div class="pGrid" id="pGrid"></div>
       </div>
@@ -656,7 +700,12 @@
         <p id="pMsg"></p>
         <h3>Follow requests</h3>
         <ul id="pReqList"></ul>
+        <h3>Security</h3>
+        <button class="wide" id="pwOpen" type="button">Change password</button>
+        <button class="wide" id="blkOpen" type="button">Blocked accounts</button>
+        <button class="wide" id="logoutAll" type="button">Log out of all devices</button>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
+        <button class="wide danger" id="delAcct" type="button">Delete my account</button>
         <button class="close" id="pClose" type="button" hidden>Close</button>
       </div>
 
@@ -676,6 +725,7 @@
       <h2>Find people</h2>
       <input id="sInput" type="text" placeholder="Search by username" autocomplete="off" maxlength="20" />
       <ul id="sResults"></ul>
+      <div id="exploreWrap"><h3 id="exploreTitle" class="exTitle" hidden>Explore</h3><div class="pGrid" id="exploreGrid"></div></div>
       <button class="close" id="sClose" type="button" hidden>Close</button>
     </div>
   </div>
@@ -709,6 +759,7 @@
       <div class="pBtns">
         <button type="button" id="uvFollowBtn" class="primary">Follow</button>
         <button type="button" id="uvMsgBtn">Message</button>
+        <button type="button" id="uvMore" aria-label="More">⋯</button>
       </div>
       <div id="uvLocked" class="gridEmpty" hidden>🔒 This account is private. Follow to see their photos and reels.</div>
       <div id="uvContent">
@@ -793,6 +844,7 @@
       <div id="cThread" hidden>
         <button class="mini" id="cBack" type="button">← Back</button>
         <div id="cMessages"></div>
+        <div id="cTyping" class="typing" hidden>typing…</div>
         <form id="cForm">
           <label class="cPick" title="Send a photo">📷<input id="cFile" type="file" accept="image/*" hidden /></label>
           <input id="cInput" type="text" placeholder="Type a message or paste a link" autocomplete="off" />
@@ -847,6 +899,14 @@
   </div>
 
   <input id="stFile" type="file" accept="image/*,video/*" hidden />
+
+  <!-- One sheet for menus, sharing, reporting and settings questions -->
+  <div id="sh" hidden>
+    <div class="shBox">
+      <div class="shHead"><b id="shTitle"></b><button type="button" id="shClose" aria-label="Close">✕</button></div>
+      <div id="shBody"></div>
+    </div>
+  </div>
 
   <!-- Reel viewer (opens when you tap any video) -->
   <div id="rv" hidden>
@@ -942,7 +1002,7 @@
         <button type="button" class="svIcon" id="svHeart" aria-label="Like">♡</button>
         <button type="submit" class="svIcon" id="svSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg></button>
       </form>
-      <div class="svBottom own" id="svOwn" hidden><span id="svOwnText"></span></div>
+      <div class="svBottom own" id="svOwn" hidden><span id="svOwnText"></span><button type="button" id="svViewers">👁 Seen by</button></div>
     </div>
   </div>
 
@@ -984,6 +1044,185 @@
         return null;
       }
       function cset(n, d) { try { localStorage.setItem(ckey(n), JSON.stringify({ t: Date.now(), d })); } catch (e) {} }
+
+      // ---------- v20: toast, sheets, reporting, sharing ----------
+      function toast(msg) {
+        let t = $("toast");
+        if (!t) { t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
+        t.textContent = msg;
+        t.classList.add("show");
+        clearTimeout(toast.t);
+        toast.t = setTimeout(() => t.classList.remove("show"), 2600);
+      }
+      let offlineBar = null;
+      window.addEventListener("offline", () => {
+        if (!offlineBar) { offlineBar = document.createElement("div"); offlineBar.className = "offline"; offlineBar.textContent = "You're offline. Showing what was saved."; document.body.appendChild(offlineBar); }
+      });
+      window.addEventListener("online", () => { if (offlineBar) { offlineBar.remove(); offlineBar = null; toast("Back online"); } });
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.addEventListener("message", (e) => { if (e.data && e.data.type === "update") toast("A new version is ready. Close and reopen Twik to get it."); });
+      }
+
+      // Makes photos small before sending them (a 6 MB photo becomes ~250 KB): this is what makes everything load fast
+      async function shrinkImage(file, maxEdge) {
+        const ext0 = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "jpg";
+        const fallback = { blob: file, ext: ext0 };
+        try {
+          if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type)) return fallback;
+          let bmp;
+          try { bmp = await createImageBitmap(file, { imageOrientation: "from-image" }); }
+          catch (e) { bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(file); }); }
+          const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
+          const k = Math.min(1, maxEdge / Math.max(w0, h0));
+          if (k === 1 && file.size < 500 * 1024 && file.type === "image/jpeg") return fallback;
+          const cv = document.createElement("canvas");
+          cv.width = Math.max(1, Math.round(w0 * k)); cv.height = Math.max(1, Math.round(h0 * k));
+          const g = cv.getContext("2d");
+          g.fillStyle = "#fff"; g.fillRect(0, 0, cv.width, cv.height);
+          g.drawImage(bmp, 0, 0, cv.width, cv.height);
+          const blob = await new Promise((res) => cv.toBlob(res, "image/jpeg", 0.82));
+          if (!blob || (k === 1 && blob.size >= file.size)) return fallback;
+          return { blob, ext: "jpg" };
+        } catch (e) { return fallback; }
+      }
+
+      // The one slide-up sheet used for menus, sharing, reporting and security questions
+      let sheetOnClose = null;
+      function openSheet(title, build) {
+        $("shTitle").textContent = title;
+        const b = $("shBody");
+        b.innerHTML = "";
+        build(b);
+        $("sh").hidden = false;
+      }
+      function closeSheet() {
+        if ($("sh").hidden) return;
+        $("sh").hidden = true;
+        $("shBody").innerHTML = "";
+        if (sheetOnClose) { const f = sheetOnClose; sheetOnClose = null; f(); }
+      }
+      $("shClose").addEventListener("click", closeSheet);
+      $("sh").addEventListener("click", (e) => { if (e.target === $("sh")) closeSheet(); });
+      function sheetBtn(parent, label, fn, danger) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "shBtn" + (danger ? " danger" : "");
+        b.textContent = label;
+        b.onclick = fn;
+        parent.appendChild(b);
+        return b;
+      }
+      function sheetNote(parent, text) { const p = document.createElement("div"); p.className = "shNote"; p.textContent = text; parent.appendChild(p); return p; }
+
+      // @name opens a profile, #tag gets a colour
+      function mentionText(el, text) {
+        el.textContent = "";
+        String(text || "").split(/(@[A-Za-z0-9_]{2,20}|#[A-Za-z0-9_]{2,30})/g).forEach((part) => {
+          if (!part) return;
+          if (part[0] === "@" && part.length > 2) {
+            const sp = document.createElement("span");
+            sp.className = "mention";
+            sp.textContent = part;
+            sp.onclick = (e) => { e.stopPropagation(); closeRv(); $("viewer").hidden = true; $("rcSheet").hidden = true; openUser(part.slice(1)); };
+            el.appendChild(sp);
+          } else if (part[0] === "#" && part.length > 2) {
+            const sp = document.createElement("span");
+            sp.className = "hashtag";
+            sp.textContent = part;
+            el.appendChild(sp);
+          } else el.appendChild(document.createTextNode(part));
+        });
+      }
+
+      const REPORT_REASONS = ["Spam or scam", "Nudity or sexual content", "Hate or harassment", "Violence or danger", "False information", "Something else"];
+      function reportFlow(kind, target) {
+        openSheet("Why are you reporting this?", (b) => {
+          REPORT_REASONS.forEach((r) => sheetBtn(b, r, async () => {
+            const res = await api("/api/report", "POST", { kind, target: String(target), reason: r });
+            closeSheet();
+            toast(res.error || "Thanks. We got your report.");
+          }));
+        });
+      }
+      async function blockFlow(username) {
+        if (!confirm("Block @" + username + "? They won't be able to find your profile, see your posts or message you.")) return;
+        const r = await api("/api/block", "POST", { username });
+        if (r.error) { toast(r.error); return; }
+        toast("Blocked @" + username);
+        closeSheet(); closeRv();
+        $("userView").hidden = true; $("viewer").hidden = true;
+        postsAt = 0; reelsAt = 0; storiesAt = 0; friendsCache = null;
+        loadPosts(true); loadStories(true);
+      }
+      function moreMenu(item) {
+        openSheet("More", (b) => {
+          sheetBtn(b, "Report", () => { closeSheet(); reportFlow(item.kind, item.id); });
+          sheetBtn(b, "Block @" + item.username, () => blockFlow(item.username), true);
+        });
+      }
+
+      let friendsCache = null;
+      function openShare(kind, id) {
+        openSheet("Send to", (b) => {
+          const inp = document.createElement("input");
+          inp.type = "text"; inp.placeholder = "Search friends"; inp.autocomplete = "off";
+          const list = document.createElement("div");
+          b.append(inp, list);
+          const paint = () => {
+            list.innerHTML = "";
+            const q = inp.value.trim().toLowerCase();
+            const arr = (friendsCache || []).filter((f) => !q || f.username.toLowerCase().indexOf(q) >= 0);
+            if (!arr.length) { const e = document.createElement("div"); e.className = "pbEmpty"; e.textContent = friendsCache && friendsCache.length ? "No one matches." : "No friends yet. Friends are people you follow who follow you back."; list.appendChild(e); return; }
+            arr.forEach((f) => {
+              const row = document.createElement("div");
+              row.className = "shRow";
+              const nm = document.createElement("span");
+              nm.textContent = f.username;
+              const btn = document.createElement("button");
+              btn.type = "button";
+              btn.textContent = "Send";
+              btn.onclick = async () => {
+                btn.disabled = true;
+                const r = await api("/api/dms/send", "POST", kind === "reel" ? { to: f.id, kind: "reel", reel_id: id } : { to: f.id, kind: "post", post_id: id });
+                btn.textContent = r.error ? "Failed" : "Sent ✓";
+                if (r.error) toast(r.error);
+              };
+              row.append(smallAvatar(f.avatar, f.username), nm, btn);
+              list.appendChild(row);
+            });
+          };
+          inp.oninput = paint;
+          if (friendsCache) paint();
+          else api("/api/friends").then((d) => { friendsCache = d.friends || []; paint(); });
+        });
+      }
+
+      const ICON_SHARE = '<svg viewBox="0 0 24 24"><path d="M21.5 3 10.5 14M21.5 3l-7 18-4-7-7-4z"/></svg>';
+      const ICON_SAVE = '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg>';
+      async function toggleSave(item, btn) {
+        const was = !!item.saved;
+        item.saved = !was;
+        btn.classList.toggle("on", item.saved);
+        const r = await api("/api/save", "POST", { kind: item.kind === "reel" ? "reel" : "post", id: item.id });
+        if (r.error) { item.saved = was; btn.classList.toggle("on", was); toast(r.error); return; }
+        item.saved = r.saved;
+        btn.classList.toggle("on", item.saved);
+        toast(item.saved ? "Saved" : "Removed from saved");
+        mySaved = null;
+      }
+      let mySaved = null;
+
+      // Password rules (like the big apps): 8+ letters, with a number, not an easy one
+      function pwProblem(pw, username, email) {
+        const low = pw.toLowerCase();
+        if (pw.length < 8) return "Your password needs at least 8 characters.";
+        if (!/[a-z]/i.test(pw) || !/\d/.test(pw)) return "Use letters and at least one number in your password.";
+        if (["password", "12345678", "qwerty123", "11111111", "iloveyou1", "password1", "abc12345"].indexOf(low) >= 0) return "That password is too easy to guess. Pick another one.";
+        if (username && low.indexOf(String(username).toLowerCase()) >= 0 && String(username).length > 2) return "Your password shouldn't contain your username.";
+        if (email && low === String(email).toLowerCase()) return "Your password shouldn't be your email.";
+        return "";
+      }
+
       function clearCaches() {
         try { Object.keys(localStorage).forEach((k) => { if (k.indexOf("twik_c_") === 0) localStorage.removeItem(k); }); } catch (e) {}
       }
@@ -1036,6 +1275,7 @@
         showMsg(error ? error.message : "Sent! Check your inbox (and your spam folder).", !error);
       });
 
+      let loginFails = 0, lockUntil = 0;
       $("authForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         showMsg("");
@@ -1056,6 +1296,8 @@
               showMsg("Username must be at least 2 characters.");
               return;
             }
+            const bad = pwProblem(password, username, email);
+            if (bad) { showMsg(bad); return; }
             const { data, error } = await sb.auth.signUp({
               email,
               password,
@@ -1075,8 +1317,10 @@
               $("resendBtn").hidden = false;
             }
           } else {
+            if (Date.now() < lockUntil) { showMsg("Too many tries. Wait " + Math.ceil((lockUntil - Date.now()) / 1000) + " seconds, then try again."); return; }
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
             if (error) {
+              if (++loginFails >= 5) { lockUntil = Date.now() + 30000; loginFails = 0; }
               const m = String(error.message || "").toLowerCase();
               if (m.indexOf("not confirmed") >= 0) {
                 showMsg("Please confirm your email first. Open the link we sent you, then log in.");
@@ -1088,6 +1332,7 @@
               }
               return;
             }
+            loginFails = 0;
             startChat(data.session.user);
           }
         } catch (err) {
@@ -1095,6 +1340,71 @@
         } finally {
           $("authBtn").disabled = false;
         }
+      });
+
+      $("pwOpen").addEventListener("click", () => {
+        openSheet("Change password", (b) => {
+          const cur = document.createElement("input"); cur.type = "password"; cur.placeholder = "Current password"; cur.autocomplete = "current-password";
+          const nw = document.createElement("input"); nw.type = "password"; nw.placeholder = "New password"; nw.autocomplete = "new-password";
+          const n2 = document.createElement("input"); n2.type = "password"; n2.placeholder = "New password again"; n2.autocomplete = "new-password";
+          const msg = sheetNote(b, "At least 8 characters, with letters and a number.");
+          b.prepend(cur, nw, n2);
+          sheetBtn(b, "Save new password", async () => {
+            const bad = pwProblem(nw.value, me && me.user_metadata && me.user_metadata.username, me && me.email);
+            if (!cur.value) { msg.textContent = "Type your current password."; return; }
+            if (bad) { msg.textContent = bad; return; }
+            if (nw.value !== n2.value) { msg.textContent = "The two new passwords don't match."; return; }
+            msg.textContent = "Checking...";
+            const chk = await sb.auth.signInWithPassword({ email: me.email, password: cur.value });
+            if (chk.error) { msg.textContent = "Your current password is wrong."; return; }
+            const up = await sb.auth.updateUser({ password: nw.value });
+            if (up.error) { msg.textContent = up.error.message; return; }
+            closeSheet();
+            toast("Password changed ✓");
+          });
+        });
+      });
+      $("blkOpen").addEventListener("click", async () => {
+        const d = await api("/api/blocks");
+        const list = d.blocked || [];
+        openSheet("Blocked accounts", (b) => {
+          if (!list.length) { sheetNote(b, "You haven't blocked anyone."); return; }
+          list.forEach((u) => {
+            const row = document.createElement("div");
+            row.className = "shRow";
+            const nm = document.createElement("span");
+            nm.textContent = "@" + u.username;
+            const btn = document.createElement("button");
+            btn.type = "button"; btn.textContent = "Unblock";
+            btn.onclick = async () => { await api("/api/unblock", "POST", { username: u.username }); row.remove(); toast("Unblocked @" + u.username); postsAt = 0; storiesAt = 0; };
+            row.append(smallAvatar(u.avatar, u.username), nm, btn);
+            b.appendChild(row);
+          });
+        });
+      });
+      $("logoutAll").addEventListener("click", async () => {
+        if (!confirm("Log out of Twik on every phone and computer?")) return;
+        clearCaches();
+        await sb.auth.signOut({ scope: "global" });
+        location.reload();
+      });
+      $("delAcct").addEventListener("click", () => {
+        openSheet("Delete your account", (b) => {
+          sheetNote(b, "This permanently deletes your profile, posts, reels, stories, messages and followers. It can't be undone.");
+          const inp = document.createElement("input");
+          inp.type = "text"; inp.placeholder = "Type DELETE to confirm"; inp.autocomplete = "off";
+          const msg = sheetNote(b, "");
+          b.prepend(inp);
+          sheetBtn(b, "Delete everything", async () => {
+            if (inp.value.trim() !== "DELETE") { msg.textContent = "Type DELETE (in capitals) to confirm."; return; }
+            msg.textContent = "Deleting...";
+            const r = await api("/api/me/delete", "POST", { confirm: "DELETE" });
+            if (r.error) { msg.textContent = r.error; return; }
+            clearCaches();
+            try { await sb.auth.signOut(); } catch (e) {}
+            location.reload();
+          }, true);
+        });
       });
 
       $("logout").addEventListener("click", async () => {
@@ -1131,6 +1441,27 @@
         });
 
         socket.on("dm", onDm);
+        let typingT = null;
+        socket.on("typing", (d) => {
+          if (peer && d && d.from === peer.id) {
+            $("cTyping").hidden = false;
+            clearTimeout(typingT);
+            typingT = setTimeout(() => { $("cTyping").hidden = true; }, 3000);
+          }
+        });
+        socket.on("dm seen", (d) => {
+          if (!peer || !d || d.by !== peer.id) return;
+          document.querySelectorAll("#cMessages .msg.mine").forEach((e) => { e.dataset.read = "1"; });
+          if (threads[peer.id]) threads[peer.id].forEach((x) => { if (me && x.from === me.id) x.read = true; });
+          updateSeen();
+        });
+        socket.on("dm deleted", (d) => {
+          const el = document.querySelector('#cMessages .msg[data-id="' + d.id + '"]');
+          if (el) el.remove();
+          Object.keys(threads).forEach((k) => { threads[k] = threads[k].filter((x) => x.id !== d.id); });
+          updateSeen();
+          if (!peer && !$("chatsPanel").hidden) loadConvos();
+        });
         socket.on("dm error", (text) => {
           Object.keys(pendingMsgs).forEach((cid) => {
             const el = pendingMsgs[cid].el;
@@ -1289,7 +1620,7 @@
             const tag = document.createElement("span");
             tag.className = "playTag"; tag.textContent = "▶";
             cell.appendChild(tag);
-            cell.onclick = () => openReelViewer(items, ii);
+            cell.onclick = () => { const rl = profileTab === "saved" ? items.filter((x) => x.kind === "reel") : items; openReelViewer(rl, rl.indexOf(it)); };
           }
           grid.appendChild(cell);
         });
@@ -1318,6 +1649,13 @@
         $("userView").hidden = false;
         $("userView").scrollTop = 0;
       }
+      $("uvMore").addEventListener("click", () => {
+        if (!uv) return;
+        openSheet("@" + uv.username, (b) => {
+          sheetBtn(b, "Report account", () => { closeSheet(); reportFlow("user", uv.username); });
+          sheetBtn(b, "Block @" + uv.username, () => blockFlow(uv.username), true);
+        });
+      });
       $("uvBack").addEventListener("click", () => {
         document.querySelectorAll("#userView video").forEach((v) => v.pause());
         $("userView").hidden = true;
@@ -1499,10 +1837,11 @@
         $("saShare").disabled = true;
         $("saMsg").textContent = "Uploading... please wait.";
         try {
-          const ext = (file.name.split(".").pop() || (kind === "video" ? "mp4" : "jpg")).toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const pre = kind === "image" ? await shrinkImage(file, 1280) : { blob: file, ext: (file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) };
+          const ext = pre.ext;
           const up = await api("/api/stories/upload-url", "POST", { ext });
           if (up.error) throw new Error(up.error);
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, file, { contentType: file.type });
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || file.type });
           if (error) throw error;
           const body = { path: up.path, kind, caption: $("saCaption").value };
           const aud = storyAudience();
@@ -1547,11 +1886,41 @@
         if (idx >= 0 && idx < order.length - 1) openStories(order[idx + 1]);
         else closeStories();
       }
+      const viewedStories = new Set();
+      function svPause() {
+        if (!sv.g || sv.paused) return;
+        sv.paused = true;
+        const el = document.querySelector("#svMedia video");
+        if (el) el.pause();
+        if (sv.timer) { clearTimeout(sv.timer); sv.timer = null; }
+        sv.left = Math.max(300, (sv.ms || 5000) - (Date.now() - (sv.t0 || Date.now())));
+        const f = $("svBars").children[sv.i] && $("svBars").children[sv.i].firstChild;
+        if (f && f.parentElement.clientWidth) {
+          const pct = (f.getBoundingClientRect().width / f.parentElement.clientWidth) * 100;
+          f.style.transition = "none";
+          f.style.width = pct + "%";
+        }
+      }
+      function svResume() {
+        if (!sv.g || !sv.paused) return;
+        sv.paused = false;
+        if (!sv.t0) return;
+        const el = document.querySelector("#svMedia video");
+        if (el) el.play().catch(() => {});
+        const f = $("svBars").children[sv.i] && $("svBars").children[sv.i].firstChild;
+        if (f) { void f.offsetWidth; f.style.transition = "width " + sv.left + "ms linear"; f.style.width = "100%"; }
+        sv.t0 = Date.now();
+        sv.ms = sv.left;
+        sv.timer = setTimeout(nextStory, sv.left);
+      }
       function showStory() {
         stopStoryTimer();
+        sv.paused = false;
+        sv.t0 = 0;
         const g = sv.g;
         const st = g.stories[sv.i];
         markSeen(g.user_id, st.id);
+        if (!g.mine && !viewedStories.has(st.id)) { viewedStories.add(st.id); api("/api/stories/view", "POST", { id: st.id }); }
         $("svWho").innerHTML = "";
         const av = smallAvatar(g.avatar, g.username);
         $("svWho").append(av, document.createTextNode(" @" + g.username + " · " + ago(st.time)));
@@ -1583,6 +1952,8 @@
           fill.style.transition = "none"; fill.style.width = "0%";
           void fill.offsetWidth;
           fill.style.transition = "width " + ms + "ms linear"; fill.style.width = "100%";
+          sv.t0 = Date.now();
+          sv.ms = ms;
           sv.timer = setTimeout(nextStory, ms);
         };
 
@@ -1609,8 +1980,41 @@
       function prevStory() {
         if (sv.i > 0) { sv.i--; showStory(); } else showStory();
       }
-      $("svNext").addEventListener("click", nextStory);
-      $("svPrev").addEventListener("click", prevStory);
+      $("svNext").addEventListener("click", () => { if (sv.suppress) { sv.suppress = false; return; } nextStory(); });
+      $("svPrev").addEventListener("click", () => { if (sv.suppress) { sv.suppress = false; return; } prevStory(); });
+      // hold your finger on a story to pause it
+      let holdT = null;
+      $("svStage").addEventListener("pointerdown", (e) => {
+        if (e.target.closest(".svHead, .svMenu")) return;
+        clearTimeout(holdT);
+        holdT = setTimeout(() => { sv.hold = true; svPause(); }, 220);
+      });
+      ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => $("svStage").addEventListener(ev, () => {
+        clearTimeout(holdT);
+        if (sv.hold) { sv.hold = false; sv.suppress = true; svResume(); setTimeout(() => { sv.suppress = false; }, 80); }
+      }));
+      $("svViewers").addEventListener("click", async () => {
+        const st = sv.g && sv.g.stories[sv.i];
+        if (!st) return;
+        svPause();
+        sheetOnClose = svResume;
+        const d = await api("/api/stories/" + st.id + "/viewers");
+        const list = d.viewers || [];
+        openSheet("Seen by " + list.length, (b) => {
+          if (!list.length) { sheetNote(b, "No one has seen this story yet."); return; }
+          list.forEach((v) => {
+            const row = document.createElement("div");
+            row.className = "shRow";
+            const nm = document.createElement("span");
+            nm.textContent = "@" + v.username;
+            const when = document.createElement("small");
+            when.textContent = ago(v.time);
+            when.style.color = "var(--muted)";
+            row.append(smallAvatar(v.avatar, v.username), nm, when);
+            b.appendChild(row);
+          });
+        });
+      });
       $("svClose").addEventListener("click", closeStories);
       $("svMenuBtn").addEventListener("click", () => { $("svMenu").hidden = !$("svMenu").hidden; });
 
@@ -1732,7 +2136,40 @@
       $("nClose").addEventListener("click", () => { $("notifPanel").hidden = true; });
 
       let searchTimer = null;
+      let exploreAt = 0;
+      async function loadExplore() {
+        const grid = $("exploreGrid");
+        if (exploreAt && Date.now() - exploreAt < 60000 && grid.children.length) return;
+        const d = await api("/api/explore");
+        exploreAt = Date.now();
+        const items = d.items || [];
+        grid.innerHTML = "";
+        const reels = items.filter((x) => x.kind === "reel");
+        items.forEach((it) => {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          cell.className = "cell";
+          if (it.kind === "reel") {
+            const v = document.createElement("video");
+            v.src = it.url + "#t=0.1"; v.muted = true; v.preload = "metadata"; v.playsInline = true;
+            const tag = document.createElement("span");
+            tag.className = "playTag"; tag.textContent = "▶";
+            cell.append(v, tag);
+            cell.onclick = () => openReelViewer(reels, reels.indexOf(it));
+          } else {
+            const im = document.createElement("img");
+            im.src = it.url; im.alt = ""; im.loading = "lazy"; im.decoding = "async";
+            cell.appendChild(im);
+            cell.onclick = () => openViewer(postCard(it));
+          }
+          grid.appendChild(cell);
+        });
+        $("exploreTitle").hidden = !items.length;
+      }
       async function runSearch() {
+        const typed = $("sInput").value.trim();
+        $("exploreWrap").hidden = !!typed;
+        if (!typed) loadExplore();
         const d = await api("/api/search?q=" + encodeURIComponent($("sInput").value));
         const people = d.people || [];
         const ul = $("sResults");
@@ -1774,14 +2211,17 @@
         grid.innerHTML = "";
         $("tabPosts").classList.toggle("on", profileTab === "posts");
         $("tabReels").classList.toggle("on", profileTab === "reels");
+        $("tabSaved").classList.toggle("on", profileTab === "saved");
         grid.classList.toggle("tall", profileTab === "reels");
-        const items = profileTab === "posts" ? myMedia.posts : myMedia.reels;
+        const items = profileTab === "posts" ? myMedia.posts : profileTab === "saved" ? (mySaved || []) : myMedia.reels;
         if (!items.length) {
           const e = document.createElement("div");
           e.className = "gridEmpty";
           e.textContent = profileTab === "posts"
             ? "No photos yet. Share your first one on Home!"
-            : "No reels yet. Post your first one in Reels!";
+            : profileTab === "saved"
+              ? (mySaved ? "Nothing saved yet. Tap the bookmark on any post or reel." : "Loading...")
+              : "No reels yet. Post your first one in Reels!";
           grid.appendChild(e);
           return;
         }
@@ -1789,7 +2229,7 @@
           const cell = document.createElement("button");
           cell.type = "button";
           cell.className = "cell";
-          if (profileTab === "posts") {
+          if (profileTab === "posts" || (profileTab === "saved" && it.kind !== "reel")) {
             const im = document.createElement("img");
             im.src = it.url; im.alt = ""; im.loading = "lazy";
             cell.appendChild(im);
@@ -1859,6 +2299,13 @@
       document.querySelectorAll("#panel [data-back]").forEach((b) => b.addEventListener("click", () => showProfileView("main")));
       $("tabPosts").addEventListener("click", () => { profileTab = "posts"; paintGrid(); });
       $("tabReels").addEventListener("click", () => { profileTab = "reels"; paintGrid(); });
+      $("tabSaved").addEventListener("click", async () => {
+        profileTab = "saved";
+        paintGrid();
+        const d = await api("/api/saved");
+        mySaved = d.items || [];
+        if (profileTab === "saved") paintGrid();
+      });
 
       (function fillBirthdaySelects() {
         const mn = ["Month", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -1883,10 +2330,11 @@
         if (f.size > 5 * 1024 * 1024) { $("pEditMsg").textContent = "Picture is too big (max 5 MB)."; return; }
         $("pEditMsg").textContent = "Uploading picture...";
         try {
-          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const pre = await shrinkImage(f, 512);
+          const ext = pre.ext;
           const up = await api("/api/me/avatar-url", "POST", { ext });
           if (up.error) throw new Error(up.error);
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
           if (error) throw error;
           const r = await api("/api/me/avatar", "POST", { path: up.path });
           if (r.error) throw new Error(r.error);
@@ -2035,9 +2483,43 @@
         return frag;
       }
 
+      // long-press (or right-click) a message: unsend, copy or report
+      function attachMsgMenu(div, m) {
+        let timer = null;
+        const open = (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          if (div.classList.contains("pending") || div.classList.contains("failed")) return;
+          const mine = me && m.from === me.id;
+          const id = Number(div.dataset.id || m.id || 0);
+          openSheet("Message", (b) => {
+            if (m.text) sheetBtn(b, "Copy text", async () => { try { await navigator.clipboard.writeText(m.text); toast("Copied"); } catch (er) {} closeSheet(); });
+            if (mine) sheetBtn(b, "Unsend", async () => { closeSheet(); const r = await api("/api/dms/delete", "POST", { id }); if (r.error) toast(r.error); }, true);
+            else sheetBtn(b, "Report message", () => { closeSheet(); reportFlow("message", id); }, true);
+          });
+        };
+        div.addEventListener("contextmenu", open);
+        div.addEventListener("touchstart", () => { timer = setTimeout(() => open(), 550); }, { passive: true });
+        ["touchend", "touchmove", "touchcancel"].forEach((ev) => div.addEventListener(ev, () => clearTimeout(timer), { passive: true }));
+      }
+      function updateSeen() {
+        document.querySelectorAll("#cMessages .seen").forEach((e) => e.remove());
+        const mine = document.querySelectorAll("#cMessages .msg.mine");
+        const last = mine[mine.length - 1];
+        const all = document.querySelectorAll("#cMessages .msg");
+        if (last && last.dataset.read === "1" && all[all.length - 1] === last) {
+          const d = document.createElement("div");
+          d.className = "seen";
+          d.textContent = "Seen";
+          last.after(d);
+        }
+      }
+
       function bubble(m) {
         const div = document.createElement("div");
         div.className = "msg" + (me && m.from === me.id ? " mine" : "");
+        if (m.id) div.dataset.id = m.id;
+        if (m.read) div.dataset.read = "1";
+        attachMsgMenu(div, m);
 
         if (m.kind === "image") {
           if (m.image) {
@@ -2053,6 +2535,21 @@
             div.appendChild(a);
           } else {
             div.appendChild(document.createTextNode("📷 This photo is no longer available"));
+          }
+        } else if (m.kind === "post") {
+          if (m.post && m.post.url) {
+            const card = document.createElement("div");
+            card.className = "sharedPost";
+            const im = document.createElement("img");
+            im.src = m.post.url; im.alt = "post"; im.loading = "lazy";
+            const tag = document.createElement("div");
+            tag.className = "rtag";
+            tag.textContent = "📷 Post by @" + m.post.username + (m.post.caption ? ": " + m.post.caption : "");
+            card.append(im, tag);
+            card.onclick = () => openViewer(postCard({ kind: "post", id: m.post.id, username: m.post.username, caption: m.post.caption, url: m.post.url, likes: 0, liked: false, comments: 0 }));
+            div.appendChild(card);
+          } else {
+            div.appendChild(document.createTextNode("📷 This post is no longer available"));
           }
         } else if (m.kind === "reel") {
           if (m.reel && m.reel.url) {
@@ -2099,6 +2596,7 @@
         box.appendChild(frag);
         Object.keys(pendingMsgs).forEach((cid) => { if (peer && pendingMsgs[cid].to === peer.id) box.appendChild(pendingMsgs[cid].el); });
         box.scrollTop = box.scrollHeight;
+        updateSeen();
       }
 
       // ---------- Chats list (v16) ----------
@@ -2404,6 +2902,7 @@
         $("cTitle").textContent = "@" + p.username;
         $("cList").hidden = true;
         $("cThread").hidden = false;
+        $("cTyping").hidden = true;
         const cached = threads[p.id];
         renderThread(cached || []);
         const data = await api("/api/dms/" + p.id);
@@ -2425,12 +2924,14 @@
           el.classList.remove("pending");
           const t = el.querySelector(".time");
           if (t) t.textContent = clock(m.time);
+          if (m.id) el.dataset.id = m.id;
           delete pendingMsgs[m.cid];
           return;
         }
         if (peer && open && (m.from === peer.id || m.to === peer.id)) {
           addToThread(m);
           markRead(peer.id);
+          if (m.from === peer.id) { $("cTyping").hidden = true; if (socket) socket.emit("dm read", { peer: peer.id }); }
         } else {
           if (open && !peer) loadConvos();
           if (m.from !== me.id) $("chatsBtn").classList.add("unread");
@@ -2457,6 +2958,12 @@
         }
       });
 
+      let lastTyping = 0;
+      $("cInput").addEventListener("input", () => {
+        if (!socket || !peer) return;
+        const now = Date.now();
+        if (now - lastTyping > 2000) { lastTyping = now; socket.emit("typing", { to: peer.id }); }
+      });
       $("cForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const text = $("cInput").value;
@@ -2483,10 +2990,11 @@
         if (f.size > 10 * 1024 * 1024) { st.textContent = "Photo is too big (max 10 MB)."; return; }
         st.textContent = "Sending photo...";
         try {
-          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const pre = await shrinkImage(f, 1280);
+          const ext = pre.ext;
           const up = await api("/api/dms/upload-url", "POST", { ext });
           if (up.error) throw new Error(up.error);
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
           if (error) throw error;
           const r = await api("/api/dms/send", "POST", { to: peer.id, kind: "image", path: up.path });
           st.textContent = r.error || "";
@@ -2522,6 +3030,12 @@
         }
 
         const isReel = p.kind === "reel";
+        if (!p.mine) {
+          const mb = document.createElement("button");
+          mb.type = "button"; mb.className = "pmore"; mb.textContent = "⋯"; mb.setAttribute("aria-label", "More");
+          mb.onclick = () => moreMenu({ kind: isReel ? "reel" : "post", id: p.id, username: p.username });
+          head.appendChild(mb);
+        }
         const media = document.createElement("div");
         media.className = "pmedia" + (isReel ? " isReel" : "");
         const heart = document.createElement("span");
@@ -2558,7 +3072,13 @@
         const cbtn = document.createElement("button");
         cbtn.type = "button";
         cbtn.textContent = "💬";
-        act.append(like, cbtn);
+        const shareB = document.createElement("button");
+        shareB.type = "button"; shareB.className = "ico"; shareB.setAttribute("aria-label", "Send"); shareB.innerHTML = ICON_SHARE;
+        shareB.onclick = () => openShare(isReel ? "reel" : "post", p.id);
+        const saveB = document.createElement("button");
+        saveB.type = "button"; saveB.className = "ico push" + (p.saved ? " on" : ""); saveB.setAttribute("aria-label", "Save"); saveB.innerHTML = ICON_SAVE;
+        saveB.onclick = () => toggleSave(p, saveB);
+        act.append(like, cbtn, shareB, saveB);
 
         const count = document.createElement("div");
         count.className = "pcount";
@@ -2582,7 +3102,7 @@
           p.liked = liked;
           p.likes = likes;
           paint();
-          if (postsList) cset("posts", postsList);
+          if (postsList) cset("feed", { items: postsList.slice(0, 12), next: feedNext });
         }
         like.onclick = () => toggleLike(false);
         let lastTap = 0, tapTimer = null;
@@ -2613,7 +3133,9 @@
         if (p.caption) {
           const b = document.createElement("strong");
           b.textContent = "@" + p.username;
-          cap.append(b, document.createTextNode(" " + p.caption));
+          const ct = document.createElement("span");
+          mentionText(ct, " " + p.caption);
+          cap.append(b, ct);
         }
 
         const when = document.createElement("div");
@@ -2651,7 +3173,15 @@
             l.className = "cl";
             const b = document.createElement("strong");
             b.textContent = "@" + c.username;
-            l.append(b, document.createTextNode(" " + c.text));
+            const ct = document.createElement("span");
+            mentionText(ct, " " + c.text);
+            l.append(b, ct);
+            if (c.can_delete) {
+              const x = document.createElement("button");
+              x.type = "button"; x.className = "cdel"; x.textContent = "✕"; x.setAttribute("aria-label", "Delete comment");
+              x.onclick = async () => { await api("/api/comments/delete", "POST", { id: c.id, kind: isReel ? "reel" : "post" }); p.comments = Math.max(0, (p.comments || 1) - 1); loadComments(); };
+              l.appendChild(x);
+            }
             list.appendChild(l);
           });
         }
@@ -2680,20 +3210,47 @@
       let postsDisk = false;
       let postsRetried = false;
       let pbScroll = 0;
-      const pSig = (ps) => ps.map((p) => (p.kind === "reel" ? "r" : "p") + p.id + ":" + p.likes + ":" + (p.liked ? 1 : 0) + ":" + (p.comments || 0)).join("|");
-      function renderPosts(posts) {
+      let feedNext = null;
+      let feedBusy = false;
+      const pSig = (ps) => ps.map((p) => (p.kind === "reel" ? "r" : "p") + p.id + ":" + p.likes + ":" + (p.liked ? 1 : 0) + ":" + (p.comments || 0) + ":" + (p.saved ? 1 : 0)).join("|");
+      const moreObserver = new IntersectionObserver((es) => { if (es.some((e) => e.isIntersecting)) loadMore(); }, { root: $("pbFeed"), rootMargin: "700px" });
+      function renderPosts(posts, append) {
         const feed = $("pbFeed");
         const top = feed.scrollTop;
-        feed.innerHTML = "";
-        if (!posts.length) {
-          feed.innerHTML = '<div class="pbEmpty">No posts yet. Tap "+ Post" to share the first photo!</div>';
+        if (!append) feed.innerHTML = "";
+        else { const old = $("feedMore"); if (old) old.remove(); }
+        if (!posts.length && !append) {
+          feed.innerHTML = '<div class="pbEmpty">No posts yet. Tap "+ Post" to share the first photo or video, or follow people to fill your feed!</div>';
           return;
         }
+        const base = append ? feed.querySelectorAll(".post").length : 0;
         const frag = document.createDocumentFragment();
-        posts.forEach((p, i) => frag.appendChild(postCard(p, i)));
+        posts.forEach((p, i) => frag.appendChild(postCard(p, base + i)));
         feed.appendChild(frag);
-        feed.scrollTop = top;
+        if (feedNext) {
+          const m = document.createElement("div");
+          m.id = "feedMore"; m.className = "feedMore"; m.textContent = "Loading more...";
+          feed.appendChild(m);
+          moreObserver.observe(m);
+        } else if (feed.querySelectorAll(".post").length > 3) {
+          const m = document.createElement("div");
+          m.id = "feedMore"; m.className = "feedMore"; m.textContent = "You're all caught up ✓";
+          feed.appendChild(m);
+        }
+        if (!append) feed.scrollTop = top;
         observeFeedVideos();
+      }
+      async function loadMore() {
+        if (feedBusy || !feedNext) return;
+        feedBusy = true;
+        try {
+          const d = await api("/api/feed?before=" + encodeURIComponent(feedNext));
+          if (d.error) return;
+          feedNext = d.next || null;
+          const items = (d.items || []).filter((x) => !(postsList || []).some((y) => y.kind === x.kind && y.id === x.id));
+          postsList = (postsList || []).concat(items);
+          renderPosts(items, true);
+        } finally { feedBusy = false; }
       }
       // videos on Home play (muted) while you look at them
       let feedObserver = null;
@@ -2715,24 +3272,20 @@
       async function loadPosts(force) {
         const feed = $("pbFeed");
         if (!postsList && !feed.children.length) {
-          const c = cget("posts");
-          if (c) { postsList = c; postsDisk = true; renderPosts(c); }
+          const c = cget("feed");
+          if (c && c.items) { postsList = c.items; feedNext = c.next || null; postsDisk = true; renderPosts(postsList, false); }
           else feed.innerHTML = '<div class="post sk"><div class="phead"><span class="skc"></span><span class="skl"></span></div><div class="skimg"></div></div>'.repeat(2);
         }
         if (force !== true && postsAt && Date.now() - postsAt < 25000) return;
-        const [d, rd] = await Promise.all([api("/api/posts"), api("/api/reels")]);
-        if (!d.error) {
-          const reels = (rd && rd.reels ? rd.reels : []).map((r) => Object.assign({}, r, { kind: "reel" }));
-          d.posts = (d.posts || []).concat(reels).sort((a, b) => T(b.time) - T(a.time));
-        }
+        const d = await api("/api/feed");
         if (d.error) { if (!postsList) { feed.innerHTML = '<div class="pbEmpty"></div>'; feed.firstChild.textContent = d.error; } return; }
         postsAt = Date.now();
         postsRetried = false;
-        const changed = !postsList || postsDisk || pSig(d.posts) !== pSig(postsList);
+        const items = d.items || [];
+        const changed = !postsList || postsDisk || pSig(items) !== pSig(postsList.slice(0, items.length));
         postsDisk = false;
-        postsList = d.posts;
-        cset("posts", d.posts);
-        if (changed) renderPosts(d.posts);
+        if (changed) { postsList = items; feedNext = d.next || null; renderPosts(items, false); }
+        cset("feed", { items, next: d.next || null });
       }
 
       $("postsBtn").addEventListener("click", () => {
@@ -2781,10 +3334,11 @@
         $("pbPost").disabled = true;
         msg.textContent = "Uploading... please wait.";
         try {
-          const ext = (f.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5);
+          const pre = await shrinkImage(f, 1440);
+          const ext = pre.ext;
           const up = await api("/api/posts/upload-url", "POST", { ext });
           if (up.error) throw new Error(up.error);
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
           if (error) throw error;
           const made = await api("/api/posts", "POST", { path: up.path, caption: $("pbCaption").value });
           if (made.error) throw new Error(made.error);
@@ -2810,16 +3364,6 @@
         if (error) throw error;
         const made = await api("/api/reels", "POST", { path: up.path, caption });
         if (made.error) throw new Error(made.error);
-        // Twik cleans the video (logos from other apps are removed). Wait for it.
-        const until = Date.now() + 9 * 60 * 1000;
-        while (Date.now() < until) {
-          await new Promise((r) => setTimeout(r, 2000));
-          const j = await api("/api/reels/job/" + made.job);
-          if (j.status === "done") return;
-          if (j.status === "error") throw new Error(j.error || "Could not save the reel.");
-          setMsg(j.stage || "Cleaning your video...");
-        }
-        throw new Error("This is taking too long. Check Reels in a minute.");
       }
 
       // ---------- Reels ----------
@@ -2846,7 +3390,15 @@
           l.className = "cl";
           const b = document.createElement("strong");
           b.textContent = "@" + c.username;
-          l.append(b, document.createTextNode(c.text));
+          const ct = document.createElement("span");
+          mentionText(ct, " " + c.text);
+          l.append(b, ct);
+          if (c.can_delete) {
+            const x = document.createElement("button");
+            x.type = "button"; x.className = "cdel"; x.textContent = "✕"; x.setAttribute("aria-label", "Delete comment");
+            x.onclick = async () => { await api("/api/comments/delete", "POST", { id: c.id, kind: "reel" }); loadReelComments(); };
+            l.appendChild(x);
+          }
           list.appendChild(l);
         });
         list.scrollTop = list.scrollHeight;
@@ -2909,7 +3461,12 @@
         sendB.type = "button";
         sendB.className = "rAct";
         sendB.innerHTML = ICON_SEND + "<span>Send</span>";
-        acts.append(likeB, comB, sendB);
+        const saveB = document.createElement("button");
+        saveB.type = "button";
+        saveB.className = "rAct" + (r.saved ? " on saved" : "");
+        saveB.innerHTML = ICON_SAVE + "<span>Save</span>";
+        saveB.onclick = (e) => { e.stopPropagation(); r.kind = "reel"; toggleSave(r, saveB); saveB.classList.toggle("saved", !!r.saved); };
+        acts.append(likeB, comB, sendB, saveB);
 
         let liked = !!r.liked, likes = r.likes || 0;
         const paintLike = () => {
@@ -2933,15 +3490,7 @@
         }
         likeB.onclick = (e) => { e.stopPropagation(); toggleLike(false); };
         comB.onclick = (e) => { e.stopPropagation(); openReelComments(r, (n) => { r.comments = n; paintCom(); }); };
-        sendB.onclick = async (e) => {
-          e.stopPropagation();
-          const who = prompt("Send this reel to which username?");
-          if (!who) return;
-          const t = await api("/api/dms/start", "POST", { username: who });
-          if (!t.user) { alert(t.message || t.error || "Could not find them."); return; }
-          const res = await api("/api/dms/send", "POST", { to: t.user.id, kind: "reel", reel_id: r.id });
-          alert(res.error || "Sent!");
-        };
+        sendB.onclick = (e) => { e.stopPropagation(); openShare("reel", r.id); };
         if (r.mine) {
           const d = document.createElement("button");
           d.type = "button";
@@ -2957,6 +3506,13 @@
             loadReels(true);
             loadPosts(true);
           };
+          acts.appendChild(d);
+        } else if (r.mine === false) {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "rAct";
+          d.innerHTML = '<span class="dots">⋯</span>';
+          d.onclick = (e) => { e.stopPropagation(); moreMenu({ kind: "reel", id: r.id, username: r.username }); };
           acts.appendChild(d);
         }
 
@@ -2990,7 +3546,7 @@
         if (r.caption) {
           const cap = document.createElement("div");
           cap.className = "rCap";
-          cap.textContent = r.caption;
+          mentionText(cap, r.caption);
           bottom.appendChild(cap);
           if (r.caption.length > 60) {
             const more = document.createElement("button");

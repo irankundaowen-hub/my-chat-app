@@ -1,7 +1,7 @@
 {
   "name": "twik-chat",
-  "version": "3.1.0",
-  "description": "Twik Chat: chat, profiles and followers",
+  "version": "4.0.0",
+  "description": "Twik Chat",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
@@ -13,7 +13,6 @@
     "@supabase/supabase-js": "^2.45.0",
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
-    "compression": "^1.7.4",
-    "@ffmpeg-installer/ffmpeg": "^1.1.0"
+    "compression": "^1.7.4"
   }
 }

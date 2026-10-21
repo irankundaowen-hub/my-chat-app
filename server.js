@@ -27,25 +27,74 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
 });
 
 const app = express();
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
 const server = http.createServer(app);
 const io = new Server(server);
+
+// Safety headers on every page (like the big apps do)
+let supaHost = "";
+try { supaHost = new URL(SUPABASE_URL).host; } catch (e) {}
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
+  res.setHeader("Strict-Transport-Security", "max-age=15552000; includeSubDomains");
+  res.setHeader("Content-Security-Policy", [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com data:",
+    "img-src 'self' data: blob: https:",
+    "media-src 'self' blob: https:",
+    "connect-src 'self' https://" + (supaHost || "*.supabase.co") + " https://*.supabase.co wss: ws: https://cdn.jsdelivr.net",
+    "worker-src 'self'",
+    "manifest-src 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+  ].join("; "));
+  next();
+});
 
 // Make pages and data smaller on the way to the phone (skipped quietly if the package is missing)
 try { app.use(require("compression")()); } catch (e) { console.log("compression not installed, skipping"); }
 
 // Serve the chat page from the "public" folder (the logo is cached for a day)
 app.use(express.static("public", { maxAge: "1d", setHeaders: (res, file) => {
-  if (file.endsWith(".html")) res.setHeader("Cache-Control", "no-cache");
+  if (file.endsWith(".html") || file.endsWith("sw.js") || file.endsWith("manifest.json")) res.setHeader("Cache-Control", "no-cache");
 } }));
 
 // The web page asks for these two PUBLIC values so it can show the login form.
 // (The secret service key is never sent to the browser.)
+// A tiny page that keeps the server awake (see the keep-alive at the bottom)
+app.get("/healthz", (req, res) => res.type("text").send("ok"));
+
 app.get("/config", (req, res) => {
   res.json({ url: SUPABASE_URL, anonKey: SUPABASE_ANON_KEY });
 });
 
 // ---------- Profiles and followers ----------
-app.use(express.json());
+app.use(express.json({ limit: "200kb" }));
+
+// ---------- Slow-down protection (rate limits) ----------
+const rateBuckets = new Map();
+function allow(key, max, ms) {
+  const now = Date.now();
+  let b = rateBuckets.get(key);
+  if (!b || b.reset < now) { b = { n: 0, reset: now + ms }; rateBuckets.set(key, b); }
+  b.n++;
+  return b.n <= max;
+}
+setInterval(() => { const now = Date.now(); for (const [k, b] of rateBuckets) if (b.reset < now) rateBuckets.delete(k); }, 60000).unref();
+const TOO_MANY = { error: "Too many requests. Please wait a minute and try again." };
+const limiter = (name, max, ms) => (req, res, next) =>
+  allow(name + ":" + (req.user ? req.user.id : req.ip), max, ms) ? next() : res.status(429).json(TOO_MANY);
+app.use("/api", (req, res, next) => (allow("ip:" + req.ip, 1200, 60000) ? next() : res.status(429).json(TOO_MANY)));
+
+const validIso = (v) => (/^\d{4}-\d\d-\d\dT[\d:.]+(Z|[+-]\d\d:?\d\d)?$/.test(String(v || "")) ? String(v) : "");
 
 // Checks the login token on every /api request
 // Remember who a login token belongs to for 60 seconds, so we don't ask Supabase on every request
@@ -65,6 +114,7 @@ async function requireUser(req, res, next) {
   if (!token) return res.status(401).json({ error: "Not logged in" });
   const user = await userFromToken(token);
   if (!user) return res.status(401).json({ error: "Not logged in" });
+  if (req.method === "POST" && !allow("w:" + user.id, 150, 60000)) return res.status(429).json(TOO_MANY);
   req.user = user;
   next();
 }
@@ -269,6 +319,26 @@ app.get("/api/me/media", requireUser, safe(async (req, res) => {
   res.json(await mediaFor(me.id, me.id));
 }));
 
+// ---------- Blocking ----------
+const blockCache = new Map();
+async function blockedIds(meId) {
+  const hit = blockCache.get(meId);
+  if (hit && hit.exp > Date.now()) return hit.set;
+  const [a, b] = await Promise.all([
+    supabase.from("blocks").select("blocked_id").eq("blocker_id", meId),
+    supabase.from("blocks").select("blocker_id").eq("blocked_id", meId),
+  ]);
+  const set = new Set([...(a.data || []).map((r) => r.blocked_id), ...(b.data || []).map((r) => r.blocker_id)]);
+  if (blockCache.size > 2000) blockCache.clear();
+  blockCache.set(meId, { set, exp: Date.now() + 20000 });
+  return set;
+}
+
+async function savedKeys(meId) {
+  const { data } = await supabase.from("saved_items").select("kind, item_id").eq("user_id", meId).limit(1000);
+  return new Set((data || []).map((r) => r.kind + ":" + r.item_id));
+}
+
 // People who follow me AND I follow them back ("friends")
 async function mutualIds(meId) {
   const [{ data: outRows }, { data: inRows }] = await Promise.all([
@@ -276,7 +346,8 @@ async function mutualIds(meId) {
     supabase.from("follows").select("follower_id").eq("following_id", meId).eq("status", "accepted"),
   ]);
   const iFollow = new Set((outRows || []).map((r) => r.following_id));
-  return (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id));
+  const blocked = await blockedIds(meId);
+  return (inRows || []).map((r) => r.follower_id).filter((id) => iFollow.has(id) && !blocked.has(id));
 }
 
 app.get("/api/friends", requireUser, safe(async (req, res) => {
@@ -369,7 +440,7 @@ async function cleanupStories() {
   await supabase.from("stories").delete().in("id", old.map((o) => o.id));
 }
 
-app.post("/api/stories/upload-url", requireUser, safe(async (req, res) => {
+app.post("/api/stories/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
   const wanted = String(req.body.ext || "").toLowerCase();
   const ext = ["jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "jpg";
   const path = req.user.id + "/story-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -404,6 +475,27 @@ app.post("/api/stories/delete", requireUser, safe(async (req, res) => {
   await supabase.storage.from(REELS_BUCKET).remove([st.path]);
   await supabase.from("stories").delete().eq("id", id);
   res.json({ ok: true });
+}));
+
+// Somebody looked at a story
+app.post("/api/stories/view", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: st } = await supabase.from("stories").select("id, user_id").eq("id", id).maybeSingle();
+  if (!st || st.user_id === req.user.id) return res.json({ ok: true });
+  if (!(await mutualIds(req.user.id)).includes(st.user_id)) return res.json({ ok: true });
+  await supabase.from("story_views").upsert({ story_id: id, viewer_id: req.user.id }, { onConflict: "story_id,viewer_id" });
+  res.json({ ok: true });
+}));
+
+// Who looked at my story
+app.get("/api/stories/:id/viewers", requireUser, safe(async (req, res) => {
+  const id = Number(req.params.id) || 0;
+  const { data: st } = await supabase.from("stories").select("id, user_id").eq("id", id).maybeSingle();
+  if (!st || st.user_id !== req.user.id) return res.json({ error: "Story not found." });
+  const { data } = await supabase.from("story_views").select("viewer_id, created_at").eq("story_id", id).order("created_at", { ascending: false }).limit(200);
+  const ids = (data || []).map((v) => v.viewer_id);
+  const [names, pics] = await Promise.all([namesFor(ids), avatarsFor(ids)]);
+  res.json({ viewers: (data || []).map((v) => ({ username: names[v.viewer_id] || "unknown", avatar: pics[v.viewer_id] || null, time: v.created_at })) });
 }));
 
 // My stories + stories of people I follow who follow me back
@@ -445,6 +537,149 @@ app.get("/api/stories", requireUser, safe(async (req, res) => {
     return new Date(b.stories[b.stories.length - 1].time) - new Date(a.stories[a.stories.length - 1].time);
   });
   res.json({ groups });
+}));
+
+// ---------- Saved posts and reels ----------
+async function shapePostRows(rows, meId) {
+  if (!rows.length) return [];
+  const ids = rows.map((r) => r.id);
+  const [l, c, sg, pics] = await Promise.all([
+    supabase.from("photo_likes").select("post_id, user_id").in("post_id", ids),
+    supabase.from("photo_comments").select("post_id").in("post_id", ids),
+    signMany(rows.map((r) => r.path)),
+    avatarsFor(rows.map((r) => r.user_id)),
+  ]);
+  const likes = {}, liked = {}, comments = {}, urls = {};
+  (l.data || []).forEach((x) => { likes[x.post_id] = (likes[x.post_id] || 0) + 1; if (x.user_id === meId) liked[x.post_id] = true; });
+  (c.data || []).forEach((x) => { comments[x.post_id] = (comments[x.post_id] || 0) + 1; });
+  (sg.data || []).forEach((x) => { urls[x.path] = x.signedUrl; });
+  return rows.filter((r) => urls[r.path]).map((r) => ({
+    kind: "post", id: r.id, username: r.username, avatar: pics[r.user_id] || null, caption: r.caption, url: urls[r.path],
+    time: r.created_at, mine: r.user_id === meId, likes: likes[r.id] || 0, liked: !!liked[r.id], comments: comments[r.id] || 0, saved: true,
+  }));
+}
+async function shapeReelRows(rows, meId, followingSet) {
+  if (!rows.length) return [];
+  const [rx, sg, pics] = await Promise.all([
+    reelExtras(rows.map((r) => r.id), meId),
+    signMany(rows.map((r) => r.path)),
+    avatarsFor(rows.map((r) => r.user_id)),
+  ]);
+  const urls = {};
+  (sg.data || []).forEach((x) => { urls[x.path] = x.signedUrl; });
+  return rows.filter((r) => urls[r.path]).map((r) => ({
+    kind: "reel", id: r.id, username: r.username, avatar: pics[r.user_id] || null, caption: r.caption, url: urls[r.path],
+    time: r.created_at, mine: r.user_id === meId, likes: rx.likes[r.id] || 0, liked: !!rx.liked[r.id], comments: rx.comments[r.id] || 0,
+    following: r.user_id === meId || followingSet.has(r.user_id), saved: true,
+  }));
+}
+
+app.post("/api/save", requireUser, safe(async (req, res) => {
+  const kind = req.body.kind === "reel" ? "reel" : "post";
+  const id = Number(req.body.id) || 0;
+  const { data: it } = await supabase.from(kind === "reel" ? "reels" : "photo_posts").select("id, user_id").eq("id", id).maybeSingle();
+  if (!it || !(await canSeeUser(req.user.id, it.user_id))) return res.json({ error: "Not found." });
+  const { data: ex } = await supabase.from("saved_items").select("item_id").eq("user_id", req.user.id).eq("kind", kind).eq("item_id", id).maybeSingle();
+  if (ex) await supabase.from("saved_items").delete().eq("user_id", req.user.id).eq("kind", kind).eq("item_id", id);
+  else {
+    const { error } = await supabase.from("saved_items").insert({ user_id: req.user.id, kind, item_id: id });
+    if (error) return res.status(500).json({ error: "Could not save. Did you run the v20 SQL?" });
+  }
+  res.json({ saved: !ex });
+}));
+
+app.get("/api/saved", requireUser, safe(async (req, res) => {
+  const meId = req.user.id;
+  const { data } = await supabase.from("saved_items").select("kind, item_id, created_at").eq("user_id", meId).order("created_at", { ascending: false }).limit(80);
+  const rows = data || [];
+  const postIds = rows.filter((r) => r.kind === "post").map((r) => r.item_id);
+  const reelIds = rows.filter((r) => r.kind === "reel").map((r) => r.item_id);
+  const [pr, rr, fr, blocked] = await Promise.all([
+    postIds.length ? supabase.from("photo_posts").select("id, user_id, username, path, caption, created_at").in("id", postIds) : { data: [] },
+    reelIds.length ? supabase.from("reels").select("id, user_id, username, path, caption, created_at").in("id", reelIds) : { data: [] },
+    supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted"),
+    blockedIds(meId),
+  ]);
+  const following = new Set((fr.data || []).map((f) => f.following_id));
+  const all = [...(pr.data || []), ...(rr.data || [])];
+  const authors = [...new Set(all.map((x) => x.user_id))];
+  const priv = {};
+  if (authors.length) {
+    const { data: a } = await supabase.from("profiles").select("id, is_private").in("id", authors);
+    (a || []).forEach((x) => (priv[x.id] = x.is_private));
+  }
+  const ok = (x) => !blocked.has(x.user_id) && (x.user_id === meId || !priv[x.user_id] || following.has(x.user_id));
+  const [posts, reels] = await Promise.all([shapePostRows((pr.data || []).filter(ok), meId), shapeReelRows((rr.data || []).filter(ok), meId, following)]);
+  const order = {};
+  rows.forEach((r, i) => { order[r.kind + ":" + r.item_id] = i; });
+  const items = [...posts, ...reels].sort((a, b) => order[a.kind + ":" + a.id] - order[b.kind + ":" + b.id]);
+  res.json({ items });
+}));
+
+// ---------- Block and report ----------
+app.post("/api/block", requireUser, limiter("blk", 30, 3600000), safe(async (req, res) => {
+  const target = String(req.body.username || "").trim().toLowerCase().replace(/^@/, "");
+  const { data: t } = await supabase.from("profiles").select("id, username").eq("username", target).maybeSingle();
+  if (!t) return res.json({ error: "No one has that username." });
+  if (t.id === req.user.id) return res.json({ error: "You can't block yourself." });
+  await supabase.from("blocks").upsert({ blocker_id: req.user.id, blocked_id: t.id }, { onConflict: "blocker_id,blocked_id" });
+  await supabase.from("follows").delete().or(`and(follower_id.eq.${req.user.id},following_id.eq.${t.id}),and(follower_id.eq.${t.id},following_id.eq.${req.user.id})`);
+  blockCache.clear(); canMsgCache.clear();
+  res.json({ ok: true });
+}));
+
+app.post("/api/unblock", requireUser, safe(async (req, res) => {
+  const target = String(req.body.username || "").trim().toLowerCase().replace(/^@/, "");
+  const { data: t } = await supabase.from("profiles").select("id").eq("username", target).maybeSingle();
+  if (t) await supabase.from("blocks").delete().eq("blocker_id", req.user.id).eq("blocked_id", t.id);
+  blockCache.clear(); canMsgCache.clear();
+  res.json({ ok: true });
+}));
+
+app.get("/api/blocks", requireUser, safe(async (req, res) => {
+  const { data } = await supabase.from("blocks").select("blocked_id").eq("blocker_id", req.user.id);
+  const ids = (data || []).map((r) => r.blocked_id);
+  const [names, pics] = await Promise.all([namesFor(ids), avatarsFor(ids)]);
+  res.json({ blocked: ids.map((id) => ({ username: names[id] || "unknown", avatar: pics[id] || null })) });
+}));
+
+app.post("/api/report", requireUser, limiter("rp", 10, 3600000), safe(async (req, res) => {
+  const kind = ["user", "post", "reel", "comment", "message"].includes(req.body.kind) ? req.body.kind : "user";
+  const target = String(req.body.target || "").slice(0, 80);
+  const reason = String(req.body.reason || "").trim().slice(0, 200);
+  if (!target) return res.json({ error: "Nothing to report." });
+  const { error } = await supabase.from("reports").insert({ reporter_id: req.user.id, kind, target_id: target, reason });
+  if (error) return res.status(500).json({ error: "Could not send the report. Did you run the v20 SQL?" });
+  res.json({ ok: true });
+}));
+
+// ---------- Delete my account for good ----------
+app.post("/api/me/delete", requireUser, limiter("del", 3, 3600000), safe(async (req, res) => {
+  if (req.body.confirm !== "DELETE") return res.json({ error: "Type DELETE to confirm." });
+  const id = req.user.id;
+  const quiet = async (fn) => { try { await fn(); } catch (e) {} };
+  await quiet(async () => {
+    const { data: files } = await supabase.storage.from(REELS_BUCKET).list(id, { limit: 1000 });
+    if (files && files.length) await supabase.storage.from(REELS_BUCKET).remove(files.map((f) => id + "/" + f.name));
+  });
+  const { data: ps } = await supabase.from("photo_posts").select("id").eq("user_id", id);
+  const { data: rs } = await supabase.from("reels").select("id").eq("user_id", id);
+  const pIds = (ps || []).map((x) => x.id), rIds = (rs || []).map((x) => x.id);
+  if (pIds.length) { await quiet(() => supabase.from("photo_likes").delete().in("post_id", pIds)); await quiet(() => supabase.from("photo_comments").delete().in("post_id", pIds)); }
+  if (rIds.length) { await quiet(() => supabase.from("reel_likes").delete().in("reel_id", rIds)); await quiet(() => supabase.from("reel_comments").delete().in("reel_id", rIds)); }
+  const del = (t, c) => quiet(() => supabase.from(t).delete().eq(c, id));
+  await Promise.all([
+    del("photo_posts", "user_id"), del("reels", "user_id"), del("photo_likes", "user_id"), del("photo_comments", "user_id"),
+    del("reel_likes", "user_id"), del("reel_comments", "user_id"), del("notes", "user_id"), del("stories", "user_id"),
+    del("story_views", "viewer_id"), del("saved_items", "user_id"), del("blocks", "blocker_id"), del("blocks", "blocked_id"),
+    del("group_members", "user_id"), del("reports", "reporter_id"), del("follows", "follower_id"), del("follows", "following_id"),
+    del("dms", "sender_id"), del("dms", "receiver_id"),
+  ]);
+  await del("profiles", "id");
+  const { error } = await supabase.auth.admin.deleteUser(id);
+  if (error) return res.status(500).json({ error: "Your data was removed but the login could not be deleted. Contact support." });
+  authCache.clear();
+  res.json({ ok: true });
 }));
 
 // ---------- Notifications (built from follows, likes and comments) ----------
@@ -533,7 +768,8 @@ app.get("/api/search", requireUser, safe(async (req, res) => {
   let query = supabase.from("profiles").select("id, username, display_name, avatar_path, is_private").neq("id", req.user.id);
   query = q ? query.ilike("username", "%" + q + "%") : query.order("created_at", { ascending: false });
   const { data } = await query.limit(20);
-  const list = data || [];
+  const blockedS = await blockedIds(req.user.id);
+  const list = (data || []).filter((p) => !blockedS.has(p.id));
   const pics = await avatarsFor(list.map((p) => p.id));
   const { data: fRows } = list.length
     ? await supabase.from("follows").select("following_id, status").eq("follower_id", req.user.id).in("following_id", list.map((p) => p.id))
@@ -555,6 +791,7 @@ app.get("/api/users/:username", requireUser, safe(async (req, res) => {
   if (!u) return res.json({ error: "No one has that username." });
   const meId = req.user.id;
   if (u.id === meId) return res.json({ is_me: true });
+  if ((await blockedIds(meId)).has(u.id)) return res.json({ error: "No one has that username." });
 
   const pics = await avatarsFor([u.id]);
   const { data: rel } = await supabase
@@ -613,7 +850,7 @@ app.post("/api/me/privacy", requireUser, safe(async (req, res) => {
 }));
 
 // Follow someone by username
-app.post("/api/follow", requireUser, safe(async (req, res) => {
+app.post("/api/follow", requireUser, limiter("fl", 40, 60000), safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
 
@@ -624,6 +861,7 @@ app.post("/api/follow", requireUser, safe(async (req, res) => {
     .from("profiles").select("id, username, is_private").eq("username", target).maybeSingle();
   if (!t) return res.json({ message: "No one has that username." });
   if (t.id === me.id) return res.json({ message: "That's you!" });
+  if ((await blockedIds(me.id)).has(t.id)) return res.json({ message: "You can't follow this account." });
 
   const { data: already } = await supabase
     .from("follows").select("status").eq("follower_id", me.id).eq("following_id", t.id).maybeSingle();
@@ -678,6 +916,7 @@ async function canMessage(meId, targetId) {
 }
 async function canMessageSlow(meId, targetId) {
   if (!UUID_RE.test(String(targetId)) || meId === targetId) return false;
+  if ((await blockedIds(meId)).has(targetId)) return false;
   const { data: t } = await supabase.from("profiles").select("is_private").eq("id", targetId).maybeSingle();
   if (!t) return false;
   if (!t.is_private) return true;
@@ -702,6 +941,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
     supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted"),
   ]);
 
+  const blockedD = await blockedIds(me);
   const seen = {};
   const iSentTo = new Set();
   (data || []).forEach((m) => { if (m.sender_id === me) iSentTo.add(m.receiver_id); });
@@ -709,9 +949,9 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
   const chats = [];
   (data || []).forEach((m) => {
     const peer = m.sender_id === me ? m.receiver_id : m.sender_id;
-    if (!seen[peer]) {
+    if (!seen[peer] && !blockedD.has(peer)) {
       seen[peer] = true;
-      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "reel" ? "🎬 Reel" : m.text || "";
+      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
       // A "request" = someone I don't follow and have never written to
       chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
@@ -744,14 +984,31 @@ app.get("/api/dms/:peer", requireUser, safe(async (req, res) => {
     .or(`and(sender_id.eq.${me},receiver_id.eq.${peer}),and(sender_id.eq.${peer},receiver_id.eq.${me})`)
     .order("created_at", { ascending: false })
     .limit(100);
-  res.json({ messages: await shapeDms((data || []).reverse()) });
+  const shaped = await shapeDms((data || []).reverse());
+  res.json({ messages: shaped });
+  // the other person's messages are now "seen"
+  supabase.from("dms").update({ read_at: new Date().toISOString() })
+    .eq("sender_id", peer).eq("receiver_id", me).is("read_at", null)
+    .then((r) => { if (!r.error) io.to("u:" + peer).emit("dm seen", { by: me }); }, () => {});
+}));
+
+// Take back (unsend) a message you sent
+app.post("/api/dms/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: m } = await supabase.from("dms").select("id, sender_id, receiver_id, media_path").eq("id", id).maybeSingle();
+  if (!m || m.sender_id !== req.user.id) return res.json({ error: "Message not found." });
+  await supabase.from("dms").delete().eq("id", id);
+  if (m.media_path) await supabase.storage.from(REELS_BUCKET).remove([m.media_path]);
+  io.to("u:" + m.receiver_id).emit("dm deleted", { id });
+  io.to("u:" + m.sender_id).emit("dm deleted", { id });
+  res.json({ ok: true });
 }));
 
 // ---------- Reels (short videos) ----------
 const REELS_BUCKET = "reels";
 
 // Step 1 of posting: get a safe place to upload the video
-app.post("/api/reels/upload-url", requireUser, safe(async (req, res) => {
+app.post("/api/reels/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
   const wanted = String(req.body.ext || "").toLowerCase();
   const ext = ["mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "mp4";
   const path = req.user.id + "/" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -763,80 +1020,35 @@ app.post("/api/reels/upload-url", requireUser, safe(async (req, res) => {
   res.json({ path, token: data.token });
 }));
 
-// Step 2 of posting: Twik cleans the video (removes TikTok-style logos and end screens), then saves the reel
-let videoClean = null;
-try { videoClean = require("./videoclean"); } catch (e) { console.error("Video cleaner not available:", e.message); }
-const reelJobs = new Map();
-let reelQueue = Promise.resolve();
-
-async function processReel(job, me, path, caption) {
-  const fsx = require("fs");
-  const dir = fsx.mkdtempSync(require("path").join(require("os").tmpdir(), "twik-"));
-  try {
-    let finalPath = path;
-    if (videoClean) {
-      try {
-        job.stage = "Cleaning your video... (this can take a minute)";
-        const { data } = await signMany([path]);
-        const url = data && data[0] && data[0].signedUrl;
-        if (!url) throw new Error("no link");
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error("download " + resp.status);
-        const inFile = dir + "/in.bin", outFile = dir + "/out.mp4";
-        fsx.writeFileSync(inFile, Buffer.from(await resp.arrayBuffer()));
-        const r = await videoClean.cleanVideo(inFile, outFile);
-        console.log("[clean]", me.username, r.changed ? "cleaned" : r.failed ? "FAILED" : "nothing to remove", (r.notes || []).join(" | "));
-        if (r.changed) {
-          job.stage = "Saving...";
-          const np = me.id + "/clean-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + ".mp4";
-          const up = await supabase.storage.from(REELS_BUCKET).upload(np, fsx.readFileSync(outFile), { contentType: "video/mp4", upsert: true });
-          if (up.error) console.error("Cleaned upload error:", up.error.message);
-          else { await supabase.storage.from(REELS_BUCKET).remove([path]); finalPath = np; }
-        }
-      } catch (e) {
-        console.error("Cleaning problem (posting the original):", e.message);
-      }
-    }
-    const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path: finalPath, caption });
-    if (error) throw new Error(error.message);
-    job.status = "done";
-  } catch (e) {
-    console.error("Reel save error:", e.message);
-    job.status = "error";
-    job.error = "Could not save the reel. Please try again.";
-  } finally {
-    try { fsx.rmSync(dir, { recursive: true, force: true }); } catch (e) {}
-    setTimeout(() => reelJobs.delete(job.id), 15 * 60 * 1000);
-  }
-}
-
+// Step 2 of posting: save the reel with its caption
 app.post("/api/reels", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   const path = String(req.body.path || "");
-  if (!me || !path.startsWith(req.user.id + "/")) return res.status(400).json({ error: "Bad request" });
+  if (!me || !path.startsWith(req.user.id + "/") || path.includes("..")) return res.status(400).json({ error: "Bad request" });
   const caption = String(req.body.caption || "").trim().slice(0, 150);
-  const job = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8), user: me.id, status: "working", stage: "Waiting...", error: "" };
-  reelJobs.set(job.id, job);
-  reelQueue = reelQueue.then(() => processReel(job, me, path, caption)).catch(() => {});
-  res.json({ job: job.id });
-}));
-
-app.get("/api/reels/job/:id", requireUser, safe(async (req, res) => {
-  const job = reelJobs.get(String(req.params.id));
-  if (!job || job.user !== req.user.id) return res.json({ status: "error", error: "Not found" });
-  res.json({ status: job.status, stage: job.stage, error: job.error });
+  const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path, caption });
+  if (error) {
+    console.error("Reel save error:", error.message);
+    return res.status(500).json({ error: "Could not save the reel." });
+  }
+  res.json({ ok: true });
 }));
 
 // The reels you are allowed to watch: yours, public accounts, and people you follow
-app.get("/api/reels", requireUser, safe(async (req, res) => {
+const reelsHandler = safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
+  const before = validIso(req.query.before);
+  const blockedR = await blockedIds(me.id);
+  const savedR = await savedKeys(me.id);
 
-  const { data: rows } = await supabase
+  let rq = supabase
     .from("reels")
     .select("id, user_id, username, path, caption, created_at")
     .order("created_at", { ascending: false })
     .limit(100);
+  if (before) rq = rq.lt("created_at", before);
+  const { data: rows } = await rq;
   const list = rows || [];
 
   const authorIds = [...new Set(list.map((r) => r.user_id))];
@@ -850,7 +1062,7 @@ app.get("/api/reels", requireUser, safe(async (req, res) => {
   const following = new Set((fRows || []).map((r) => r.following_id));
 
   const allowed = list
-    .filter((r) => r.user_id === me.id || !priv[r.user_id] || following.has(r.user_id))
+    .filter((r) => !blockedR.has(r.user_id) && (r.user_id === me.id || !priv[r.user_id] || following.has(r.user_id)))
     .slice(0, 20);
   if (!allowed.length) return res.json({ reels: [] });
 
@@ -878,9 +1090,11 @@ app.get("/api/reels", requireUser, safe(async (req, res) => {
         liked: !!rx.liked[r.id],
         comments: rx.comments[r.id] || 0,
         following: r.user_id === me.id || following.has(r.user_id),
+        saved: savedR.has("reel:" + r.id),
       })),
   });
-}));
+});
+app.get("/api/reels", requireUser, reelsHandler);
 
 // Delete one of your own reels
 app.post("/api/reels/delete", requireUser, safe(async (req, res) => {
@@ -910,12 +1124,13 @@ app.get("/api/reels/:id/comments", requireUser, safe(async (req, res) => {
   const id = Number(req.params.id) || 0;
   const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
   if (!r || !(await canSeeUser(req.user.id, r.user_id))) return res.json({ error: "Reel not found." });
-  const { data } = await supabase.from("reel_comments").select("username, text, created_at").eq("reel_id", id)
+  const { data } = await supabase.from("reel_comments").select("id, user_id, username, text, created_at").eq("reel_id", id)
     .order("created_at", { ascending: true }).limit(100);
-  res.json({ comments: data || [] });
+  const bl = await blockedIds(req.user.id);
+  res.json({ comments: (data || []).filter((c) => !bl.has(c.user_id)).map((c) => ({ id: c.id, username: c.username, text: c.text, created_at: c.created_at, mine: c.user_id === req.user.id, can_delete: c.user_id === req.user.id || r.user_id === req.user.id })) });
 }));
 
-app.post("/api/reels/comment", requireUser, safe(async (req, res) => {
+app.post("/api/reels/comment", requireUser, limiter("cm", 20, 60000), safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const id = Number(req.body.reel_id) || 0;
@@ -937,7 +1152,13 @@ async function shapeDms(rows) {
     const { data } = await supabase.from("reels").select("id, username, caption, path").in("id", reelIds);
     (data || []).forEach((r) => (reelMap[r.id] = r));
   }
-  const paths = [...rows.map((r) => r.media_path), ...Object.values(reelMap).map((r) => r.path)].filter(Boolean);
+  const postIdsD = [...new Set(rows.filter((r) => r.post_id).map((r) => r.post_id))];
+  const postMap = {};
+  if (postIdsD.length) {
+    const { data } = await supabase.from("photo_posts").select("id, username, caption, path").in("id", postIdsD);
+    (data || []).forEach((p) => (postMap[p.id] = p));
+  }
+  const paths = [...rows.map((r) => r.media_path), ...Object.values(reelMap).map((r) => r.path), ...Object.values(postMap).map((p) => p.path)].filter(Boolean);
   const urls = {};
   if (paths.length) {
     const { data } = await signMany([...new Set(paths)]);
@@ -945,7 +1166,11 @@ async function shapeDms(rows) {
   }
   return rows.map((m) => {
     const reel = m.reel_id ? reelMap[m.reel_id] : null;
+    const post = m.post_id ? postMap[m.post_id] : null;
     return {
+      id: m.id,
+      read: !!m.read_at,
+      post: post ? { id: post.id, username: post.username, caption: post.caption, url: urls[post.path] || null } : null,
       from: m.sender_id,
       to: m.receiver_id,
       kind: m.kind || "text",
@@ -958,7 +1183,7 @@ async function shapeDms(rows) {
 }
 
 // Step 1 of sending a photo: get a safe place to upload it
-app.post("/api/dms/upload-url", requireUser, safe(async (req, res) => {
+app.post("/api/dms/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
     return res.json({ error: "Please use a JPG, PNG, GIF or WEBP photo." });
@@ -973,7 +1198,7 @@ app.post("/api/dms/upload-url", requireUser, safe(async (req, res) => {
 }));
 
 // Step 2: send a photo or a reel to one person
-app.post("/api/dms/send", requireUser, safe(async (req, res) => {
+app.post("/api/dms/send", requireUser, limiter("ds", 30, 60000), safe(async (req, res) => {
   const me = req.user.id;
   const to = String(req.body.to || "");
   if (!(await canMessage(me, to))) return res.json({ error: "You can't message this person." });
@@ -1002,6 +1227,19 @@ app.post("/api/dms/send", requireUser, safe(async (req, res) => {
       }
     }
     row.reel_id = reel.id;
+  } else if (kind === "post") {
+    const { data: post } = await supabase.from("photo_posts").select("id, user_id").eq("id", Number(req.body.post_id) || 0).maybeSingle();
+    if (!post) return res.json({ error: "That post no longer exists." });
+    if (!(await canSeeUser(me, post.user_id))) return res.json({ error: "You can't share this post." });
+    if (post.user_id !== me && post.user_id !== to) {
+      const { data: author } = await supabase.from("profiles").select("is_private").eq("id", post.user_id).maybeSingle();
+      if (author && author.is_private) {
+        const { data: allowed } = await supabase.from("follows").select("status")
+          .eq("follower_id", to).eq("following_id", post.user_id).eq("status", "accepted").limit(1);
+        if (!(allowed && allowed.length)) return res.json({ error: "That post is from a private account, and this person doesn't follow it." });
+      }
+    }
+    row.post_id = post.id;
   } else {
     return res.json({ error: "Unknown message type." });
   }
@@ -1021,6 +1259,7 @@ app.post("/api/dms/send", requireUser, safe(async (req, res) => {
 // Can this person see that author's posts? (themselves, public accounts, or people they follow)
 async function canSeeUser(meId, authorId) {
   if (meId === authorId) return true;
+  if ((await blockedIds(meId)).has(authorId)) return false;
   const { data: a } = await supabase.from("profiles").select("is_private").eq("id", authorId).maybeSingle();
   if (!a) return false;
   if (!a.is_private) return true;
@@ -1031,7 +1270,7 @@ async function canSeeUser(meId, authorId) {
 }
 
 // Step 1 of posting: a safe place to upload the photo
-app.post("/api/posts/upload-url", requireUser, safe(async (req, res) => {
+app.post("/api/posts/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
     return res.json({ error: "Please use a JPG, PNG, GIF or WEBP photo." });
@@ -1060,11 +1299,15 @@ app.post("/api/posts", requireUser, safe(async (req, res) => {
 }));
 
 // The feed: your posts, public accounts, and people you follow
-app.get("/api/posts", requireUser, safe(async (req, res) => {
+const postsHandler = safe(async (req, res) => {
   const meId = req.user.id;
+  const before = validIso(req.query.before);
+  const [blocked, savedP] = await Promise.all([blockedIds(meId), savedKeys(meId)]);
+  let pq = supabase.from("photo_posts").select("id, user_id, username, path, caption, created_at")
+    .order("created_at", { ascending: false }).limit(100);
+  if (before) pq = pq.lt("created_at", before);
   const [{ data: rows }, { data: fRows }] = await Promise.all([
-    supabase.from("photo_posts").select("id, user_id, username, path, caption, created_at")
-      .order("created_at", { ascending: false }).limit(100),
+    pq,
     supabase.from("follows").select("following_id").eq("follower_id", meId).eq("status", "accepted"),
   ]);
   const list = rows || [];
@@ -1078,7 +1321,7 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
   }
 
   const allowed = list
-    .filter((r) => r.user_id === meId || !priv[r.user_id] || following.has(r.user_id))
+    .filter((r) => !blocked.has(r.user_id) && (r.user_id === meId || !priv[r.user_id] || following.has(r.user_id)))
     .slice(0, 30);
   if (!allowed.length) return res.json({ posts: [] });
 
@@ -1119,8 +1362,42 @@ app.get("/api/posts", requireUser, safe(async (req, res) => {
         likes: likes[r.id] || 0,
         liked: !!liked[r.id],
         comments: comments[r.id] || 0,
+        following: following.has(r.user_id),
+        saved: savedP.has("post:" + r.id),
       })),
   });
+});
+app.get("/api/posts", requireUser, postsHandler);
+
+// Run one of the handlers above and hand back what it would have sent
+function callHandler(handler, req) {
+  return new Promise((resolve) => {
+    const fake = { status() { return fake; }, json(x) { resolve(x); return fake; } };
+    handler(req, fake);
+  });
+}
+
+// Home feed in ONE request: photos and videos together, newest first, page by page
+app.get("/api/feed", requireUser, safe(async (req, res) => {
+  const [p, r] = await Promise.all([callHandler(postsHandler, req), callHandler(reelsHandler, req)]);
+  if (p.error && r.error) return res.json({ error: p.error });
+  const items = (p.posts || []).map((x) => ({ ...x, kind: "post" }))
+    .concat((r.reels || []).map((x) => ({ ...x, kind: "reel" })));
+  items.sort((a, b) => new Date(b.time) - new Date(a.time));
+  const PAGE = 12;
+  const page = items.slice(0, PAGE);
+  res.json({ items: page, next: items.length > PAGE ? page[page.length - 1].time : null });
+}));
+
+// Explore: popular posts and videos from people you don't follow yet
+app.get("/api/explore", requireUser, safe(async (req, res) => {
+  const [p, r] = await Promise.all([callHandler(postsHandler, req), callHandler(reelsHandler, req)]);
+  const items = (p.posts || []).map((x) => ({ ...x, kind: "post" }))
+    .concat((r.reels || []).map((x) => ({ ...x, kind: "reel" })))
+    .filter((x) => !x.mine);
+  const score = (x) => (x.likes || 0) + (x.comments || 0) * 2 + (x.following ? 0 : 5);
+  items.sort((a, b) => score(b) - score(a) || new Date(b.time) - new Date(a.time));
+  res.json({ items: items.slice(0, 30) });
 }));
 
 // Like or unlike a post
@@ -1146,15 +1423,16 @@ app.get("/api/posts/:id/comments", requireUser, safe(async (req, res) => {
   if (!p || !(await canSeeUser(req.user.id, p.user_id))) return res.json({ error: "Post not found." });
   const { data } = await supabase
     .from("photo_comments")
-    .select("username, text, created_at")
+    .select("id, user_id, username, text, created_at")
     .eq("post_id", id)
     .order("created_at", { ascending: true })
     .limit(100);
-  res.json({ comments: data || [] });
+  const bl = await blockedIds(req.user.id);
+  res.json({ comments: (data || []).filter((c) => !bl.has(c.user_id)).map((c) => ({ id: c.id, username: c.username, text: c.text, created_at: c.created_at, mine: c.user_id === req.user.id, can_delete: c.user_id === req.user.id || p.user_id === req.user.id })) });
 }));
 
 // Add a comment
-app.post("/api/posts/comment", requireUser, safe(async (req, res) => {
+app.post("/api/posts/comment", requireUser, limiter("cm", 20, 60000), safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const id = Number(req.body.post_id) || 0;
@@ -1168,6 +1446,23 @@ app.post("/api/posts/comment", requireUser, safe(async (req, res) => {
     console.error("Comment error:", error.message);
     return res.status(500).json({ error: "Could not post the comment." });
   }
+  res.json({ ok: true });
+}));
+
+// Delete a comment (your own, or any comment on your own post / reel)
+app.post("/api/comments/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const isReel = req.body.kind === "reel";
+  const ctable = isReel ? "reel_comments" : "photo_comments";
+  const { data: c } = await supabase.from(ctable).select("id, user_id, " + (isReel ? "reel_id" : "post_id")).eq("id", id).maybeSingle();
+  if (!c) return res.json({ error: "Comment not found." });
+  let ownsItem = false;
+  if (c.user_id !== req.user.id) {
+    const { data: it } = await supabase.from(isReel ? "reels" : "photo_posts").select("user_id").eq("id", isReel ? c.reel_id : c.post_id).maybeSingle();
+    ownsItem = !!(it && it.user_id === req.user.id);
+  }
+  if (c.user_id !== req.user.id && !ownsItem) return res.status(403).json({ error: "Not allowed." });
+  await supabase.from(ctable).delete().eq("id", id);
   res.json({ ok: true });
 }));
 
@@ -1207,6 +1502,20 @@ io.on("connection", async (socket) => {
   // Each person gets a private "mailbox" so only they receive their messages
   socket.join("u:" + socket.data.userId);
 
+  // "…is typing" and "seen"
+  socket.on("typing", (msg) => {
+    const to = String((msg && msg.to) || "");
+    if (!UUID_RE.test(to) || !allow("ty:" + socket.data.userId, 20, 10000)) return;
+    io.to("u:" + to).emit("typing", { from: socket.data.userId });
+  });
+  socket.on("dm read", async (msg) => {
+    const peer = String((msg && msg.peer) || "");
+    if (!UUID_RE.test(peer) || !allow("rd:" + socket.data.userId, 60, 10000)) return;
+    const r = await supabase.from("dms").update({ read_at: new Date().toISOString() })
+      .eq("sender_id", peer).eq("receiver_id", socket.data.userId).is("read_at", null);
+    if (!r.error) io.to("u:" + peer).emit("dm seen", { by: socket.data.userId });
+  });
+
   // A private message to one person
   socket.on("dm", async (msg) => {
     try {
@@ -1218,10 +1527,14 @@ io.on("connection", async (socket) => {
         socket.emit("dm error", "You can't message this person.");
         return;
       }
+      if (!allow("dm:" + socket.data.userId, 40, 10000)) {
+        socket.emit("dm error", "Slow down a little.");
+        return;
+      }
       const { data: saved, error } = await supabase
         .from("dms")
         .insert({ sender_id: socket.data.userId, receiver_id: to, text })
-        .select("created_at")
+        .select("id, created_at")
         .single();
       if (error) {
         console.error("DM save error:", error.message);
@@ -1229,7 +1542,7 @@ io.on("connection", async (socket) => {
         return;
       }
       const cid = String((msg && msg.cid) || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
-      const payload = { from: socket.data.userId, to, text, time: saved.created_at, cid };
+      const payload = { id: saved.id, from: socket.data.userId, to, text, time: saved.created_at, cid };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
     } catch (e) {
@@ -1366,3 +1679,9 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Chat app running on port ${PORT}`);
 });
+
+// Render's free plan puts the app to sleep after ~15 minutes without visitors, and waking it up is the slow part.
+// Visiting our own address every 9 minutes keeps it awake.
+if (process.env.RENDER_EXTERNAL_URL) {
+  setInterval(() => { fetch(process.env.RENDER_EXTERNAL_URL + "/healthz").catch(() => {}); }, 9 * 60 * 1000).unref();
+}
