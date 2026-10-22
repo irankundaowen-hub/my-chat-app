@@ -687,6 +687,98 @@
     #shBody .langSearch { margin-bottom: 8px; }
     #shBody .langList { max-height: 56vh; overflow-y: auto; }
     .trLink { background: none !important; border: none !important; color: var(--muted); font-size: 12.500px; padding: 2px 0 !important; margin: 0 !important; display: block; text-align: left; }
+
+    /* ===== v22 ===== */
+    #reelsPanel { top: 0; padding: 0; z-index: 30; }
+    #reelsPanel .reel { height: calc(100vh - var(--bottom)); height: calc(100dvh - var(--bottom)); border-radius: 0; margin-bottom: 0; }
+    #reelsPanel .reel video { object-fit: cover; }
+    .rHead { position: absolute; top: 0; left: 0; right: 0; z-index: 8; display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top)) 12px 18px; background: linear-gradient(rgba(0,0,0,0.6), transparent); pointer-events: none; }
+    .rHead > * { pointer-events: auto; }
+    .rHB { width: 40px; height: 40px; padding: 0 !important; background: transparent !important; border: none !important; border-radius: 50% !important; display: flex; align-items: center; justify-content: center; margin: 0 !important; }
+    .rHB svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.6)); }
+    .rTabs { flex: 1; display: flex; align-items: center; gap: 18px; }
+    .rTab { background: transparent !important; border: none !important; padding: 4px 0 !important; margin: 0 !important; font-size: 21px; font-weight: 800; color: rgba(255,255,255,0.6); display: flex; align-items: center; gap: 8px; text-shadow: 0 1px 6px rgba(0,0,0,0.6); border-radius: 0 !important; }
+    .rTab.on { color: #fff; }
+    #rFriAv { display: inline-flex; }
+    #rFriAv .sAv { width: 24px; height: 24px; font-size: 11px; margin-left: -8px; border: 2px solid #000; }
+    #rFriAv .sAv:first-child { margin-left: 0; }
+    .rAct svg { width: 29px; height: 29px; }
+    .rAct.like.on svg { fill: #ff2d55; stroke: #ff2d55; }
+    .rAct.save.on svg { fill: #fff; stroke: #fff; }
+    .rAct.rep.on svg { stroke: #35e08a; }
+    .rActs { gap: 16px; bottom: 70px; }
+    .rUserRow .sAv { border: 2px solid transparent; background: linear-gradient(#111,#111) padding-box, linear-gradient(135deg,#f59e0b,#ec4899,#a855f7) border-box; }
+    .rRepBy { font-size: 12.500px; opacity: 0.85; margin-bottom: 6px; }
+    .rMute { top: calc(62px + env(safe-area-inset-top)); bottom: auto; right: 14px; width: 34px; height: 34px; }
+    .rCap { -webkit-line-clamp: 1; }
+    /* the heart that breaks in two */
+    .hbreak { position: fixed; z-index: 400; pointer-events: none; font-size: 30px; line-height: 1; width: 34px; height: 34px; }
+    .hbreak span { position: absolute; inset: 0; display: block; }
+    .hbreak .l { clip-path: polygon(0 0, 52% 0, 44% 28%, 56% 50%, 46% 74%, 52% 100%, 0 100%); animation: hbL 0.95s ease-in forwards; transform-origin: 30% 90%; }
+    .hbreak .r { clip-path: polygon(52% 0, 100% 0, 100% 100%, 52% 100%, 46% 74%, 56% 50%, 44% 28%); animation: hbR 0.95s ease-in forwards; transform-origin: 70% 90%; }
+    @keyframes hbL { 0% { transform: translate(0,0) rotate(0); opacity: 1; } 25% { transform: translate(-3px,0) rotate(-6deg); opacity: 1; } 100% { transform: translate(-16px,46px) rotate(-38deg); opacity: 0; } }
+    @keyframes hbR { 0% { transform: translate(0,0) rotate(0); opacity: 1; } 25% { transform: translate(3px,0) rotate(6deg); opacity: 1; } 100% { transform: translate(16px,52px) rotate(38deg); opacity: 0; } }
+    /* groups button in chats */
+    #groupsBtn[hidden] { display: none !important; }
+    .grpFab { position: fixed; right: 18px; bottom: calc(var(--bottom) + 16px); width: 56px; height: 56px; padding: 0 !important; border-radius: 22px 22px 22px 8px !important; background: var(--grad) !important; border: none !important; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(236,72,153,0.4); z-index: 12; }
+    .grpFab svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #chatsPanel[hidden] .grpFab { display: none; }
+    /* chat header with calls */
+    .thHead, .gHead { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .gHead { margin: 4px 0 6px; }
+    .gHead h2 { flex: 1; margin: 0; font-size: 20px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .thActs { display: flex; gap: 6px; }
+    .ico2 { width: 40px; height: 40px; padding: 0 !important; margin: 0 !important; border-radius: 15px 15px 15px 5px !important; background: var(--surface2) !important; border: 1px solid var(--line) !important; display: flex; align-items: center; justify-content: center; }
+    .ico2 svg { width: 21px; height: 21px; fill: none; stroke: #fff; stroke-width: 1.900; stroke-linecap: round; stroke-linejoin: round; }
+    .onl { font-size: 12.500px; color: #35e08a; margin: 2px 4px 0; }
+    .onl::before { content: "●"; margin-right: 5px; font-size: 10px; }
+    .onl[hidden] { display: none; }
+    .gAvBtn { width: 44px; height: 44px; padding: 0 !important; margin: 0 !important; background: transparent !important; border: none !important; flex-shrink: 0; }
+    #gAv { display: block; width: 44px; height: 44px; }
+    #gAv .sAv, #gAv img { width: 44px; height: 44px; border-radius: 16px 16px 16px 5px; object-fit: cover; }
+    .gPicRow { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+    .gPicBtn { width: 58px; height: 58px; padding: 0 !important; margin: 0 !important; border-radius: 20px 20px 20px 7px !important; background: var(--surface2) !important; border: 1.500px dashed #555 !important; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .gPicBtn svg { width: 26px; height: 26px; fill: none; stroke: var(--muted); stroke-width: 1.800; stroke-linejoin: round; }
+    .gPicBtn img { width: 100%; height: 100%; object-fit: cover; }
+    .cMic { padding: 0 !important; margin: 0 !important; width: 38px; height: 38px; font-size: 19px; background: var(--surface2) !important; border: 1px solid var(--line) !important; border-radius: 15px 15px 15px 5px !important; flex-shrink: 0; }
+    .cMic.rec { background: #e5254f !important; animation: livePulse 1.200s infinite; }
+    .daySep { align-self: center; font-size: 12px; color: var(--muted); background: rgba(0,0,0,0.35); padding: 3px 12px; border-radius: 12px; margin: 6px 0 2px; }
+    .msg audio { height: 36px; max-width: 220px; display: block; }
+    .wpGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+    .wpSw { height: 92px; border-radius: 18px 18px 18px 6px !important; border: 2px solid transparent !important; padding: 0 !important; margin: 0 !important; display: flex; align-items: flex-end; justify-content: center; color: #fff; font-size: 12px; font-weight: 700; padding-bottom: 6px !important; text-shadow: 0 1px 5px #000; }
+    .wpSw.on { border-color: #fff !important; }
+    /* calls */
+    #cl { position: fixed; inset: 0; z-index: 200; background: #0b0b10; display: flex; flex-direction: column; }
+    #cl[hidden], #clIn[hidden] { display: none; }
+    #clGrid { flex: 1; min-height: 0; display: grid; gap: 6px; padding: 6px; grid-template-columns: 1fr; grid-auto-rows: 1fr; }
+    #clGrid.n2, #clGrid.n3, #clGrid.n4, #clGrid.n5 { grid-template-columns: 1fr 1fr; }
+    .clTile { position: relative; background: #18181f; border-radius: 26px 26px 26px 8px; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 0; }
+    .clTile video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .clTile .clAv { width: 96px; height: 96px; border-radius: 32px 32px 32px 10px; background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 42px; font-weight: 800; }
+    .clTile .clLbl { position: absolute; left: 12px; bottom: 10px; font-size: 14px; font-weight: 700; text-shadow: 0 1px 6px #000; z-index: 2; }
+    #clSelf { position: absolute; right: 14px; top: calc(70px + env(safe-area-inset-top)); width: 104px; height: 148px; object-fit: cover; border-radius: 20px 20px 20px 6px; border: 2px solid rgba(255,255,255,0.3); background: #000; z-index: 4; transform: scaleX(-1); }
+    #clSelf[hidden] { display: none; }
+    #clTop { position: absolute; top: calc(14px + env(safe-area-inset-top)); left: 16px; right: 16px; z-index: 4; display: flex; flex-direction: column; text-shadow: 0 1px 8px #000; }
+    #clTop b { font-size: 19px; }
+    #clTop span { font-size: 14px; opacity: 0.85; }
+    #clBar { display: flex; justify-content: center; gap: 16px; padding: 14px 10px calc(22px + env(safe-area-inset-bottom)); }
+    .clB { width: 58px; height: 58px; padding: 0 !important; margin: 0 !important; border-radius: 50% !important; background: #2a2a33 !important; border: none !important; display: flex; align-items: center; justify-content: center; }
+    .clB svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 1.900; stroke-linecap: round; stroke-linejoin: round; }
+    .clB.off { background: #fff !important; }
+    .clB.off svg { stroke: #111; }
+    .clB.end { background: #e5254f !important; }
+    .clB.ok { background: #1fbf6a !important; }
+    #clIn { position: fixed; inset: 0; z-index: 210; background: rgba(8,8,12,0.96); display: flex; align-items: center; justify-content: center; }
+    .clInBox { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+    #clInAv { width: 120px; height: 120px; border-radius: 40px 40px 40px 12px; background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 52px; font-weight: 800; overflow: hidden; margin-bottom: 8px; animation: livePulse 1.600s infinite; }
+    #clInAv img { width: 100%; height: 100%; object-fit: cover; }
+    .clInBox b { font-size: 24px; }
+    #clInKind { color: var(--muted); font-size: 15px; }
+    .clInBtns { display: flex; gap: 46px; margin-top: 40px; }
+    .clInBtns .clB { width: 68px; height: 68px; }
+    #bdBox { margin-bottom: 4px; }
+    .bdLbl { margin: 0 0 6px; font-size: 13.500px; color: var(--muted); text-align: left; }
+    #forgotBtn[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -698,7 +790,7 @@
     <button id="postsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
     <button id="reelsBtn" type="button"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg>Reels</button>
     <button id="chatsBtn" type="button"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg>Chats</button>
-    <button id="groupsBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.400 6.500 6"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 14.300c2 .8 3.500 2.600 3.500 5.700"/></svg>Groups</button>
+    <button id="groupsBtn" type="button" hidden><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 3-6 6.5-6s6.5 2.400 6.500 6"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 14.300c2 .8 3.500 2.600 3.500 5.700"/></svg>Groups</button>
     <button id="profileBtn" type="button"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.400 3.600-7 8-7s8 2.600 8 7"/></svg>Me</button>
   </nav>
 
@@ -708,12 +800,17 @@
       <img class="logoBig" src="/logo.svg" alt="Twik Chat" />
       <h2 id="authTitle">Log in</h2>
       <p class="sub" id="authSub">Welcome back! Enter your details.</p>
+      <div id="bdBox" hidden>
+        <p class="bdLbl">Your birthday</p>
+        <div class="bdRow"><select id="bdM" aria-label="Month"></select><select id="bdD" aria-label="Day"></select><select id="bdY" aria-label="Year"></select></div>
+      </div>
       <input id="username" type="text" placeholder="Username" maxlength="20" autocomplete="nickname" hidden />
       <input id="email" type="email" placeholder="Email" autocomplete="email" required />
       <div class="pwWrap">
         <input id="password" type="password" placeholder="Password (at least 6 characters)" autocomplete="current-password" minlength="6" required />
         <button type="button" id="pwToggle" class="pwEye" aria-label="Show password" title="Show password"></button>
       </div>
+      <button type="button" id="forgotBtn" class="linkBtn">Forgot password?</button>
       <p id="authMsg"></p>
       <button type="button" id="resendBtn" class="linkBtn" hidden>Send the confirmation email again</button>
       <button class="main" id="authBtn" type="submit">Log in</button>
@@ -778,9 +875,6 @@
         <button class="mini back" type="button" data-back>← Back</button>
         <h2>Settings</h2>
         <button class="wide" id="pPrivacy" type="button">Loading...</button>
-        <h3>Follow someone</h3>
-        <input id="pFollowInput" type="text" placeholder="Their username" autocomplete="off" />
-        <button class="wide" id="pFollowBtn" type="button">Follow</button>
         <p id="pMsg"></p>
         <h3>Follow requests</h3>
         <ul id="pReqList"></ul>
@@ -789,6 +883,8 @@
         <button class="wide" id="pwOpen" type="button">Change password</button>
         <button class="wide" id="blkOpen" type="button">Blocked accounts</button>
         <button class="wide" id="logoutAll" type="button">Log out of all devices</button>
+        <h3>About Twik</h3>
+        <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
         <button class="close" id="pClose" type="button" hidden>Close</button>
@@ -878,9 +974,12 @@
   <div id="groupsPanel" hidden>
     <div class="sheet">
       <div id="gList">
+        <button class="mini" id="gToChats" type="button">← Chats</button>
         <h2>👥 Groups</h2>
         <ul id="gItems"></ul>
         <h3>Create a group</h3>
+        <div class="gPicRow"><button id="gPicBtn" class="gPicBtn" type="button" aria-label="Add a group picture"><span id="gPicPrev"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.500h6L17 8h3v11H4z"/><circle cx="12" cy="13.500" r="3.200"/></svg></span></button><span class="hint">Add a group picture</span></div>
+        <input id="gPicFile" type="file" accept="image/*" hidden />
         <input id="gName" type="text" maxlength="40" placeholder="Group name" autocomplete="off" />
         <input id="gMembers" type="text" placeholder="Usernames, separated by commas" autocomplete="off" />
         <button class="wide" id="gCreate" type="button">Create group</button>
@@ -889,7 +988,16 @@
       </div>
 
       <div id="gChat" hidden>
-        <h2 id="gTitle"></h2>
+        <div class="gHead">
+          <button id="gAvBtn" class="gAvBtn" type="button" aria-label="Group picture"><span id="gAv" data-notr></span></button>
+          <h2 id="gTitle" data-notr></h2>
+          <span class="thActs">
+            <button id="gCallA" class="ico2" type="button" aria-label="Voice call"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
+            <button id="gCallV" class="ico2" type="button" aria-label="Video call"><svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/></svg></button>
+            <button id="gTheme" class="ico2" type="button" aria-label="Chat theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.500-2.400H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.100"/><circle cx="10" cy="7.200" r="1.100"/><circle cx="14.500" cy="7.200" r="1.100"/></svg></button>
+          </span>
+        </div>
+        <input id="gPicChange" type="file" accept="image/*" hidden />
         <div class="counts" id="gMembersLine"></div>
         <div id="gAdd" hidden>
           <input id="gAddInput" type="text" placeholder="Add a member by username" autocomplete="off" />
@@ -926,6 +1034,7 @@
           <p id="cMsg"></p>
         </div>
         <div id="notesRow" class="notesRow"></div>
+        <button id="grpFab" class="grpFab" type="button" aria-label="Groups"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c0-3.600 3-6 6.500-6s6.500 2.400 6.500 6"/><path d="M16 4.500a3.500 3.500 0 0 1 0 7M18 14.300c2 .8 3.500 2.600 3.500 5.700"/></svg></button>
         <div class="cTabs">
           <button type="button" id="cTabMsgs" class="on">Messages</button>
           <button type="button" id="cTabReq">Requests</button>
@@ -938,11 +1047,20 @@
       </div>
 
       <div id="cThread" hidden>
-        <button class="mini" id="cBack" type="button">← Back</button>
+        <div class="thHead">
+          <button class="mini" id="cBack" type="button">← Back</button>
+          <span class="thActs">
+            <button id="cCallA" class="ico2" type="button" aria-label="Voice call"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
+            <button id="cCallV" class="ico2" type="button" aria-label="Video call"><svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/></svg></button>
+            <button id="cTheme" class="ico2" type="button" aria-label="Chat theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.500-2.400H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.100"/><circle cx="10" cy="7.200" r="1.100"/><circle cx="14.500" cy="7.200" r="1.100"/></svg></button>
+          </span>
+        </div>
+        <div id="cOnline" class="onl" hidden>Active now</div>
         <div id="cMessages"></div>
         <div id="cTyping" class="typing" hidden>typing…</div>
         <form id="cForm">
           <label class="cPick" title="Send a photo">📷<input id="cFile" type="file" accept="image/*" hidden /></label>
+          <button id="cMic" class="cMic" type="button" aria-label="Voice message">🎤</button>
           <input id="cInput" type="text" placeholder="Type a message or paste a link" autocomplete="off" />
           <button type="submit">Send</button>
         </form>
@@ -955,12 +1073,15 @@
 
   <!-- Reels panel -->
   <div id="reelsPanel" hidden>
-    <div class="reelsBar">
-      <strong>🎬 Reels</strong>
-      <span>
-        <button id="rUploadToggle" type="button">+ Post</button>
-        <button id="rClose" type="button">Close</button>
-      </span>
+    <div class="rHead">
+      <button id="rBackBtn" class="rHB" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></button>
+      <div class="rTabs">
+        <button id="rTabAll" class="rTab on" type="button">Reels</button>
+        <button id="rTabFri" class="rTab" type="button"><span>Friends</span><span id="rFriAv" data-notr></span></button>
+      </div>
+      <button id="rFilter" class="rHB" type="button" aria-label="Reels options"><svg viewBox="0 0 24 24"><path d="M3 8h8M17 8h4M3 16h3M12 16h9"/><circle cx="14" cy="8" r="2.600"/><circle cx="9" cy="16" r="2.600"/></svg></button>
+      <button id="rUploadToggle" type="button" hidden>+ Post</button>
+      <button id="rClose" type="button" hidden>Close</button>
     </div>
     <div id="rUpload" hidden>
       <input id="rFile" type="file" accept="video/*" />
@@ -997,6 +1118,27 @@
   </div>
 
   <input id="stFile" type="file" accept="image/*,video/*" hidden />
+
+  <!-- Calls -->
+  <div id="cl" hidden>
+    <div id="clGrid"></div>
+    <video id="clSelf" muted playsinline autoplay hidden></video>
+    <div id="clTop"><b id="clName" data-notr></b><span id="clStatus" data-notr></span></div>
+    <div id="clBar">
+      <button id="clMute" class="clB" type="button" aria-label="Mute"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <button id="clCam" class="clB" type="button" aria-label="Camera"><svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/></svg></button>
+      <button id="clFlip" class="clB" type="button" aria-label="Flip"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></svg></button>
+      <button id="clEnd" class="clB end" type="button" aria-label="End call"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1.500V13a12 12 0 0 0-6 0v2.500L5 17z"/></svg></button>
+    </div>
+  </div>
+  <div id="clIn" hidden>
+    <div class="clInBox">
+      <div id="clInAv" data-notr></div>
+      <b id="clInName" data-notr></b>
+      <span id="clInKind"></span>
+      <div class="clInBtns"><button id="clDecline" class="clB end" type="button" aria-label="Decline"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1.500V13a12 12 0 0 0-6 0v2.500L5 17z"/></svg></button><button id="clAccept" class="clB ok" type="button" aria-label="Accept"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button></div>
+    </div>
+  </div>
 
   <!-- Create screen: Post / Story / Reel / Live -->
   <div id="mk" hidden>
@@ -1156,6 +1298,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (async function () {
+      const RECOVERY = /type=recovery/.test(location.hash);
       const $ = (id) => document.getElementById(id);
 
       // Ask our server for the public login settings
@@ -1178,6 +1321,52 @@
         return /(Z|[+-]\d\d:?\d\d)$/.test(t) ? new Date(t) : new Date(t.replace(" ", "T") + "Z");
       };
       const clock = (iso) => T(iso).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+      // the server's clock, so a phone with a wrong date or time still shows correct "ago" and "unread"
+      let srvOff = 0;
+      const nowMs = () => Date.now() + srvOff;
+      const nowISO = () => new Date(nowMs()).toISOString();
+      const dayKey = (iso) => { const d = T(iso); return d.getFullYear() + "-" + d.getMonth() + "-" + d.getDate(); };
+      function dayLabel(iso) {
+        const d = T(iso), n = new Date(nowMs());
+        const diff = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+        const loc = (typeof I18N !== "undefined" && I18N.lang) || undefined;
+        if (diff === 0) return trW("Today");
+        if (diff === 1) return trW("Yesterday");
+        try {
+          if (diff > 1 && diff < 7) return d.toLocaleDateString(loc, { weekday: "long" });
+          return d.toLocaleDateString(loc, { day: "numeric", month: "short", year: d.getFullYear() === n.getFullYear() ? undefined : "numeric" });
+        } catch (e) { return d.toDateString(); }
+      }
+      function convoTime(iso) {
+        const d = T(iso), n = new Date(nowMs());
+        const diff = Math.round((new Date(n.getFullYear(), n.getMonth(), n.getDate()) - new Date(d.getFullYear(), d.getMonth(), d.getDate())) / 86400000);
+        if (diff <= 0) return clock(iso);
+        if (diff === 1) return trW("Yesterday");
+        try {
+          const loc = (typeof I18N !== "undefined" && I18N.lang) || undefined;
+          if (diff < 7) return d.toLocaleDateString(loc, { weekday: "short" });
+          return d.toLocaleDateString(loc, { day: "numeric", month: "short" });
+        } catch (e) { return ""; }
+      }
+      function daySep(box, iso) {
+        const k = dayKey(iso);
+        if (box.dataset.lastDay === k) return;
+        box.dataset.lastDay = k;
+        const d = document.createElement("div");
+        d.className = "daySep";
+        d.textContent = dayLabel(iso);
+        box.appendChild(d);
+      }
+      async function syncClock() {
+        try {
+          const t0 = Date.now();
+          const r = await fetch("/api/time", { cache: "no-store" });
+          const d = await r.json();
+          const t1 = Date.now();
+          const off = new Date(d.now).getTime() - (t0 + t1) / 2;
+          if (isFinite(off)) srvOff = off;
+        } catch (e) {}
+      }
 
       // v17: small saved copy of feeds so pages open instantly
       const ckey = (n) => "twik_c_" + (me ? me.id : "x") + "_" + n;
@@ -1383,6 +1572,9 @@
         $("switch").textContent = isSignUp
           ? "Already have an account? Log in"
           : "New here? Create an account";
+        $("bdBox").hidden = !isSignUp;
+        $("forgotBtn").hidden = isSignUp;
+        if (isSignUp) fillBirthdayPickers();
         $("username").hidden = !isSignUp;
         $("username").required = isSignUp;
         $("password").autocomplete = isSignUp ? "new-password" : "current-password";
@@ -1441,12 +1633,17 @@
               showMsg("Username must be at least 2 characters.");
               return;
             }
+            const bm = $("bdM").value, bd = $("bdD").value, by = $("bdY").value;
+            if (!bm || !bd || !by) { showMsg(trW("Please choose your birthday.")); return; }
+            const born = new Date(Number(by), Number(bm) - 1, Number(bd));
+            const age = (nowMs() - born.getTime()) / 31557600000;
+            if (born.getMonth() !== Number(bm) - 1 || age < 13) { showMsg(trW(born.getMonth() !== Number(bm) - 1 ? "Please choose your birthday." : "You must be at least 13 to use Twik.")); return; }
             const bad = pwProblem(password, username, email);
             if (bad) { showMsg(bad); return; }
             const { data, error } = await sb.auth.signUp({
               email,
               password,
-              options: { data: { username } },
+              options: { data: { username, birthday: bm + "-" + bd, birth_year: Number(by) } },
             });
             if (error) { showMsg(error.message); return; }
             // Supabase hides "already used" emails by returning a user with no identities
@@ -1588,6 +1785,7 @@
 
         socket.on("dm", onDm);
         initLiveSocket();
+        initCallSocket();
         let typingT = null;
         socket.on("typing", (d) => {
           if (peer && d && d.from === peer.id) {
@@ -2206,7 +2404,7 @@
 
       // ---------- Notifications ----------
       function ago(iso) {
-        const sec = Math.max(1, Math.floor((Date.now() - T(iso).getTime()) / 1000));
+        const sec = Math.max(1, Math.floor((nowMs() - T(iso).getTime()) / 1000));
         if (sec < 60) return "now";
         if (sec < 3600) return Math.floor(sec / 60) + "m";
         if (sec < 86400) return Math.floor(sec / 3600) + "h";
@@ -2504,13 +2702,6 @@
         loadProfile();
       });
 
-      $("pFollowBtn").addEventListener("click", async () => {
-        const username = $("pFollowInput").value;
-        const r = await api("/api/follow", "POST", { username });
-        $("pMsg").textContent = r.message || r.error || "";
-        $("pFollowInput").value = "";
-        loadProfile();
-      });
 
       // ---------- Groups ----------
       let currentGroup = null;
@@ -2529,6 +2720,7 @@
         time.textContent = clock(m.time);
         div.append(name, text, time);
         const box = $("gMessages");
+        daySep(box, m.time);
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
       }
@@ -2547,7 +2739,7 @@
 
       async function loadGroups() {
         const d = await api("/api/groups");
-        fill("gItems", (d.groups || []).map((g) => row(g.name, [["Open", () => openGroup(g)]])));
+        fill("gItems", (d.groups || []).map((g) => row(g.name, [["Open", () => openGroup(g)]], g.avatar, g.name)));
       }
 
       async function openGroup(g) {
@@ -2559,6 +2751,9 @@
         $("gAdd").hidden = !g.mine;
         $("gAddMsg").textContent = "";
         $("gMessages").innerHTML = "";
+        $("gMessages").dataset.lastDay = "";
+        setGroupHeader(g);
+        applyWall($("gMessages"), wallGet("g:" + g.id));
         socket.emit("group join", { groupId: g.id });
         const d = await api("/api/groups/" + g.id + "/messages");
         if (d.error) { $("gMembersLine").textContent = d.error; return; }
@@ -2584,10 +2779,40 @@
         $("gList").hidden = false;
         loadGroups();
       });
+      let newGroupPic = null;
+      async function uploadGroupPic(file) {
+        const pre = await shrinkImage(file, 512);
+        const up = await api("/api/groups/upload-url", "POST", { ext: ["jpg", "jpeg", "png", "webp"].indexOf(pre.ext) >= 0 ? pre.ext : "jpg" });
+        if (up.error) throw new Error(up.error);
+        const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || "image/jpeg" });
+        if (error) throw error;
+        return up.path;
+      }
+      $("gPicBtn").addEventListener("click", () => $("gPicFile").click());
+      $("gPicFile").addEventListener("change", () => {
+        const f = $("gPicFile").files[0];
+        $("gPicFile").value = "";
+        if (!f || f.type.indexOf("image/") !== 0) return;
+        newGroupPic = f;
+        $("gPicPrev").innerHTML = "";
+        const im = document.createElement("img");
+        im.src = URL.createObjectURL(f); im.alt = "";
+        $("gPicPrev").appendChild(im);
+      });
       $("gCreate").addEventListener("click", async () => {
-        const r = await api("/api/groups", "POST", { name: $("gName").value, usernames: $("gMembers").value });
-        $("gMsg").textContent = r.message || r.error || "";
-        if (r.id) { $("gName").value = ""; $("gMembers").value = ""; }
+        $("gCreate").disabled = true;
+        try {
+          let picture = "";
+          if (newGroupPic) { $("gMsg").textContent = "Uploading picture..."; picture = await uploadGroupPic(newGroupPic); }
+          const r = await api("/api/groups", "POST", { name: $("gName").value, usernames: $("gMembers").value, picture });
+          $("gMsg").textContent = r.message || r.error || "";
+          if (r.id) {
+            $("gName").value = ""; $("gMembers").value = ""; newGroupPic = null;
+            $("gPicPrev").innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.500h6L17 8h3v11H4z"/><circle cx="12" cy="13.500" r="3.200"/></svg>';
+          }
+        } catch (e) {
+          $("gMsg").textContent = "Could not upload the picture: " + (e.message || "try again.");
+        } finally { $("gCreate").disabled = false; }
         loadGroups();
       });
       $("gAddBtn").addEventListener("click", async () => {
@@ -2681,6 +2906,10 @@
           } else {
             div.appendChild(document.createTextNode("📷 This photo is no longer available"));
           }
+        } else if (m.kind === "audio") {
+          const a = document.createElement("audio");
+          a.controls = true; a.preload = "none"; a.src = m.audio || "";
+          div.appendChild(a);
         } else if (m.kind === "post") {
           if (m.post && m.post.url) {
             const card = document.createElement("div");
@@ -2727,6 +2956,7 @@
 
       function addToThread(m) {
         const box = $("cMessages");
+        daySep(box, m.time);
         box.appendChild(bubble(m));
         box.scrollTop = box.scrollHeight;
       }
@@ -2736,10 +2966,9 @@
       function renderThread(msgs) {
         const box = $("cMessages");
         box.innerHTML = "";
-        const frag = document.createDocumentFragment();
-        msgs.forEach((m) => frag.appendChild(bubble(m)));
-        box.appendChild(frag);
-        Object.keys(pendingMsgs).forEach((cid) => { if (peer && pendingMsgs[cid].to === peer.id) box.appendChild(pendingMsgs[cid].el); });
+        box.dataset.lastDay = "";
+        msgs.forEach((m) => { daySep(box, m.time); box.appendChild(bubble(m)); });
+        Object.keys(pendingMsgs).forEach((cid) => { if (peer && pendingMsgs[cid].to === peer.id) { daySep(box, pendingMsgs[cid].m ? pendingMsgs[cid].m.time : nowISO()); box.appendChild(pendingMsgs[cid].el); } });
         box.scrollTop = box.scrollHeight;
         updateSeen();
       }
@@ -2750,7 +2979,7 @@
       const dmKey = () => "twik_dmread_" + (me ? me.id : "x");
       function getRead() { try { return JSON.parse(localStorage.getItem(dmKey()) || "null"); } catch (e) { return null; } }
       function setRead(m) { try { localStorage.setItem(dmKey(), JSON.stringify(m)); } catch (e) {} }
-      function markRead(peerId) { const m = getRead() || {}; m[peerId] = new Date().toISOString(); setRead(m); }
+      function markRead(peerId) { const m = getRead() || {}; m[peerId] = nowISO(); setRead(m); }
 
       function showList() {
         peer = null;
@@ -2793,7 +3022,7 @@
           const pv = document.createElement("div");
           pv.className = "cPrev";
           const t = (c.mine ? "You: " : "") + c.text;
-          pv.textContent = (t.length > 34 ? t.slice(0, 34) + "…" : t) + " · " + ago(c.time);
+          pv.textContent = (t.length > 30 ? t.slice(0, 30) + "…" : t) + " · " + convoTime(c.time);
           mid.append(nm, pv);
           li.append(av, mid);
           if (unread) { const d = document.createElement("span"); d.className = "cDot"; li.appendChild(d); }
@@ -3048,6 +3277,8 @@
         $("cList").hidden = true;
         $("cThread").hidden = false;
         $("cTyping").hidden = true;
+        applyWall($("cMessages"), wallGet("dm:" + p.id));
+        checkOnline(p.id);
         const cached = threads[p.id];
         renderThread(cached || []);
         const data = await api("/api/dms/" + p.id);
@@ -3114,7 +3345,7 @@
         const text = $("cInput").value;
         if (!text.trim() || !peer || !socket) return;
         const cid = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-        const m = { from: me.id, to: peer.id, text, time: new Date().toISOString(), cid };
+        const m = { from: me.id, to: peer.id, text, time: nowISO(), cid };
         const el = bubble(m);
         el.classList.add("pending");
         pendingMsgs[cid] = { to: peer.id, el };
@@ -3239,6 +3470,7 @@
           const was = { liked, likes };
           liked = !liked;
           likes += liked ? 1 : -1;
+          if (!liked) heartBreak(like);
           paint();
           const r = await api(isReel ? "/api/reels/like" : "/api/posts/like", "POST", isReel ? { reel_id: p.id } : { post_id: p.id });
           if (r.error) { liked = was.liked; likes = was.likes; paint(); return; }
@@ -3520,6 +3752,8 @@
       const fmtN = (n) => (n >= 1e6 ? (n / 1e6).toFixed(1).replace(".0", "") + "M" : n >= 1e3 ? (n / 1e3).toFixed(1).replace(".0", "") + "K" : String(n || 0));
       const ICON_HEART = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.6 4.5 6.9 4.5c2 0 3.7 1.1 5.1 3 1.4-1.9 3.1-3 5.1-3 3.3 0 5.3 3.1 4.1 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
       const ICON_COMMENT = '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20.5l1.5-5A8.5 8.5 0 1 1 21 11.5z"/></svg>';
+      const ICON_REPOST = '<svg viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>';
+      const ICON_LINES = '<svg viewBox="0 0 24 24"><path d="M5 8h14M5 14h9"/></svg>';
       const ICON_SEND = '<svg viewBox="0 0 24 24"><path d="M21.5 3 10.5 14M21.5 3l-7 18-4-7-7-4z"/></svg>';
 
       // Comments for a reel (a sheet that slides up)
@@ -3599,20 +3833,38 @@
         acts.className = "rActs";
         const likeB = document.createElement("button");
         likeB.type = "button";
-        likeB.className = "rAct";
+        likeB.className = "rAct like";
         const comB = document.createElement("button");
         comB.type = "button";
         comB.className = "rAct";
+        const repB = document.createElement("button");
+        repB.type = "button"; repB.className = "rAct rep";
         const sendB = document.createElement("button");
-        sendB.type = "button";
-        sendB.className = "rAct";
-        sendB.innerHTML = ICON_SEND + "<span>Send</span>";
+        sendB.type = "button"; sendB.className = "rAct";
         const saveB = document.createElement("button");
-        saveB.type = "button";
-        saveB.className = "rAct" + (r.saved ? " on saved" : "");
-        saveB.innerHTML = ICON_SAVE + "<span>Save</span>";
-        saveB.onclick = (e) => { e.stopPropagation(); r.kind = "reel"; toggleSave(r, saveB); saveB.classList.toggle("saved", !!r.saved); };
-        acts.append(likeB, comB, sendB, saveB);
+        saveB.type = "button"; saveB.className = "rAct save";
+        const paintSave = () => { saveB.classList.toggle("on", !!r.saved); saveB.innerHTML = ICON_SAVE + "<span>" + fmtN(r.saves || 0) + "</span>"; };
+        const paintRep = () => { repB.classList.toggle("on", !!r.reposted); repB.innerHTML = ICON_REPOST + "<span>" + fmtN(r.reposts || 0) + "</span>"; };
+        sendB.innerHTML = ICON_SEND + "<span>" + fmtN(r.shares || 0) + "</span>";
+        paintSave(); paintRep();
+        saveB.onclick = async (e) => {
+          e.stopPropagation();
+          r.kind = "reel";
+          const before = !!r.saved;
+          await toggleSave(r, saveB);
+          if (!!r.saved !== before) r.saves = Math.max(0, (r.saves || 0) + (r.saved ? 1 : -1));
+          paintSave();
+        };
+        repB.onclick = async (e) => {
+          e.stopPropagation();
+          const was = !!r.reposted;
+          r.reposted = !was; r.reposts = Math.max(0, (r.reposts || 0) + (was ? -1 : 1)); paintRep();
+          const res = await api("/api/reels/repost", "POST", { reel_id: r.id });
+          if (res.error) { r.reposted = was; r.reposts = Math.max(0, (r.reposts || 0) + (was ? 1 : -1)); paintRep(); toast(res.error); return; }
+          r.reposted = res.reposted; r.reposts = res.reposts; paintRep();
+          toast(r.reposted ? "Reposted ✓" : "Repost removed");
+        };
+        acts.append(likeB, comB, repB, sendB, saveB);
 
         let liked = !!r.liked, likes = r.likes || 0;
         const paintLike = () => {
@@ -3627,6 +3879,7 @@
           const was = { liked, likes };
           liked = !liked;
           likes += liked ? 1 : -1;
+          if (!liked) heartBreak(likeB);
           paintLike();
           const res = await api("/api/reels/like", "POST", { reel_id: r.id });
           if (res.error) { liked = was.liked; likes = was.likes; paintLike(); return; }
@@ -3641,7 +3894,7 @@
           const d = document.createElement("button");
           d.type = "button";
           d.className = "rAct";
-          d.innerHTML = '<span class="dots">⋯</span>';
+          d.innerHTML = ICON_LINES;
           d.onclick = async (e) => {
             e.stopPropagation();
             if (!confirm("Delete this reel?")) return;
@@ -3657,7 +3910,7 @@
           const d = document.createElement("button");
           d.type = "button";
           d.className = "rAct";
-          d.innerHTML = '<span class="dots">⋯</span>';
+          d.innerHTML = ICON_LINES;
           d.onclick = (e) => { e.stopPropagation(); moreMenu({ kind: "reel", id: r.id, username: r.username }); };
           acts.appendChild(d);
         }
@@ -3665,6 +3918,7 @@
         // Bottom: who posted it + caption
         const bottom = document.createElement("div");
         bottom.className = "rBottom";
+        if (r.reposted_by) { const rb = document.createElement("div"); rb.className = "rRepBy"; rb.setAttribute("data-notr", ""); rb.textContent = "🔁 @" + r.reposted_by; bottom.appendChild(rb); }
         const row = document.createElement("div");
         row.className = "rUserRow";
         const av = smallAvatar(r.avatar, r.username);
@@ -3785,7 +4039,8 @@
         feed.innerHTML = "";
         if (observer) observer.disconnect();
         if (!reels.length) {
-          feed.innerHTML = '<div class="reelsEmpty">No reels yet. Tap "+ Post" to add the first one!</div>';
+          feed.innerHTML = '<div class="reelsEmpty"></div>';
+          feed.firstChild.textContent = reelsTab === "friends" ? "No reels from your friends yet. Follow people to see their reels here." : "No reels yet. Tap the + on Home to add the first one!";
           return;
         }
         // Play the reel you are looking at, pause the others
@@ -3806,8 +4061,16 @@
           observer.observe(card);
         });
       }
+      let reelsTab = "all";
       async function loadReels(force) {
         const feed = $("rFeed");
+        if (reelsTab === "friends") {
+          const fd = await api("/api/reels?friends=1");
+          if (reelsTab !== "friends") return;
+          if (fd.error) { feed.innerHTML = '<div class="reelsEmpty"></div>'; feed.firstChild.textContent = fd.error; return; }
+          renderReels(fd.reels || []);
+          return;
+        }
         if (!reelsList && !feed.children.length) {
           const c = cget("reels");
           if (c) { reelsList = c; reelsDisk = true; renderReels(c); }
@@ -3826,6 +4089,7 @@
 
       $("reelsBtn").addEventListener("click", () => {
         $("reelsPanel").hidden = false;
+        loadFriendAv();
         const feed = $("rFeed");
         loadReels();
         feed.scrollTop = rScroll;
@@ -3864,12 +4128,12 @@
 
 
       // ================= v21: languages =================
-      const LANG_LIST = "af:Afrikaans,sq:Albanian,am:Amharic,ar:Arabic,hy:Armenian,az:Azerbaijani,eu:Basque,be:Belarusian,bn:Bengali,bs:Bosnian,bg:Bulgarian,ca:Catalan,ceb:Cebuano,zh-CN:Chinese (Simplified),zh-TW:Chinese (Traditional),co:Corsican,hr:Croatian,cs:Czech,da:Danish,nl:Dutch,en:English,eo:Esperanto,et:Estonian,fi:Finnish,fr:French,fy:Frisian,gl:Galician,ka:Georgian,de:German,el:Greek,gu:Gujarati,ht:Haitian Creole,ha:Hausa,haw:Hawaiian,he:Hebrew,hi:Hindi,hmn:Hmong,hu:Hungarian,is:Icelandic,ig:Igbo,id:Indonesian,ga:Irish,it:Italian,ja:Japanese,jv:Javanese,kn:Kannada,kk:Kazakh,km:Khmer,rw:Kinyarwanda,ko:Korean,ku:Kurdish,ky:Kyrgyz,lo:Lao,la:Latin,lv:Latvian,lt:Lithuanian,lb:Luxembourgish,mk:Macedonian,mg:Malagasy,ms:Malay,ml:Malayalam,mt:Maltese,mi:Maori,mr:Marathi,mn:Mongolian,my:Myanmar (Burmese),ne:Nepali,no:Norwegian,ny:Nyanja (Chichewa),or:Odia (Oriya),ps:Pashto,fa:Persian,pl:Polish,pt:Portuguese,pa:Punjabi,ro:Romanian,ru:Russian,sm:Samoan,gd:Scots Gaelic,sr:Serbian,st:Sesotho,sn:Shona,sd:Sindhi,si:Sinhala,sk:Slovak,sl:Slovenian,so:Somali,es:Spanish,su:Sundanese,sw:Swahili,sv:Swedish,tl:Filipino (Tagalog),tg:Tajik,ta:Tamil,tt:Tatar,te:Telugu,th:Thai,tr:Turkish,tk:Turkmen,uk:Ukrainian,ur:Urdu,ug:Uyghur,uz:Uzbek,vi:Vietnamese,cy:Welsh,xh:Xhosa,yi:Yiddish,yo:Yoruba,zu:Zulu".split(",").map((x) => { const i = x.indexOf(":"); return { code: x.slice(0, i), en: x.slice(i + 1) }; });
+      const LANG_LIST = "af:Afrikaans,sq:Albanian,am:Amharic,ar:Arabic,hy:Armenian,az:Azerbaijani,eu:Basque,be:Belarusian,bn:Bengali,bs:Bosnian,bg:Bulgarian,ca:Catalan,ceb:Cebuano,zh-CN:Chinese (Simplified),zh-TW:Chinese (Traditional),co:Corsican,hr:Croatian,cs:Czech,da:Danish,nl:Dutch,en:English,eo:Esperanto,et:Estonian,fi:Finnish,fr:French,fy:Frisian,gl:Galician,ka:Georgian,de:German,el:Greek,gu:Gujarati,ht:Haitian Creole,ha:Hausa,haw:Hawaiian,he:Hebrew,hi:Hindi,hmn:Hmong,hu:Hungarian,is:Icelandic,ig:Igbo,id:Indonesian,ga:Irish,it:Italian,ja:Japanese,jv:Javanese,kn:Kannada,kk:Kazakh,km:Khmer,rw:Kinyarwanda,rn:Kirundi,ko:Korean,ku:Kurdish,ky:Kyrgyz,lo:Lao,la:Latin,lv:Latvian,lt:Lithuanian,lb:Luxembourgish,mk:Macedonian,mg:Malagasy,ms:Malay,ml:Malayalam,mt:Maltese,mi:Maori,mr:Marathi,mn:Mongolian,my:Myanmar (Burmese),ne:Nepali,no:Norwegian,ny:Nyanja (Chichewa),or:Odia (Oriya),ps:Pashto,fa:Persian,pl:Polish,pt:Portuguese,pa:Punjabi,ro:Romanian,ru:Russian,sm:Samoan,gd:Scots Gaelic,sr:Serbian,st:Sesotho,sn:Shona,sd:Sindhi,si:Sinhala,sk:Slovak,sl:Slovenian,so:Somali,es:Spanish,su:Sundanese,sw:Swahili,sv:Swedish,tl:Filipino (Tagalog),tg:Tajik,ta:Tamil,tt:Tatar,te:Telugu,th:Thai,tr:Turkish,tk:Turkmen,uk:Ukrainian,ur:Urdu,ug:Uyghur,uz:Uzbek,vi:Vietnamese,cy:Welsh,xh:Xhosa,yi:Yiddish,yo:Yoruba,zu:Zulu".split(",").map((x) => { const i = x.indexOf(":"); return { code: x.slice(0, i), en: x.slice(i + 1) }; });
       const LANG_EN = {};
       LANG_LIST.forEach((l) => { LANG_EN[l.code] = l.en; });
       const RTL_LANGS = ["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"];
-      const I18N_KEYS = ["+ Post", "Accepted ✓", "Add", "Add a comment...", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Back", "Back online", "Bio", "Birthday 🎂", "Blocked accounts", "Camera not available", "Camera not available. You can choose from your gallery.", "Cancel", "Caption (optional)", "Change password", "Change picture", "Chat", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose from gallery", "Close", "Comments", "Copy text", "Create a group", "Create account", "Create group", "Current password", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit profile", "Edit your note", "Email", "End live", "Everyone", "Explore", "False information", "Find people", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group name", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Home", "LIVE", "Language and translations", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Message", "Messages", "More", "Name", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Spam or scam", "Start a chat: their username", "Start chat", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Waiting for video...", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "You can't message this person.", "You haven't blocked anyone.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story"];
-      const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."}};
+      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story"];
+      const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."},"rn":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Jewe","Settings":"Amagenamiterere","Search":"Rondera","Search people":"Rondera abantu","Find people":"Shakira abantu","Explore":"Raba","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ivyatangajwe","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'umukoresha","Email":"Imeyili","Close":"Funga","Cancel":"Reka","Save":"Bika","Saved":"Vyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Tangaza","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ivyiyumviro","Add a comment...":"Tanga ivyiyumviro...","Like":"Kunda","More":"Vyinshi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ivyabanje","Notifications":"Amatangazo","Security":"Umutekano","Change password":"Hindura ijambo ry'ibanga","Blocked accounts":"Konti zifunzwe","Log out of all devices":"Sohoka kuri vyose","Delete my account":"Futa konti yanje","Loading...":"Biriko biraza...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshasha","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ivyasabwe","Bio":"Ivyerekeye jewe","Name":"Izina","Caption (optional)":"Amajambo asigura (si ngombwa)","Write a caption...":"Andika amajambo asigura...","Search by username":"Rondera ukoresheje izina","Follow requests":"Ivyasabwe vyo kukurikira","Welcome back! Enter your details.":"Karabaye! Andika amakuru yawe.","New here? Create an account":"Uri mushasha? Fungura konti","Already have an account? Log in":"Usanzwe ufise konti? Injira","Unblock":"Fungura","Delete":"Futa","Report account":"Tanga akarego kuri konti","Seen":"Vyarabonetse","Copy text":"Kopa amajambo","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamwo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Sobanura amajambo asigura","Everyone":"Bose","Friends":"Inshuti","POST":"IVYATANGAJWE","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshasha","New post":"Igitangazwa gishasha","Go live":"Tangura live","End live":"Rangiza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamwo muri galeri","Say something...":"Vuga ikintu...","Watching":"Barabona","Who can watch?":"Ni nde ashobora kubona?","Create a reel":"Kora reel","Refresh":"Subiramwo","Call":"Hamagara","Voice call":"Guhamagara mu majwi","Video call":"Guhamagara mu mashusho","Calling…":"Biriko biraraza…","Ringing…":"Biriko biraraba…","Connecting…":"Biriko biraraba…","Incoming voice call":"Hari akuhamagaye mu majwi","Incoming video call":"Hari akuhamagaye mu mashusho","Incoming group call":"Hari itsinda ribahamagaye","Accept":"Emera","Decline":"Anka","Mute":"Zimya","Unmute":"Vyura","Camera off":"Zimya kamera","Camera on":"Rahura kamera","Flip":"Hindura","End call":"Rangiza guhamagara","Call ended":"Guhamagara kurarangiye","No answer":"Nta wavyishuye","declined the call":"yanse guhamagara","This call is full.":"Uguhamagara kuzuye.","Could not use the microphone or camera.":"Ntivyashobotse gukoresha mikoro canke kamera.","Group call":"Guhamagara mu itsinda","Join":"Injira","Chat theme":"Ishusho y'ubutumwa","Choose a wallpaper":"Hitamwo ishusho","Default":"Isanzwe","Wallpaper saved ✓":"Ishusho yabitswe ✓","Midnight":"Ijoro","Aurora":"Umuco","Sunset":"Izuba rirenga","Ocean":"Inyanja","Forest":"Ishamba","Candy":"Bombo","Neon":"Neon","Ember":"Amakara","Lavender":"Lavande","Mint":"Mint","Rose":"Roza","Mono":"Umukara n'umweru","Add a group picture":"Shiramwo ifoto y'itsinda","Group picture":"Ifoto y'itsinda","Change group picture":"Hindura ifoto y'itsinda","Birthday":"Isabukuru","Your birthday":"Isabukuru yawe","Month":"Ukwezi","Day":"Umusi","Year":"Umwaka","You must be at least 13 to use Twik.":"Ugomba kuba ufise nibura imyaka 13 kugira ukoreshe Twik.","Please choose your birthday.":"Hitamwo isabukuru yawe.","Forgot password?":"Wibagiwe ijambo ry'ibanga?","Reset link sent. Check your email.":"Ihuza ryoherejwe. Raba imeyili yawe.","Hold to record":"Fata ukanze kugira ufate amajwi","Voice message":"Ubutumwa mu majwi","Active now":"Ariho ubu","Edit caption":"Hindura amajambo asigura","Today":"Uyu musi","Yesterday":"Ejo hashize","Terms":"Amategeko","About Twik":"Ivyerekeye Twik","Sound":"Ijwi","Time zone":"Isaha y'akarere"}};
       const I18N = { lang: "en", dict: {}, loading: false };
       const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
       const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
@@ -4407,12 +4671,470 @@
       }
       setInterval(() => { if (me && !$("postsPanel").hidden && document.visibilityState === "visible") loadLives(); }, 25000);
 
+
+      // ================= v22 =================
+      // ---- the heart that breaks in two when you take a like back ----
+      function heartBreak(btn) {
+        try {
+          const r = btn.getBoundingClientRect();
+          const el = document.createElement("div");
+          el.className = "hbreak";
+          el.style.left = r.left + r.width / 2 - 17 + "px";
+          el.style.top = r.top + r.height / 2 - 17 + "px";
+          el.innerHTML = '<span class="l">❤️</span><span class="r">❤️</span>';
+          document.body.appendChild(el);
+          setTimeout(() => el.remove(), 1000);
+        } catch (e) {}
+      }
+
+      // ---- Reels header: Reels / Friends tabs ----
+      async function loadFriendAv() {
+        try {
+          if (!friendsCache) { const d = await api("/api/friends"); friendsCache = d.friends || []; }
+          const box = $("rFriAv");
+          box.innerHTML = "";
+          (friendsCache || []).slice(0, 3).forEach((f) => box.appendChild(smallAvatar(f.avatar, f.username)));
+        } catch (e) {}
+      }
+      function setReelsTab(t) {
+        reelsTab = t;
+        $("rTabAll").classList.toggle("on", t === "all");
+        $("rTabFri").classList.toggle("on", t === "friends");
+        $("rFeed").scrollTop = 0;
+        if (t === "all" && reelsList) renderReels(reelsList);
+        loadReels(true);
+      }
+      $("rTabAll").addEventListener("click", () => { if (reelsTab !== "all") setReelsTab("all"); });
+      $("rTabFri").addEventListener("click", () => { if (reelsTab !== "friends") setReelsTab("friends"); });
+      $("rBackBtn").addEventListener("click", () => { $("rClose").click(); $("postsBtn").click(); });
+      $("rFilter").addEventListener("click", () => {
+        openSheet("Reels", (b) => {
+          sheetBtn(b, "Create a reel", () => { closeSheet(); openCreate("reel"); });
+          sheetBtn(b, "Refresh", () => { closeSheet(); loadReels(true); });
+          sheetBtn(b, reelMuted ? "Sound: off" : "Sound: on", () => {
+            reelMuted = !reelMuted;
+            document.querySelectorAll(".reel video, .pmedia video").forEach((x) => { x.muted = reelMuted; });
+            document.querySelectorAll(".rMute").forEach((x) => { x.textContent = reelMuted ? "🔇" : "🔊"; });
+            closeSheet();
+          });
+        });
+      });
+
+      // ---- Groups button lives in Chats now ----
+      $("grpFab").addEventListener("click", () => $("groupsBtn").click());
+      $("gToChats").addEventListener("click", () => $("chatsBtn").click());
+
+      // ---- group picture + header ----
+      function setGroupHeader(g) {
+        const box = $("gAv");
+        box.innerHTML = "";
+        if (g.avatar) { const im = document.createElement("img"); im.src = g.avatar; im.alt = ""; box.appendChild(im); }
+        else box.appendChild(smallAvatar(null, g.name));
+        $("gAvBtn").style.pointerEvents = g.mine ? "auto" : "none";
+      }
+      $("gAvBtn").addEventListener("click", () => { if (currentGroup && currentGroup.mine) $("gPicChange").click(); });
+      $("gPicChange").addEventListener("change", async () => {
+        const f = $("gPicChange").files[0];
+        $("gPicChange").value = "";
+        if (!f || !currentGroup || f.type.indexOf("image/") !== 0) return;
+        toast("Uploading picture...");
+        try {
+          const path = await uploadGroupPic(f);
+          const r = await api("/api/groups/picture", "POST", { group_id: currentGroup.id, path });
+          if (r.error) throw new Error(r.error);
+          currentGroup.avatar = URL.createObjectURL(f);
+          setGroupHeader(currentGroup);
+          toast("Picture saved ✓");
+        } catch (e) { toast(e.message || "Upload failed"); }
+      });
+
+      // ---- chat wallpapers ----
+      const DOTS = "radial-gradient(rgba(255,255,255,0.07) 1.5px, transparent 1.5px) 0 0 / 22px 22px";
+      const WALLS = [
+        { id: "midnight", name: "Midnight", css: "linear-gradient(160deg,#0f0c29,#302b63 55%,#24243e)" },
+        { id: "aurora", name: "Aurora", css: "radial-gradient(circle at 15% 10%,rgba(60,255,180,0.28),transparent 45%),radial-gradient(circle at 85% 90%,rgba(120,80,255,0.3),transparent 50%),linear-gradient(160deg,#07181f,#0d2f3c)" },
+        { id: "sunset", name: "Sunset", css: "linear-gradient(170deg,#ff512f,#dd2476 60%,#3a0f4b)" },
+        { id: "ocean", name: "Ocean", css: "linear-gradient(165deg,#0b2a5b,#1b6ca8 70%,#2fb5c9)" },
+        { id: "forest", name: "Forest", css: DOTS + ",linear-gradient(160deg,#07271d,#1f7a5a)" },
+        { id: "candy", name: "Candy", css: "linear-gradient(150deg,#7f00ff,#e100ff 60%,#ff6ec4)" },
+        { id: "neon", name: "Neon", css: "radial-gradient(circle at 20% 20%,rgba(255,0,200,0.35),transparent 40%),radial-gradient(circle at 80% 80%,rgba(0,220,255,0.35),transparent 40%),#050509" },
+        { id: "ember", name: "Ember", css: "linear-gradient(170deg,#2a0a0a,#8f2d12 70%,#ff8a3c)" },
+        { id: "lavender", name: "Lavender", css: DOTS + ",linear-gradient(160deg,#2a2150,#6b5bd2)" },
+        { id: "mint", name: "Mint", css: "linear-gradient(160deg,#0c3b3b,#2bb58c)" },
+        { id: "rose", name: "Rose", css: "linear-gradient(160deg,#4a1830,#d4608a 80%,#f6b3a1)" },
+        { id: "mono", name: "Mono", css: DOTS + ",linear-gradient(160deg,#0b0b0d,#2b2b30)" },
+      ];
+      const wallKey = (isGroup) => (isGroup ? (currentGroup ? "g:" + currentGroup.id : null) : (peer ? "dm:" + peer.id : null));
+      const wallGet = (key) => lsGet("twik_wp_" + key);
+      function applyWall(el, val) {
+        el.style.background = "";
+        if (!val) return;
+        if (val.indexOf("p:") === 0) { const w = WALLS.find((x) => x.id === val.slice(2)); if (w) el.style.background = w.css; }
+        else if (val.indexOf("data:") === 0) el.style.background = "center / cover no-repeat url(" + val + ")";
+      }
+      function wallSet(key, val, el) {
+        try { if (val) localStorage.setItem("twik_wp_" + key, val); else localStorage.removeItem("twik_wp_" + key); }
+        catch (e) { toast("That picture is too big to save. Try another."); return false; }
+        applyWall(el, val);
+        return true;
+      }
+      function openTheme(isGroup) {
+        const key = wallKey(isGroup);
+        if (!key) return;
+        const el = isGroup ? $("gMessages") : $("cMessages");
+        const cur = wallGet(key);
+        openSheet("Chat theme", (b) => {
+          sheetNote(b, "Choose a wallpaper");
+          const grid = document.createElement("div");
+          grid.className = "wpGrid";
+          WALLS.forEach((w) => {
+            const sw = document.createElement("button");
+            sw.type = "button"; sw.className = "wpSw" + (cur === "p:" + w.id ? " on" : "");
+            sw.style.background = w.css;
+            sw.textContent = w.name;
+            sw.onclick = () => { if (wallSet(key, "p:" + w.id, el)) { closeSheet(); toast("Wallpaper saved ✓"); } };
+            grid.appendChild(sw);
+          });
+          b.appendChild(grid);
+          const f = document.createElement("input");
+          f.type = "file"; f.accept = "image/*"; f.hidden = true;
+          f.onchange = async () => {
+            const file = f.files[0];
+            if (!file || file.indexOf === undefined && false) return;
+            if (!file || file.type.indexOf("image/") !== 0) return;
+            const pre = await shrinkImage(file, 1080);
+            const rd = new FileReader();
+            rd.onload = () => { if (wallSet(key, String(rd.result), el)) { closeSheet(); toast("Wallpaper saved ✓"); } };
+            rd.readAsDataURL(pre.blob);
+          };
+          b.appendChild(f);
+          sheetBtn(b, "Choose from gallery", () => f.click());
+          sheetBtn(b, "Default", () => { wallSet(key, "", el); closeSheet(); });
+        });
+      }
+      $("cTheme").addEventListener("click", () => openTheme(false));
+      $("gTheme").addEventListener("click", () => openTheme(true));
+
+      // ---- who is online ----
+      async function checkOnline(id) {
+        $("cOnline").hidden = true;
+        try {
+          const d = await api("/api/presence/" + id);
+          if (peer && peer.id === id && d && d.online) $("cOnline").hidden = false;
+        } catch (e) {}
+      }
+
+      // ---- voice messages (hold the mic) ----
+      const VOICE = { rec: null, chunks: [], t0: 0, stream: null };
+      async function voiceStart() {
+        if (VOICE.rec || !peer) return;
+        if (!window.MediaRecorder || !navigator.mediaDevices) { toast("Recording is not supported on this phone."); return; }
+        try { VOICE.stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { toast("Could not use the microphone or camera."); return; }
+        const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
+        const mime = types.find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+        VOICE.chunks = [];
+        const to = peer.id;
+        const rec = new MediaRecorder(VOICE.stream, mime ? { mimeType: mime } : {});
+        rec.ondataavailable = (e) => { if (e.data && e.data.size) VOICE.chunks.push(e.data); };
+        rec.onstop = async () => {
+          VOICE.stream.getTracks().forEach((t) => t.stop());
+          $("cMic").classList.remove("rec");
+          $("cStatus").textContent = "";
+          const secs = Math.round((Date.now() - VOICE.t0) / 1000);
+          VOICE.rec = null;
+          if (secs < 1 || !VOICE.chunks.length) return;
+          const type = (rec.mimeType || mime || "audio/webm").split(";")[0];
+          const blob = new Blob(VOICE.chunks, { type });
+          const ext = type.indexOf("mp4") >= 0 ? "mp4" : "webm";
+          try {
+            const up = await api("/api/dms/voice-url", "POST", { ext });
+            if (up.error) throw new Error(up.error);
+            const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, blob, { contentType: type });
+            if (error) throw error;
+            const r = await api("/api/dms/send", "POST", { to, kind: "audio", path: up.path, secs });
+            if (r.error) throw new Error(r.error);
+          } catch (e) { toast("Voice message failed: " + (e.message || "try again.")); }
+        };
+        VOICE.rec = rec; VOICE.t0 = Date.now();
+        rec.start();
+        $("cMic").classList.add("rec");
+        $("cStatus").textContent = "Recording... release to send";
+      }
+      function voiceStop() { if (VOICE.rec && VOICE.rec.state !== "inactive") VOICE.rec.stop(); }
+      $("cMic").addEventListener("pointerdown", (e) => { e.preventDefault(); voiceStart(); });
+      ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => $("cMic").addEventListener(ev, voiceStop));
+      $("cMic").addEventListener("contextmenu", (e) => e.preventDefault());
+
+      // ================= calls (voice + video, 1-to-1 and groups) =================
+      const CALL = { room: null, video: false, title: "", isGroup: false, pcs: {}, local: null, ringing: false, connected: false, t0: 0, timer: null, ringTimer: null, facing: "user", incoming: null, inTimer: null };
+      const dmRoom = (a, b) => "dm:" + [a, b].sort().join(":");
+      let ringCtx = null, ringIv = null;
+      function ringStart(kind) {
+        ringStop();
+        try {
+          ringCtx = ringCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (ringCtx.resume) ringCtx.resume();
+          const beep = () => {
+            const o = ringCtx.createOscillator(), g = ringCtx.createGain();
+            o.type = "sine"; o.frequency.value = kind === "in" ? 760 : 440;
+            g.gain.setValueAtTime(0.0001, ringCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.25, ringCtx.currentTime + 0.05);
+            g.gain.exponentialRampToValueAtTime(0.0001, ringCtx.currentTime + 0.6);
+            o.connect(g); g.connect(ringCtx.destination);
+            o.start(); o.stop(ringCtx.currentTime + 0.65);
+            if (kind === "in" && navigator.vibrate) navigator.vibrate([300, 150, 300]);
+          };
+          beep();
+          ringIv = setInterval(beep, 1800);
+        } catch (e) {}
+      }
+      function ringStop() { clearInterval(ringIv); ringIv = null; if (navigator.vibrate) navigator.vibrate(0); }
+      function clStatus(t) { $("clStatus").textContent = t; }
+      async function callMedia(video) {
+        try {
+          CALL.local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: video ? { facingMode: CALL.facing, width: { ideal: 640 }, height: { ideal: 480 } } : false });
+        } catch (e) { toast("Could not use the microphone or camera."); return false; }
+        $("clSelf").srcObject = CALL.local;
+        $("clSelf").hidden = !video;
+        $("clCam").hidden = !video;
+        $("clFlip").hidden = !video;
+        $("clMute").classList.remove("off"); $("clCam").classList.remove("off");
+        return true;
+      }
+      async function startCall(room, video, title, isGroup) {
+        if (CALL.room) { toast("You're already in a call"); return; }
+        if (!socket || !me) { toast("You're offline."); return; }
+        if (!(await callMedia(video))) return;
+        Object.assign(CALL, { room, video, title, isGroup, ringing: true, connected: false, pcs: {} });
+        $("clGrid").innerHTML = ""; $("clGrid").className = "";
+        $("clName").textContent = title;
+        clStatus(trW("Calling…"));
+        $("cl").hidden = false;
+        socket.emit("call join", { room, video });
+        socket.emit("call ring", { room, video });
+        ringStart("out");
+        clearTimeout(CALL.ringTimer);
+        CALL.ringTimer = setTimeout(() => { if (CALL.room === room && !CALL.connected) endCall("No answer"); }, 45000);
+      }
+      function hideIncoming() { clearTimeout(CALL.inTimer); CALL.incoming = null; $("clIn").hidden = true; ringStop(); }
+      async function acceptCall() {
+        const inc = CALL.incoming;
+        if (!inc) return;
+        hideIncoming();
+        if (CALL.room) return;
+        if (!(await callMedia(inc.video))) { socket.emit("call decline", { room: inc.room, to: inc.from }); return; }
+        Object.assign(CALL, { room: inc.room, video: inc.video, title: inc.group ? inc.group : "@" + inc.username, isGroup: !!inc.group, ringing: false, connected: false, pcs: {} });
+        $("clGrid").innerHTML = ""; $("clGrid").className = "";
+        $("clName").textContent = CALL.title;
+        clStatus(trW("Connecting…"));
+        $("cl").hidden = false;
+        socket.emit("call join", { room: inc.room, video: inc.video });
+      }
+      function callPc(sid, name) {
+        if (CALL.pcs[sid]) return CALL.pcs[sid];
+        const pc = new RTCPeerConnection(RTC_CFG);
+        CALL.pcs[sid] = pc; pc._name = name || "";
+        CALL.local.getTracks().forEach((t) => pc.addTrack(t, CALL.local));
+        pc.onicecandidate = (e) => { if (e.candidate) socket.emit("call signal", { to: sid, data: { ice: e.candidate } }); };
+        pc.ontrack = (e) => { addTile(sid, pc._name, e.streams[0]); callConnected(); };
+        pc.onconnectionstatechange = () => { if (pc.connectionState === "failed" || pc.connectionState === "closed") dropPeer(sid); };
+        return pc;
+      }
+      function addTile(sid, name, stream) {
+        let tile = document.querySelector('.clTile[data-sid="' + sid + '"]');
+        if (!tile) {
+          tile = document.createElement("div");
+          tile.className = "clTile"; tile.dataset.sid = sid;
+          if (!CALL.video) { const av = document.createElement("div"); av.className = "clAv"; av.textContent = (name || "?").charAt(0).toUpperCase(); tile.appendChild(av); }
+          const v = document.createElement("video");
+          v.autoplay = true; v.playsInline = true;
+          if (!CALL.video) v.style.opacity = "0";
+          tile.appendChild(v);
+          const lb = document.createElement("div");
+          lb.className = "clLbl"; lb.setAttribute("data-notr", ""); lb.textContent = "@" + (name || "");
+          tile.appendChild(lb);
+          $("clGrid").appendChild(tile);
+          $("clGrid").className = "n" + $("clGrid").children.length;
+        }
+        const v = tile.querySelector("video");
+        if (v.srcObject !== stream) { v.srcObject = stream; v.play().catch(() => {}); }
+      }
+      function dropPeer(sid) {
+        const pc = CALL.pcs[sid];
+        if (pc) { try { pc.close(); } catch (e) {} delete CALL.pcs[sid]; }
+        const t = document.querySelector('.clTile[data-sid="' + sid + '"]');
+        if (t) { t.remove(); $("clGrid").className = "n" + $("clGrid").children.length; }
+      }
+      function callConnected() {
+        if (CALL.connected) return;
+        CALL.connected = true; CALL.ringing = false;
+        ringStop(); clearTimeout(CALL.ringTimer);
+        CALL.t0 = Date.now();
+        const tick = () => { const sec = Math.floor((Date.now() - CALL.t0) / 1000); clStatus(Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0")); };
+        tick(); CALL.timer = setInterval(tick, 1000);
+      }
+      function endCall(msg) {
+        if (!CALL.room) return;
+        const room = CALL.room;
+        if (socket) {
+          if (CALL.ringing && !CALL.connected) socket.emit("call cancel", { room });
+          socket.emit("call leave", { room });
+        }
+        Object.keys(CALL.pcs).forEach((k) => { try { CALL.pcs[k].close(); } catch (e) {} });
+        if (CALL.local) CALL.local.getTracks().forEach((t) => t.stop());
+        clearInterval(CALL.timer); clearTimeout(CALL.ringTimer); ringStop();
+        document.querySelectorAll("#clGrid video").forEach((v) => { v.srcObject = null; });
+        Object.assign(CALL, { room: null, pcs: {}, local: null, ringing: false, connected: false });
+        $("clSelf").srcObject = null;
+        $("cl").hidden = true;
+        $("clGrid").innerHTML = "";
+        toast(msg === undefined ? "Call ended" : msg);
+      }
+      $("clEnd").addEventListener("click", () => endCall("Call ended"));
+      $("clMute").addEventListener("click", () => {
+        const t = CALL.local && CALL.local.getAudioTracks()[0];
+        if (!t) return;
+        t.enabled = !t.enabled;
+        $("clMute").classList.toggle("off", !t.enabled);
+      });
+      $("clCam").addEventListener("click", () => {
+        const t = CALL.local && CALL.local.getVideoTracks()[0];
+        if (!t) return;
+        t.enabled = !t.enabled;
+        $("clCam").classList.toggle("off", !t.enabled);
+      });
+      $("clFlip").addEventListener("click", async () => {
+        if (!CALL.local || !CALL.video) return;
+        CALL.facing = CALL.facing === "user" ? "environment" : "user";
+        try {
+          const ns = await navigator.mediaDevices.getUserMedia({ video: { facingMode: CALL.facing } });
+          const nt = ns.getVideoTracks()[0];
+          const old = CALL.local.getVideoTracks()[0];
+          Object.keys(CALL.pcs).forEach((k) => { const snd = CALL.pcs[k].getSenders().find((x) => x.track && x.track.kind === "video"); if (snd) snd.replaceTrack(nt); });
+          if (old) { CALL.local.removeTrack(old); old.stop(); }
+          CALL.local.addTrack(nt);
+          $("clSelf").srcObject = CALL.local;
+          $("clSelf").style.transform = CALL.facing === "user" ? "scaleX(-1)" : "none";
+        } catch (e) {}
+      });
+      $("clAccept").addEventListener("click", acceptCall);
+      $("clDecline").addEventListener("click", () => { const inc = CALL.incoming; hideIncoming(); if (inc && socket) socket.emit("call decline", { room: inc.room, to: inc.from }); });
+      function initCallSocket() {
+        socket.on("call incoming", (inc) => {
+          if (CALL.room || CALL.incoming) { if (socket && !CALL.isGroup) socket.emit("call decline", { room: inc.room, to: inc.from }); return; }
+          CALL.incoming = inc;
+          $("clInName").textContent = inc.group ? inc.group : "@" + inc.username;
+          $("clInKind").textContent = trW(inc.group ? "Incoming group call" : inc.video ? "Incoming video call" : "Incoming voice call");
+          const av = $("clInAv"); av.innerHTML = "";
+          av.textContent = (inc.group || inc.username || "?").charAt(0).toUpperCase();
+          $("clIn").hidden = false;
+          ringStart("in");
+          clearTimeout(CALL.inTimer);
+          CALL.inTimer = setTimeout(hideIncoming, 45000);
+        });
+        socket.on("call cancelled", (d) => { if (CALL.incoming && CALL.incoming.room === d.room) hideIncoming(); });
+        socket.on("call declined", (d) => { if (CALL.room === d.room && !CALL.isGroup) endCall("@" + d.username + " " + trW("declined the call")); });
+        socket.on("call error", (d) => { toast(d.error || "Call failed"); if (CALL.room) endCall(""); });
+        socket.on("call peers", async (d) => {
+          if (d.room !== CALL.room) return;
+          for (const p of d.peers || []) {
+            try {
+              const pc = callPc(p.sid, p.username);
+              if (!CALL.local.getVideoTracks().length && CALL.video) pc.addTransceiver("video", { direction: "recvonly" });
+              const off = await pc.createOffer();
+              await pc.setLocalDescription(off);
+              socket.emit("call signal", { to: p.sid, data: { sdp: pc.localDescription } });
+            } catch (e) {}
+          }
+        });
+        socket.on("call signal", (m) => {
+          if (!CALL.room || !CALL.local) return;
+          const d = m.data || {};
+          const pc = d.sdp && d.sdp.type === "offer" ? callPc(m.from, m.username) : CALL.pcs[m.from];
+          if (!pc) return;
+          pcChain(pc, async () => {
+            if (d.sdp) {
+              await pc.setRemoteDescription(d.sdp);
+              if (d.sdp.type === "offer") {
+                const a = await pc.createAnswer();
+                await pc.setLocalDescription(a);
+                socket.emit("call signal", { to: m.from, data: { sdp: pc.localDescription } });
+              }
+            } else if (d.ice) await pc.addIceCandidate(d.ice);
+          });
+        });
+        socket.on("call left", (d) => {
+          if (d.room !== CALL.room) return;
+          dropPeer(d.sid);
+          if (!CALL.isGroup && !Object.keys(CALL.pcs).length) endCall("Call ended");
+        });
+      }
+      $("cCallA").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), false, "@" + peer.username, false); });
+      $("cCallV").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), true, "@" + peer.username, false); });
+      $("gCallA").addEventListener("click", () => { if (currentGroup) startCall("g:" + currentGroup.id, false, currentGroup.name, true); });
+      $("gCallV").addEventListener("click", () => { if (currentGroup) startCall("g:" + currentGroup.id, true, currentGroup.name, true); });
+
+      // ================= sign-up birthday, forgot password =================
+      function fillBirthdayPickers() {
+        const loc = I18N.lang !== "en" ? I18N.lang : undefined;
+        const keep = [$("bdM").value, $("bdD").value, $("bdY").value];
+        let mo = '<option value="">' + trW("Month") + "</option>";
+        for (let i = 1; i <= 12; i++) {
+          let nm = String(i);
+          try { nm = new Date(2000, i - 1, 1).toLocaleDateString(loc, { month: "long" }); } catch (e) {}
+          mo += '<option value="' + String(i).padStart(2, "0") + '">' + nm + "</option>";
+        }
+        let dd = '<option value="">' + trW("Day") + "</option>";
+        for (let i = 1; i <= 31; i++) dd += '<option value="' + String(i).padStart(2, "0") + '">' + i + "</option>";
+        let yy = '<option value="">' + trW("Year") + "</option>";
+        for (let i = new Date().getFullYear(); i >= 1930; i--) yy += '<option value="' + i + '">' + i + "</option>";
+        $("bdM").innerHTML = mo; $("bdD").innerHTML = dd; $("bdY").innerHTML = yy;
+        $("bdM").value = keep[0] || ""; $("bdD").value = keep[1] || ""; $("bdY").value = keep[2] || "";
+      }
+      $("forgotBtn").addEventListener("click", async () => {
+        const email = $("email").value.trim();
+        if (!EMAIL_OK.test(email)) { showMsg(trW("Type your email first.")); return; }
+        showMsg("...");
+        const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin });
+        showMsg(error ? error.message : trW("Reset link sent. Check your email."), !error);
+      });
+      function openNewPassword() {
+        openSheet("New password", (b) => {
+          const n1 = document.createElement("input"); n1.type = "password"; n1.placeholder = "New password"; n1.autocomplete = "new-password";
+          const n2 = document.createElement("input"); n2.type = "password"; n2.placeholder = "New password again"; n2.autocomplete = "new-password";
+          const msg = sheetNote(b, "At least 8 characters, with letters and a number.");
+          b.prepend(n1, n2);
+          sheetBtn(b, "Save new password", async () => {
+            const bad = pwProblem(n1.value, "", me && me.email);
+            if (bad) { msg.textContent = bad; return; }
+            if (n1.value !== n2.value) { msg.textContent = "The two new passwords don't match."; return; }
+            const up = await sb.auth.updateUser({ password: n1.value });
+            if (up.error) { msg.textContent = up.error.message; return; }
+            closeSheet(); toast("Password changed ✓");
+          });
+        });
+      }
+      if (RECOVERY) { window.__recover = openNewPassword; }
+
+      // ================= clock check =================
+      function paintTimeCheck() {
+        let tz = "";
+        try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) {}
+        $("timeCheck").textContent = trW("Time zone") + ": " + tz + " · " + new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) + (Math.abs(srvOff) > 60000 ? " · ⚠ phone clock is off by " + Math.round(Math.abs(srvOff) / 60000) + " min" : " ✓");
+      }
+      $("pSettingsBtn").addEventListener("click", paintTimeCheck);
+      syncClock().then(() => {
+        if (Math.abs(srvOff) > 90000) setTimeout(() => toast("Your phone's clock is off by " + Math.round(Math.abs(srvOff) / 60000) + " min. Set Date & time to Automatic."), 2500);
+      });
+      setInterval(syncClock, 10 * 60 * 1000);
+
       if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
 
       // ---------- Start: are we already logged in? ----------
       const { data } = await sb.auth.getSession();
       if (data.session) {
         startChat(data.session.user);
+        if (RECOVERY && window.__recover) { try { history.replaceState(null, "", location.pathname); } catch (e) {} setTimeout(window.__recover, 800); }
       } else {
         $("authBox").hidden = false;
         setMode(false);

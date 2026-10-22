@@ -79,6 +79,22 @@ app.get("/config", (req, res) => {
 // ---------- Profiles and followers ----------
 app.use(express.json({ limit: "200kb" }));
 
+// Times from the database may come without a timezone. They are UTC, so say so (every phone then shows its own local clock).
+const NO_TZ = /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(\.\d+)?$/;
+const utc = (t) => (typeof t === "string" && NO_TZ.test(t) ? t.replace(" ", "T") + "Z" : t);
+function normTimes(v) {
+  if (typeof v === "string") return utc(v);
+  if (Array.isArray(v)) return v.map(normTimes);
+  if (v && typeof v === "object" && v.constructor === Object) { const o = {}; for (const k of Object.keys(v)) o[k] = normTimes(v[k]); return o; }
+  return v;
+}
+app.use((req, res, next) => {
+  const j = res.json.bind(res);
+  res.json = (body) => j(normTimes(body));
+  next();
+});
+app.get("/api/time", (req, res) => { res.set("Cache-Control", "no-store"); res.json({ now: new Date().toISOString() }); });
+
 // ---------- Slow-down protection (rate limits) ----------
 const rateBuckets = new Map();
 function allow(key, max, ms) {
@@ -159,11 +175,16 @@ async function getOrCreateProfile(user) {
 
   for (let i = 0; i < 6; i++) {
     const name = i === 0 ? base : base + Math.floor(100 + Math.random() * 900);
-    const { data, error } = await supabase
-      .from("profiles")
-      .insert({ id: user.id, username: name })
-      .select()
-      .single();
+    const meta = user.user_metadata || {};
+    const row = { id: user.id, username: name };
+    if (MD_RE.test(String(meta.birthday || ""))) row.birthday = meta.birthday;
+    const by = Number(meta.birth_year);
+    if (Number.isInteger(by) && by >= 1920 && by <= new Date().getFullYear()) row.birth_year = by;
+    let { data, error } = await supabase.from("profiles").insert(row).select().single();
+    if (error && error.code !== "23505" && (row.birthday || row.birth_year)) {
+      delete row.birthday; delete row.birth_year;
+      ({ data, error } = await supabase.from("profiles").insert(row).select().single());
+    }
     if (!error) return data;
     if (error.code !== "23505") {
       console.error("Profile error:", error.message);
@@ -261,15 +282,21 @@ app.post("/api/me/bio", requireUser, safe(async (req, res) => {
 // Someone's photos and reels, ready for a grid (viewerId decides which are "mine" / "liked")
 // likes / comments / liked-by-me for a list of reel ids
 async function reelExtras(ids, viewerId) {
-  const likes = {}, liked = {}, comments = {};
-  if (!ids.length) return { likes, liked, comments };
-  const [l, c] = await Promise.all([
+  const likes = {}, liked = {}, comments = {}, reposts = {}, reposted = {}, saves = {}, shares = {};
+  if (!ids.length) return { likes, liked, comments, reposts, reposted, saves, shares };
+  const [l, c, rp, sv, sh] = await Promise.all([
     supabase.from("reel_likes").select("reel_id, user_id").in("reel_id", ids),
     supabase.from("reel_comments").select("reel_id").in("reel_id", ids),
+    supabase.from("reposts").select("reel_id, user_id").in("reel_id", ids),
+    supabase.from("saved_items").select("item_id").eq("kind", "reel").in("item_id", ids),
+    supabase.from("dms").select("reel_id").eq("kind", "reel").in("reel_id", ids),
   ]);
+  (rp.data || []).forEach((x) => { reposts[x.reel_id] = (reposts[x.reel_id] || 0) + 1; if (x.user_id === viewerId) reposted[x.reel_id] = true; });
+  (sv.data || []).forEach((x) => { saves[x.item_id] = (saves[x.item_id] || 0) + 1; });
+  (sh.data || []).forEach((x) => { shares[x.reel_id] = (shares[x.reel_id] || 0) + 1; });
   (l.data || []).forEach((x) => { likes[x.reel_id] = (likes[x.reel_id] || 0) + 1; if (x.user_id === viewerId) liked[x.reel_id] = true; });
   (c.data || []).forEach((x) => { comments[x.reel_id] = (comments[x.reel_id] || 0) + 1; });
-  return { likes, liked, comments };
+  return { likes, liked, comments, reposts, reposted, saves, shares };
 }
 
 async function mediaFor(userId, viewerId) {
@@ -571,6 +598,7 @@ async function shapeReelRows(rows, meId, followingSet) {
     kind: "reel", id: r.id, username: r.username, avatar: pics[r.user_id] || null, caption: r.caption, url: urls[r.path],
     time: r.created_at, mine: r.user_id === meId, likes: rx.likes[r.id] || 0, liked: !!rx.liked[r.id], comments: rx.comments[r.id] || 0,
     following: r.user_id === meId || followingSet.has(r.user_id), saved: true,
+    reposts: rx.reposts[r.id] || 0, reposted: !!rx.reposted[r.id], saves: rx.saves[r.id] || 0, shares: rx.shares[r.id] || 0,
   }));
 }
 
@@ -951,7 +979,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
     const peer = m.sender_id === me ? m.receiver_id : m.sender_id;
     if (!seen[peer] && !blockedD.has(peer)) {
       seen[peer] = true;
-      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
+      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "audio" ? "🎤 Voice message" : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
       // A "request" = someone I don't follow and have never written to
       chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
@@ -1049,7 +1077,23 @@ const reelsHandler = safe(async (req, res) => {
     .limit(100);
   if (before) rq = rq.lt("created_at", before);
   const { data: rows } = await rq;
-  const list = rows || [];
+  let list = rows || [];
+
+  // "Friends" tab: reels from people I follow, plus reels they reposted
+  const friendsMode = req.query.friends === "1";
+  const repostedBy = {};
+  if (friendsMode) {
+    const { data: fr } = await supabase.from("follows").select("following_id").eq("follower_id", me.id).eq("status", "accepted");
+    const fset = new Set((fr || []).map((x) => x.following_id));
+    const { data: rps } = fset.size ? await supabase.from("reposts").select("reel_id, user_id, created_at").in("user_id", [...fset]).order("created_at", { ascending: false }).limit(60) : { data: [] };
+    const extraIds = (rps || []).map((x) => x.reel_id).filter((id) => !list.some((r) => r.id === id));
+    (rps || []).forEach((x) => { if (!repostedBy[x.reel_id]) repostedBy[x.reel_id] = x.user_id; });
+    if (extraIds.length) {
+      const { data: more } = await supabase.from("reels").select("id, user_id, username, path, caption, created_at").in("id", extraIds);
+      list = list.concat(more || []);
+    }
+    list = list.filter((r) => r.user_id === me.id || fset.has(r.user_id) || repostedBy[r.reel_id || r.id]);
+  }
 
   const authorIds = [...new Set(list.map((r) => r.user_id))];
   const priv = {};
@@ -1075,6 +1119,7 @@ const reelsHandler = safe(async (req, res) => {
   (signed || []).forEach((s) => { if (s.signedUrl) urlByPath[s.path] = s.signedUrl; });
 
   const [rx, pics] = await Promise.all([reelExtras(allowed.map((r) => r.id), me.id), avatarsFor([...new Set(allowed.map((r) => r.user_id))])]);
+  const rbNames = Object.keys(repostedBy).length ? await namesFor([...new Set(Object.values(repostedBy))]) : {};
   res.json({
     reels: allowed
       .filter((r) => urlByPath[r.path])
@@ -1091,6 +1136,11 @@ const reelsHandler = safe(async (req, res) => {
         comments: rx.comments[r.id] || 0,
         following: r.user_id === me.id || following.has(r.user_id),
         saved: savedR.has("reel:" + r.id),
+        reposts: rx.reposts[r.id] || 0,
+        reposted: !!rx.reposted[r.id],
+        saves: rx.saves[r.id] || 0,
+        shares: rx.shares[r.id] || 0,
+        reposted_by: repostedBy[r.id] ? rbNames[repostedBy[r.id]] || null : null,
       })),
   });
 });
@@ -1118,6 +1168,22 @@ app.post("/api/reels/like", requireUser, safe(async (req, res) => {
   else await supabase.from("reel_likes").insert({ reel_id: id, user_id: req.user.id });
   const { count } = await supabase.from("reel_likes").select("reel_id", { count: "exact", head: true }).eq("reel_id", id);
   res.json({ liked: !ex, likes: count || 0 });
+}));
+
+// Repost a reel (like Instagram's repost button)
+app.post("/api/reels/repost", requireUser, limiter("rp", 60, 60000), safe(async (req, res) => {
+  const id = Number(req.body.reel_id) || 0;
+  const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
+  if (!r || !(await canSeeUser(req.user.id, r.user_id))) return res.json({ error: "Reel not found." });
+  if (r.user_id === req.user.id) return res.json({ error: "You can't repost your own reel." });
+  const { data: ex } = await supabase.from("reposts").select("reel_id").eq("reel_id", id).eq("user_id", req.user.id).maybeSingle();
+  if (ex) await supabase.from("reposts").delete().eq("reel_id", id).eq("user_id", req.user.id);
+  else {
+    const { error } = await supabase.from("reposts").insert({ reel_id: id, user_id: req.user.id });
+    if (error) return res.json({ error: "Could not repost. Run the new SQL first." });
+  }
+  const { count } = await supabase.from("reposts").select("reel_id", { count: "exact", head: true }).eq("reel_id", id);
+  res.json({ reposted: !ex, reposts: count || 0 });
 }));
 
 app.get("/api/reels/:id/comments", requireUser, safe(async (req, res) => {
@@ -1176,13 +1242,23 @@ async function shapeDms(rows) {
       kind: m.kind || "text",
       text: m.text || "",
       time: m.created_at,
-      image: m.media_path ? urls[m.media_path] || null : null,
+      image: m.media_path && m.kind !== "audio" ? urls[m.media_path] || null : null,
+      audio: m.media_path && m.kind === "audio" ? urls[m.media_path] || null : null,
+      secs: m.kind === "audio" ? Number(m.text) || 0 : 0,
       reel: reel ? { id: reel.id, username: reel.username, caption: reel.caption, url: urls[reel.path] || null } : null,
     };
   });
 }
 
 // Step 1 of sending a photo: get a safe place to upload it
+app.post("/api/dms/voice-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+  const ext = String(req.body.ext || "").toLowerCase();
+  if (!["webm", "mp4", "m4a", "ogg", "wav"].includes(ext)) return res.json({ error: "Unsupported audio." });
+  const path = req.user.id + "/voice-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
 app.post("/api/dms/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
@@ -1210,6 +1286,11 @@ app.post("/api/dms/send", requireUser, limiter("ds", 30, 60000), safe(async (req
     const path = String(req.body.path || "");
     if (!path.startsWith(me + "/chat-")) return res.json({ error: "Bad photo." });
     row.media_path = path;
+  } else if (kind === "audio") {
+    const path = String(req.body.path || "");
+    if (!path.startsWith(me + "/voice-")) return res.json({ error: "Bad voice message." });
+    row.media_path = path;
+    row.text = String(Math.max(1, Math.min(300, Number(req.body.secs) || 1)));
   } else if (kind === "reel") {
     const { data: reel } = await supabase
       .from("reels").select("id, user_id").eq("id", Number(req.body.reel_id) || 0).maybeSingle();
@@ -1542,7 +1623,7 @@ io.on("connection", async (socket) => {
         return;
       }
       const cid = String((msg && msg.cid) || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
-      const payload = { id: saved.id, from: socket.data.userId, to, text, time: saved.created_at, cid };
+      const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
     } catch (e) {
@@ -1592,19 +1673,46 @@ app.get("/api/groups", requireUser, safe(async (req, res) => {
   const { data: mem } = await supabase.from("group_members").select("group_id").eq("user_id", req.user.id);
   const ids = (mem || []).map((m) => m.group_id);
   if (!ids.length) return res.json({ groups: [] });
-  const { data: gs } = await supabase
-    .from("chat_groups").select("id, name, owner_id").in("id", ids).order("created_at", { ascending: false });
-  res.json({ groups: (gs || []).map((g) => ({ id: g.id, name: g.name, mine: g.owner_id === req.user.id })) });
+  let gq = await supabase.from("chat_groups").select("id, name, owner_id, avatar_path").in("id", ids).order("created_at", { ascending: false });
+  if (gq.error) gq = await supabase.from("chat_groups").select("id, name, owner_id").in("id", ids).order("created_at", { ascending: false });
+  const gs = gq.data || [];
+  const withPic = gs.filter((g) => g.avatar_path);
+  const urls = {};
+  if (withPic.length) {
+    const { data: sg } = await signMany(withPic.map((g) => g.avatar_path), 3600);
+    (sg || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  }
+  res.json({ groups: gs.map((g) => ({ id: g.id, name: g.name, mine: g.owner_id === req.user.id, avatar: g.avatar_path ? urls[g.avatar_path] || null : null })) });
 }));
-
-// Create a group (and add people by username)
+app.post("/api/groups/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+  const ext = String(req.body.ext || "").toLowerCase();
+  if (!["jpg", "jpeg", "png", "webp"].includes(ext)) return res.json({ error: "Please use a JPG, PNG or WEBP photo." });
+  const path = req.user.id + "/group-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+app.post("/api/groups/picture", requireUser, safe(async (req, res) => {
+  const gid = Number(req.body.group_id) || 0;
+  const path = String(req.body.path || "");
+  const { data: g } = await supabase.from("chat_groups").select("id, owner_id").eq("id", gid).maybeSingle();
+  if (!g || g.owner_id !== req.user.id) return res.json({ error: "Only the person who made the group can change its picture." });
+  if (!path.startsWith(req.user.id + "/group-")) return res.status(400).json({ error: "Bad request" });
+  const { error } = await supabase.from("chat_groups").update({ avatar_path: path }).eq("id", gid);
+  if (error) return res.json({ error: "Could not save the picture. Run the new SQL first." });
+  res.json({ ok: true });
+}));
 app.post("/api/groups", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const name = String(req.body.name || "").trim().slice(0, 40);
   if (!name) return res.json({ message: "Give the group a name." });
 
-  const { data: g, error } = await supabase.from("chat_groups").insert({ name, owner_id: me.id }).select().single();
+  const pic = String(req.body.picture || "");
+  const row = { name, owner_id: me.id };
+  if (pic && pic.startsWith(me.id + "/group-")) row.avatar_path = pic;
+  let { data: g, error } = await supabase.from("chat_groups").insert(row).select().single();
+  if (error && row.avatar_path) { delete row.avatar_path; ({ data: g, error } = await supabase.from("chat_groups").insert(row).select().single()); }
   if (error) {
     console.error("Group error:", error.message);
     return res.status(500).json({ error: "Could not create the group." });
@@ -1760,6 +1868,119 @@ io.on("connection", (socket) => {
   });
 });
 
+// ---------- Calls: voice and video, 1-to-1 and groups ----------
+const callRooms = new Map(); // room -> Map(socketId -> { uid, username })
+const CALL_MAX = 6;
+async function callRoomInfo(uid, room) {
+  room = String(room || "");
+  let m = room.match(/^dm:([0-9a-f-]{36}):([0-9a-f-]{36})$/i);
+  if (m) {
+    if (uid !== m[1] && uid !== m[2]) return null;
+    const other = uid === m[1] ? m[2] : m[1];
+    if (!(await canMessage(uid, other)) && !(await canMessage(other, uid))) return null;
+    return { kind: "dm", targets: [other], name: null };
+  }
+  m = room.match(/^g:(\d+)$/);
+  if (m) {
+    const gid = Number(m[1]);
+    if (!(await isMember(gid, uid))) return null;
+    const { data: mem } = await supabase.from("group_members").select("user_id").eq("group_id", gid);
+    const { data: g } = await supabase.from("chat_groups").select("name").eq("id", gid).maybeSingle();
+    return { kind: "group", targets: (mem || []).map((x) => x.user_id).filter((x) => x !== uid), name: g ? g.name : "Group" };
+  }
+  return null;
+}
+function callLeave(socket, room) {
+  const r = callRooms.get(room);
+  if (!r || !r.has(socket.id)) return;
+  r.delete(socket.id);
+  socket.leave("call:" + room);
+  io.to("call:" + room).emit("call left", { room, sid: socket.id });
+  if (!r.size) callRooms.delete(room);
+}
+io.on("connection", (socket) => {
+  const uid = socket.data.userId;
+  const joined = new Set();
+  socket.on("call ring", async (msg) => {
+    try {
+      if (!allow("cr:" + uid, 12, 60000)) return;
+      const room = String((msg && msg.room) || "");
+      const info = await callRoomInfo(uid, room);
+      if (!info) return;
+      info.targets.forEach((t) => io.to("u:" + t).emit("call incoming", { room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: info.name }));
+    } catch (e) {}
+  });
+  socket.on("call cancel", async (msg) => {
+    try {
+      const room = String((msg && msg.room) || "");
+      const info = await callRoomInfo(uid, room);
+      if (info) info.targets.forEach((t) => io.to("u:" + t).emit("call cancelled", { room }));
+    } catch (e) {}
+  });
+  socket.on("call decline", (msg) => {
+    const to = String((msg && msg.to) || "");
+    if (UUID_RE.test(to)) io.to("u:" + to).emit("call declined", { room: String((msg && msg.room) || ""), username: socket.data.username });
+  });
+  socket.on("call join", async (msg) => {
+    try {
+      if (!allow("cj:" + uid, 20, 60000)) return;
+      const room = String((msg && msg.room) || "");
+      const info = await callRoomInfo(uid, room);
+      if (!info) return socket.emit("call error", { error: "You can't join this call." });
+      let r = callRooms.get(room);
+      if (!r) { r = new Map(); callRooms.set(room, r); }
+      if (r.size >= CALL_MAX && !r.has(socket.id)) return socket.emit("call error", { error: "This call is full." });
+      const peers = [...r.entries()].filter(([sid]) => sid !== socket.id).map(([sid, p]) => ({ sid, uid: p.uid, username: p.username }));
+      r.set(socket.id, { uid, username: socket.data.username });
+      socket.join("call:" + room);
+      joined.add(room);
+      socket.emit("call peers", { room, peers });
+    } catch (e) {}
+  });
+  socket.on("call signal", (msg) => {
+    const to = String((msg && msg.to) || "");
+    if (!to || !allow("cs:" + uid, 600, 10000)) return;
+    io.to(to).emit("call signal", { from: socket.id, username: socket.data.username, uid, data: msg.data });
+  });
+  socket.on("call leave", (msg) => {
+    const room = String((msg && msg.room) || "");
+    joined.delete(room);
+    callLeave(socket, room);
+  });
+  socket.on("disconnect", () => { joined.forEach((room) => callLeave(socket, room)); });
+});
+
+// ---------- Who is online ----------
+const onlineCount = new Map();
+io.on("connection", (socket) => {
+  const uid = socket.data.userId;
+  onlineCount.set(uid, (onlineCount.get(uid) || 0) + 1);
+  socket.on("disconnect", () => {
+    const n = (onlineCount.get(uid) || 1) - 1;
+    if (n <= 0) onlineCount.delete(uid); else onlineCount.set(uid, n);
+  });
+});
+app.get("/api/presence/:id", requireUser, safe(async (req, res) => {
+  const id = String(req.params.id || "");
+  if (!UUID_RE.test(id)) return res.json({ online: false });
+  if (!(await canMessage(req.user.id, id)) && !(await canMessage(id, req.user.id))) return res.json({ online: false });
+  res.json({ online: onlineCount.has(id) });
+}));
+
+// ---------- Edit a caption ----------
+app.post("/api/posts/edit", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const caption = String(req.body.caption || "").trim().slice(0, 200);
+  const { error } = await supabase.from("photo_posts").update({ caption }).eq("id", id).eq("user_id", req.user.id);
+  res.json(error ? { error: "Could not save." } : { ok: true });
+}));
+app.post("/api/reels/edit", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const caption = String(req.body.caption || "").trim().slice(0, 150);
+  const { error } = await supabase.from("reels").update({ caption }).eq("id", id).eq("user_id", req.user.id);
+  res.json(error ? { error: "Could not save." } : { ok: true });
+}));
+
 // Live group chat
 io.on("connection", (socket) => {
   socket.on("group join", async (msg) => {
@@ -1785,7 +2006,7 @@ io.on("connection", (socket) => {
       uid: socket.data.userId,
       user: socket.data.username,
       text,
-      time: saved.created_at,
+      time: utc(saved.created_at),
     });
   });
 });
