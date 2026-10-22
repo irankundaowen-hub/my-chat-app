@@ -779,6 +779,104 @@
     #bdBox { margin-bottom: 4px; }
     .bdLbl { margin: 0 0 6px; font-size: 13.500px; color: var(--muted); text-align: left; }
     #forgotBtn[hidden] { display: none; }
+
+    /* ===== v23: Instagram-style comments + chat ===== */
+    #cm { position: fixed; inset: 0; z-index: 96; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; }
+    #cm[hidden], #cmReplyBar[hidden], #cmPrev[hidden], #cmGifPanel[hidden], #cmSend[hidden], #cmGif[hidden], #cReplyBar[hidden], #cStk[hidden], #cSend[hidden], #cTools[hidden], #stkQWrap[hidden], #cOnline:empty { display: none; }
+    .cmBox { width: 100%; height: 82vh; height: 82dvh; background: #1b1c21; border-radius: 30px 30px 0 0; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.2s ease; }
+    .cmGrab { padding: 10px 0 6px; display: flex; justify-content: center; touch-action: none; cursor: grab; }
+    .cmGrab span { width: 44px; height: 4px; border-radius: 3px; background: #8c8c96; }
+    .cmTitle { text-align: center; font-weight: 800; font-size: 16px; padding: 2px 0 10px; border-bottom: 1px solid #2a2b31; }
+    #cmList { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 14px; }
+    .cmRow { display: flex; gap: 12px; padding: 10px 0; align-items: flex-start; }
+    .cmRow.reply { margin-left: 52px; padding: 6px 0; }
+    .cmRow .sAv { width: 42px; height: 42px; font-size: 17px; flex-shrink: 0; }
+    .cmRow.reply .sAv { width: 30px; height: 30px; font-size: 13px; }
+    .cmBody { flex: 1; min-width: 0; }
+    .cmMeta { font-size: 14.500px; color: var(--muted); }
+    .cmMeta b { color: #fff; margin-right: 6px; font-weight: 700; }
+    .cmBadge { font-size: 11px; background: var(--surface2); color: #bbb; padding: 1px 7px; border-radius: 8px 8px 8px 2px; margin-left: 6px; }
+    .cmTxt { font-size: 15px; line-height: 1.35; margin-top: 2px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .cmImg { margin-top: 6px; max-width: 220px; width: 100%; border-radius: 18px 18px 18px 5px; display: block; }
+    .cmRep { background: none !important; border: none !important; padding: 6px 0 !important; margin: 0 !important; color: var(--muted); font-size: 14px; font-weight: 600; border-radius: 0 !important; }
+    .cmLike { background: none !important; border: none !important; padding: 2px 4px !important; margin: 0 !important; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); font-size: 14px; min-width: 40px; }
+    .cmLike svg { width: 22px; height: 22px; fill: none; stroke: #bbb; stroke-width: 1.800; stroke-linejoin: round; }
+    .cmLike.on svg { fill: #ff2d55; stroke: #ff2d55; }
+    .cmMore { background: none !important; border: none !important; color: var(--muted); font-size: 13.500px; padding: 4px 0 !important; margin: 0 0 0 52px !important; font-weight: 600; text-align: left; border-radius: 0 !important; }
+    #cmReplyBar { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px; background: #24252b; font-size: 13.500px; color: var(--muted); }
+    #cmReplyBar button, #cmPrev button { background: none !important; border: none !important; color: #fff; padding: 0 6px !important; }
+    #cmPrev { position: relative; padding: 8px 16px 0; }
+    #cmPrev img { max-height: 110px; border-radius: 16px 16px 16px 5px; display: block; }
+    #cmPrev button { position: absolute; left: 24px; top: 14px; background: rgba(0,0,0,0.6) !important; border-radius: 50% !important; width: 24px; height: 24px; font-size: 12px; }
+    #cmEmoji { display: flex; justify-content: space-between; padding: 12px 16px 8px; border-top: 1px solid #2a2b31; }
+    #cmEmoji button { background: none !important; border: none !important; font-size: 28px; padding: 0 !important; margin: 0 !important; line-height: 1; }
+    #cmForm { display: flex; align-items: center; gap: 12px; padding: 4px 14px calc(14px + env(safe-area-inset-bottom)); }
+    #cmMyAv .sAv { width: 44px; height: 44px; font-size: 18px; }
+    .cmInWrap { flex: 1; display: flex; align-items: center; background: transparent; border: 1.500px solid #3b3c44; border-radius: 28px; padding: 0 8px 0 18px; }
+    .cmInWrap input { flex: 1; border: none !important; background: transparent !important; padding: 13px 0 !important; margin: 0 !important; font-size: 16px; min-width: 0; }
+    #cmGif { background: none !important; border: 2px solid #fff !important; color: #fff; font-weight: 900; font-size: 13px; padding: 3px 7px !important; margin: 0 !important; border-radius: 8px !important; }
+    #cmSend { background: none !important; border: none !important; color: #6c8dff; font-weight: 800; font-size: 16px; padding: 8px 10px !important; margin: 0 !important; }
+    #cmGifPanel { background: #1b1c21; border-top: 1px solid #2a2b31; padding: 8px 12px; max-height: 44%; display: flex; flex-direction: column; }
+    .cmGifTop { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .cmGifTop input { flex: 1; margin: 0; }
+    .cmGifTop button { background: var(--surface2) !important; padding: 8px 12px !important; margin: 0 !important; }
+    #cmGifGrid { overflow-y: auto; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    #cmGifGrid img { width: 100%; height: 90px; object-fit: cover; border-radius: 12px; cursor: pointer; }
+    /* chat header and bar like Instagram */
+    #cTitle { display: none !important; }
+    .thHead.ig { gap: 6px; margin-bottom: 4px; }
+    .cPeer { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; background: transparent !important; border: none !important; padding: 0 !important; margin: 0 !important; text-align: left; color: #fff; }
+    #cpAv .sAv, #cpAv img { width: 40px; height: 40px; font-size: 17px; border-radius: 50%; object-fit: cover; }
+    .cpTxt { display: flex; flex-direction: column; min-width: 0; }
+    .cpTxt b { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cpStat { font-size: 12.500px; color: var(--muted); }
+    .thHead.ig .thActs { gap: 2px; }
+    .thHead.ig .ico2 { background: transparent !important; border: none !important; width: 42px; }
+    .thHead.ig .ico2 svg { width: 25px; height: 25px; }
+    #cMessages { padding: 10px 8px; }
+    .mrow { display: flex; align-items: flex-end; gap: 8px; align-self: flex-start; max-width: 88%; }
+    .mrow .sAv { width: 28px; height: 28px; font-size: 12px; flex-shrink: 0; }
+    .mrow .sAv.hide { visibility: hidden; }
+    .mrow .msg { max-width: 100%; }
+    .msg.stk, .msg.gifm { background: transparent !important; box-shadow: none !important; padding: 0 !important; }
+    .msg.stk .big { font-size: 68px; line-height: 1.1; }
+    .msg.gifm img { max-width: 220px; border-radius: 18px; }
+    .msg video { max-width: 240px; max-height: 320px; border-radius: 16px; display: block; background: #000; }
+    .msg.mine { background: linear-gradient(135deg, #7c3aed, #a855f7 60%, #c026d3); box-shadow: none; }
+    .rpQ { border-left: 3px solid rgba(255,255,255,0.55); padding: 2px 8px; margin-bottom: 6px; font-size: 13px; opacity: 0.85; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rpLbl { font-size: 11.500px; opacity: 0.7; margin-bottom: 2px; }
+    .rxRow { display: flex; gap: 4px; margin: 4px -6px -14px 0; justify-content: flex-start; position: relative; z-index: 2; }
+    .rxRow span { background: #26272d; border: 1.500px solid #111; border-radius: 12px; padding: 1px 6px; font-size: 14px; }
+    .msg:has(.rxRow) { margin-bottom: 14px; }
+    .vm { display: flex; align-items: center; gap: 10px; min-width: 210px; }
+    .vm .vp { width: 30px; height: 30px; padding: 0 !important; margin: 0 !important; background: transparent !important; border: none !important; display: flex; align-items: center; justify-content: center; }
+    .vm .vp svg { width: 24px; height: 24px; fill: #fff; }
+    .vbars { flex: 1; display: flex; align-items: center; gap: 2px; height: 30px; }
+    .vbars i { flex: 1; min-width: 2px; border-radius: 2px; background: rgba(255,255,255,0.4); }
+    .vbars i.on { background: #fff; }
+    .vdur { font-size: 13px; opacity: 0.9; min-width: 36px; text-align: right; cursor: pointer; }
+    #cReplyBar { display: flex; justify-content: space-between; align-items: center; background: var(--surface2); border-radius: 18px 18px 0 0; padding: 8px 14px; font-size: 13px; color: var(--muted); margin: 6px 0 -4px; }
+    #cReplyBar button { background: none !important; border: none !important; color: #fff; padding: 0 6px !important; margin: 0 !important; }
+    form.igBar { display: flex; align-items: center; gap: 8px; padding: 6px 8px !important; background: #1d1e23 !important; border: none !important; border-radius: 30px !important; margin: 8px 0 !important; }
+    .cCamBtn { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg,#4f6bff,#7c3aed); display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; }
+    .cCamBtn svg { width: 22px; height: 22px; fill: none; stroke: #fff; stroke-width: 2; stroke-linejoin: round; }
+    form.igBar #cInput { flex: 1; min-width: 0; padding: 10px 4px !important; font-size: 16px; }
+    .cTools { display: flex; align-items: center; gap: 2px; }
+    .cTool { width: 36px; height: 38px; padding: 0 !important; margin: 0 !important; background: transparent !important; border: none !important; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 12px !important; }
+    .cTool svg { width: 24px; height: 24px; fill: none; stroke: #fff; stroke-width: 1.800; stroke-linecap: round; stroke-linejoin: round; }
+    .cTool.rec svg { stroke: #ff3b5c; }
+    form.igBar #cSend { background: none !important; color: #6c8dff; font-weight: 800; padding: 8px 12px !important; margin: 0 !important; }
+    #cStk { background: #1d1e23; border-radius: 22px; padding: 8px 10px; margin-top: 6px; }
+    .stkTabs { display: flex; gap: 6px; align-items: center; margin-bottom: 6px; }
+    .stkTabs button { background: transparent !important; border: none !important; color: var(--muted); font-weight: 700; padding: 6px 12px !important; margin: 0 !important; border-radius: 14px !important; }
+    .stkTabs button.on { color: #fff; background: var(--surface2) !important; }
+    #stkX { margin-left: auto !important; color: #fff !important; }
+    #stkGrid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; max-height: 190px; overflow-y: auto; }
+    #stkGrid button { background: transparent !important; border: none !important; font-size: 30px; padding: 4px 0 !important; margin: 0 !important; }
+    #stkGrid.gifs { grid-template-columns: repeat(3, 1fr); }
+    #stkGrid.gifs img { width: 100%; height: 84px; object-fit: cover; border-radius: 12px; cursor: pointer; }
+    #stkQWrap input { margin: 0 0 6px; }
+    .cMic.rec, .cTool.rec { animation: livePulse 1.200s infinite; }
   </style>
 </head>
 <body>
@@ -862,7 +960,7 @@
         <h3>Name</h3>
         <input id="pNameInput" type="text" maxlength="30" placeholder="Your name (like Owen)" autocomplete="off" />
         <h3>Bio</h3>
-        <input id="pBio" type="text" maxlength="150" placeholder="Write your bio (150 letters max)" autocomplete="off" />
+        <input id="pBio" type="text" maxlength="500" placeholder="Write your bio" autocomplete="off" />
         <h3>Birthday 🎂</h3>
         <div class="bdRow"><select id="pBdMonth"></select><select id="pBdDay"></select><select id="pBdYear"></select></div>
         <p class="hint" style="margin-bottom:10px">Friends can tag you in a note on your birthday and see how old you turn.</p>
@@ -980,7 +1078,7 @@
         <h3>Create a group</h3>
         <div class="gPicRow"><button id="gPicBtn" class="gPicBtn" type="button" aria-label="Add a group picture"><span id="gPicPrev"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.500h6L17 8h3v11H4z"/><circle cx="12" cy="13.500" r="3.200"/></svg></span></button><span class="hint">Add a group picture</span></div>
         <input id="gPicFile" type="file" accept="image/*" hidden />
-        <input id="gName" type="text" maxlength="40" placeholder="Group name" autocomplete="off" />
+        <input id="gName" type="text" maxlength="60" placeholder="Group name" autocomplete="off" />
         <input id="gMembers" type="text" placeholder="Usernames, separated by commas" autocomplete="off" />
         <button class="wide" id="gCreate" type="button">Create group</button>
         <p id="gMsg"></p>
@@ -1047,22 +1145,33 @@
       </div>
 
       <div id="cThread" hidden>
-        <div class="thHead">
-          <button class="mini" id="cBack" type="button">← Back</button>
+        <div class="thHead ig">
+          <button id="cBack" class="arrowBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></button>
+          <button id="cPeer" class="cPeer" type="button"><span id="cpAv" data-notr></span><span class="cpTxt"><b id="cpName" data-notr></b><span id="cOnline" class="cpStat" data-notr></span></span></button>
           <span class="thActs">
+            <button id="cTheme" class="ico2" type="button" aria-label="Chat theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.500-2.400H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.100"/><circle cx="10" cy="7.200" r="1.100"/><circle cx="14.500" cy="7.200" r="1.100"/></svg></button>
             <button id="cCallA" class="ico2" type="button" aria-label="Voice call"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
             <button id="cCallV" class="ico2" type="button" aria-label="Video call"><svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/></svg></button>
-            <button id="cTheme" class="ico2" type="button" aria-label="Chat theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.500-2.400H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.100"/><circle cx="10" cy="7.200" r="1.100"/><circle cx="14.500" cy="7.200" r="1.100"/></svg></button>
           </span>
         </div>
-        <div id="cOnline" class="onl" hidden>Active now</div>
         <div id="cMessages"></div>
         <div id="cTyping" class="typing" hidden>typing…</div>
-        <form id="cForm">
-          <label class="cPick" title="Send a photo">📷<input id="cFile" type="file" accept="image/*" hidden /></label>
-          <button id="cMic" class="cMic" type="button" aria-label="Voice message">🎤</button>
-          <input id="cInput" type="text" placeholder="Type a message or paste a link" autocomplete="off" />
-          <button type="submit">Send</button>
+        <div id="cReplyBar" hidden><span id="cReplyTxt" data-notr></span><button id="cReplyX" type="button" aria-label="Cancel">✕</button></div>
+        <div id="cStk" hidden>
+          <div class="stkTabs"><button type="button" id="stkTabE" class="on">Stickers</button><button type="button" id="stkTabG">GIF</button><button type="button" id="stkX" aria-label="Close">✕</button></div>
+          <div id="stkQWrap" hidden><input id="stkQ" type="text" placeholder="Search GIFs" autocomplete="off" /></div>
+          <div id="stkGrid"></div>
+        </div>
+        <form id="cForm" class="igBar">
+          <label class="cCamBtn" aria-label="Camera"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.500h6L17 8h3v11H4z"/><circle cx="12" cy="13.500" r="3.200"/></svg><input id="cCam" type="file" accept="image/*,video/*" capture hidden /></label>
+          <input id="cInput" type="text" placeholder="Message..." autocomplete="off" maxlength="4000" />
+          <span class="cTools" id="cTools">
+            <button id="cMic" class="cTool" type="button" aria-label="Voice message"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+            <label class="cTool" aria-label="Gallery"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.800"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><input id="cFile" type="file" accept="image/*,video/*" hidden /></label>
+            <button id="cSticker" class="cTool" type="button" aria-label="Stickers"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9l-6 6H6a2 2 0 0 1-2-2z"/><path d="M14 20v-4a2 2 0 0 1 2-2h4"/><path d="M8.500 9.500h.01M14.500 9.500h.01M8.500 13c1 1.200 3 1.200 4 0"/></svg></button>
+            <button id="cPlus" class="cTool" type="button" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg></button>
+          </span>
+          <button id="cSend" type="submit" hidden>Send</button>
         </form>
         <p id="cStatus"></p>
       </div>
@@ -1086,7 +1195,7 @@
     <div id="rUpload" hidden>
       <input id="rFile" type="file" accept="video/*" />
       <p class="hint" style="margin:0 0 8px">Choose a video from your phone.</p>
-      <input id="rCaption" type="text" maxlength="150" placeholder="Caption (optional)" />
+      <input id="rCaption" type="text" maxlength="2200" placeholder="Caption (optional)" />
       <button id="rPost" type="button">Post reel</button>
       <p id="rMsg"></p>
     </div>
@@ -1106,7 +1215,7 @@
     <div id="pbUpload" hidden>
       <input id="pbFile" type="file" accept="image/*,video/*" />
       <p class="hint" style="margin:0 0 8px">Photos or videos.</p>
-      <input id="pbCaption" type="text" maxlength="200" placeholder="Write a caption..." />
+      <input id="pbCaption" type="text" maxlength="2200" placeholder="Write a caption..." />
       <button id="pbPost" type="button">Share</button>
       <p id="pbMsg"></p>
     </div>
@@ -1165,7 +1274,7 @@
     <div id="mkRev" hidden>
       <div id="mkPrev"></div>
       <div class="mkRevBox">
-        <input id="mkCap" type="text" maxlength="200" placeholder="Write a caption..." />
+        <input id="mkCap" type="text" maxlength="2200" placeholder="Write a caption..." />
         <p id="mkMsg"></p>
         <div class="mkRevBtns"><button id="mkDiscard" class="ghost" type="button">Discard</button><button id="mkShare" type="button">Share</button></div>
       </div>
@@ -1213,12 +1322,33 @@
     </div>
   </div>
 
+  <!-- Comments (Instagram style) -->
+  <div id="cm" hidden>
+    <div class="cmBox">
+      <div class="cmGrab" id="cmGrab"><span></span></div>
+      <div class="cmTitle">Comments</div>
+      <div id="cmList"></div>
+      <div id="cmReplyBar" hidden><span id="cmReplyTxt" data-notr></span><button id="cmReplyX" type="button" aria-label="Cancel">✕</button></div>
+      <div id="cmPrev" hidden><img id="cmPrevImg" alt="" /><button id="cmPrevX" type="button" aria-label="Remove">✕</button></div>
+      <div id="cmGifPanel" hidden>
+        <div class="cmGifTop"><input id="cmGifQ" type="text" placeholder="Search GIFs" autocomplete="off" /><button id="cmGifPick" type="button" aria-label="Gallery">🖼</button><button id="cmGifClose" type="button" aria-label="Close">✕</button></div>
+        <div id="cmGifGrid"></div>
+      </div>
+      <div id="cmEmoji"></div>
+      <form id="cmForm" autocomplete="off">
+        <span id="cmMyAv" data-notr></span>
+        <div class="cmInWrap"><input id="cmInput" type="text" maxlength="2200" placeholder="What do you think of this?" autocomplete="off" /><button id="cmGif" type="button" aria-label="GIF">GIF</button><button id="cmSend" type="submit" hidden>Post</button></div>
+      </form>
+      <input id="cmFile" type="file" accept="image/*" hidden />
+    </div>
+  </div>
+
   <!-- Write a note -->
   <div id="noteSheet" hidden>
     <div class="saBox">
       <h2>Your note</h2>
       <p class="hint">Friends who follow you back see it for 24 hours.</p>
-      <input id="ntText" type="text" maxlength="60" placeholder="Share a thought..." autocomplete="off" />
+      <input id="ntText" type="text" maxlength="120" placeholder="Share a thought..." autocomplete="off" />
       <div class="ntCount"><span id="ntCount">0</span>/60</div>
       <div id="ntBdBox" hidden>
         <div class="audTitle">🎂 Birthdays today · tap to tag</div>
@@ -1239,7 +1369,7 @@
         <div id="nvText"></div>
       </div>
       <form id="nvForm" class="nvForm" autocomplete="off">
-        <input id="nvInput" type="text" maxlength="300" placeholder="Reply to this note..." autocomplete="off" />
+        <input id="nvInput" type="text" maxlength="2200" placeholder="Reply to this note..." autocomplete="off" />
         <button type="submit">Send</button>
       </form>
       <button class="wide" id="nvEdit" type="button" hidden>Edit your note</button>
@@ -1253,7 +1383,7 @@
     <div class="saBox">
       <h2>New story</h2>
       <div id="saPreview" class="saPreview"></div>
-      <input id="saCaption" type="text" maxlength="120" placeholder="Say something (optional)" autocomplete="off" />
+      <input id="saCaption" type="text" maxlength="500" placeholder="Say something (optional)" autocomplete="off" />
       <div class="audBox">
         <div class="audTitle">Who can see this?</div>
         <label class="audOpt"><input type="radio" name="aud" value="all" checked /> <span>All my friends</span></label>
@@ -1285,7 +1415,7 @@
         <button type="button" class="svTap right" id="svNext" aria-label="Next"></button>
       </div>
       <form class="svBottom" id="svForm" autocomplete="off">
-        <input id="svInput" type="text" maxlength="300" placeholder="Send message" autocomplete="off" />
+        <input id="svInput" type="text" maxlength="2200" placeholder="Send message" autocomplete="off" />
         <button type="button" class="svIcon" id="svHeart" aria-label="Like">♡</button>
         <button type="submit" class="svIcon" id="svSend" aria-label="Send"><svg viewBox="0 0 24 24"><path d="M21 4L3 11l7 3 3 7z"/><path d="M10 14l11-10"/></svg></button>
       </form>
@@ -1349,12 +1479,15 @@
         } catch (e) { return ""; }
       }
       function daySep(box, iso) {
-        const k = dayKey(iso);
-        if (box.dataset.lastDay === k) return;
+        const k = dayKey(iso), t = T(iso).getTime();
+        const last = Number(box.dataset.lastT || 0);
+        const newDay = box.dataset.lastDay !== k;
+        box.dataset.lastT = String(t);
+        if (!newDay && !(last && t - last >= 3600000)) return;
         box.dataset.lastDay = k;
         const d = document.createElement("div");
         d.className = "daySep";
-        d.textContent = dayLabel(iso);
+        d.textContent = newDay ? dayLabel(iso) + " " + clock(iso) : clock(iso);
         box.appendChild(d);
       }
       async function syncClock() {
@@ -1800,9 +1933,10 @@
           if (threads[peer.id]) threads[peer.id].forEach((x) => { if (me && x.from === me.id) x.read = true; });
           updateSeen();
         });
+        socket.on("dm react", (d) => { if (d) applyReactions(d.id, d.reactions || []); });
         socket.on("dm deleted", (d) => {
           const el = document.querySelector('#cMessages .msg[data-id="' + d.id + '"]');
-          if (el) el.remove();
+          if (el) (el.closest(".mrow") || el).remove();
           Object.keys(threads).forEach((k) => { threads[k] = threads[k].filter((x) => x.id !== d.id); });
           updateSeen();
           if (!peer && !$("chatsPanel").hidden) loadConvos();
@@ -1897,7 +2031,9 @@
         items.forEach((i) => ul.appendChild(i));
       }
 
+      let MYPROF = null;
       function paintAvatar(p) {
+        MYPROF = p;
         const letter = (p.username || "?").charAt(0).toUpperCase();
         [["pAvatar", "pAvatarLetter"], ["pAvatar2", "pAvatarLetter2"]].forEach(([i, l]) => {
           $(l).textContent = letter;
@@ -2120,7 +2256,7 @@
         const isVideo = f.type.indexOf("video") === 0;
         const isImage = f.type.indexOf("image") === 0;
         if (!isVideo && !isImage) { alert("Pick a photo or a video."); return; }
-        if (isImage && f.size > 10 * 1024 * 1024) { alert("Photo is too big (max 10 MB)."); return; }
+        if (isImage && f.size > 40 * 1024 * 1024) { alert("Photo is too big (max 40 MB)."); return; }
         if (isVideo && f.size > 50 * 1024 * 1024) { alert("Video is too big (max 50 MB)."); return; }
         pendingStory = { file: f, kind: isVideo ? "video" : "image" };
         const box = $("saPreview");
@@ -2670,7 +2806,7 @@
       $("pAvatarFile").addEventListener("change", async () => {
         const f = $("pAvatarFile").files[0];
         if (!f) return;
-        if (f.size > 5 * 1024 * 1024) { $("pEditMsg").textContent = "Picture is too big (max 5 MB)."; return; }
+        if (f.size > 30 * 1024 * 1024) { $("pEditMsg").textContent = "Picture is too big (max 30 MB)."; return; }
         $("pEditMsg").textContent = "Uploading picture...";
         try {
           const pre = await shrinkImage(f, 512);
@@ -2751,7 +2887,7 @@
         $("gAdd").hidden = !g.mine;
         $("gAddMsg").textContent = "";
         $("gMessages").innerHTML = "";
-        $("gMessages").dataset.lastDay = "";
+        $("gMessages").dataset.lastDay = ""; $("gMessages").dataset.lastT = "";
         setGroupHeader(g);
         applyWall($("gMessages"), wallGet("g:" + g.id));
         socket.emit("group join", { groupId: g.id });
@@ -2855,21 +2991,45 @@
 
       // long-press (or right-click) a message: unsend, copy or report
       function attachMsgMenu(div, m) {
-        let timer = null;
+        let timer = null, sx = 0, sy = 0, lastTap = 0;
+        const mid = () => Number(div.dataset.id || m.id || 0);
+        const busy = () => div.classList.contains("pending") || div.classList.contains("failed");
         const open = (e) => {
           if (e && e.preventDefault) e.preventDefault();
-          if (div.classList.contains("pending") || div.classList.contains("failed")) return;
+          if (busy()) return;
           const mine = me && m.from === me.id;
-          const id = Number(div.dataset.id || m.id || 0);
+          const id = mid();
           openSheet("Message", (b) => {
-            if (m.text) sheetBtn(b, "Copy text", async () => { try { await navigator.clipboard.writeText(m.text); toast("Copied"); } catch (er) {} closeSheet(); });
+            const row = document.createElement("div");
+            row.className = "rxPick";
+            row.style.cssText = "display:flex;justify-content:space-between;margin-bottom:10px";
+            ["❤️", "😂", "😮", "😢", "🙏", "👍"].forEach((em) => {
+              const x = document.createElement("button");
+              x.type = "button"; x.textContent = em; x.style.cssText = "background:none;border:none;font-size:30px;padding:4px;margin:0";
+              x.onclick = () => { closeSheet(); reactTo(id, em); };
+              row.appendChild(x);
+            });
+            b.appendChild(row);
+            sheetBtn(b, "Reply", () => { closeSheet(); setReply(Object.assign({}, m, { id })); });
+            if (m.text && (!m.kind || m.kind === "text")) sheetBtn(b, "Copy text", async () => { try { await navigator.clipboard.writeText(m.text); toast("Copied"); } catch (er) {} closeSheet(); });
             if (mine) sheetBtn(b, "Unsend", async () => { closeSheet(); const r = await api("/api/dms/delete", "POST", { id }); if (r.error) toast(r.error); }, true);
             else sheetBtn(b, "Report message", () => { closeSheet(); reportFlow("message", id); }, true);
           });
         };
         div.addEventListener("contextmenu", open);
-        div.addEventListener("touchstart", () => { timer = setTimeout(() => open(), 550); }, { passive: true });
-        ["touchend", "touchmove", "touchcancel"].forEach((ev) => div.addEventListener(ev, () => clearTimeout(timer), { passive: true }));
+        div.addEventListener("touchstart", (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; timer = setTimeout(() => open(), 550); }, { passive: true });
+        div.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) clearTimeout(timer); }, { passive: true });
+        div.addEventListener("touchend", (e) => {
+          clearTimeout(timer);
+          const t = e.changedTouches[0];
+          if (t && t.clientX - sx > 70 && Math.abs(t.clientY - sy) < 40 && !busy()) setReply(Object.assign({}, m, { id: mid() }));
+        }, { passive: true });
+        div.addEventListener("touchcancel", () => clearTimeout(timer), { passive: true });
+        div.addEventListener("click", (e) => {
+          if (e.target.closest("a, button, video, audio, .vm")) return;
+          const now = Date.now();
+          if (now - lastTap < 320 && !busy()) { lastTap = 0; reactTo(mid(), "❤️"); } else lastTap = now;
+        });
       }
       function updateSeen() {
         document.querySelectorAll("#cMessages .seen").forEach((e) => e.remove());
@@ -2885,6 +3045,13 @@
       }
 
       function bubble(m) {
+        let div;
+        if (m.kind === "audio" || m.kind === "video" || m.kind === "gif" || m.kind === "sticker") div = bubbleMedia(m);
+        else div = bubbleCore(m);
+        decorateBubble(div, m);
+        return div;
+      }
+      function bubbleCore(m) {
         const div = document.createElement("div");
         div.className = "msg" + (me && m.from === me.id ? " mine" : "");
         if (m.id) div.dataset.id = m.id;
@@ -2957,7 +3124,8 @@
       function addToThread(m) {
         const box = $("cMessages");
         daySep(box, m.time);
-        box.appendChild(bubble(m));
+        box.appendChild(wrapMsg(m, bubble(m)));
+        fixAvatars(box);
         box.scrollTop = box.scrollHeight;
       }
       const threads = {};     // peer id -> messages already loaded
@@ -2966,9 +3134,10 @@
       function renderThread(msgs) {
         const box = $("cMessages");
         box.innerHTML = "";
-        box.dataset.lastDay = "";
-        msgs.forEach((m) => { daySep(box, m.time); box.appendChild(bubble(m)); });
+        box.dataset.lastDay = ""; box.dataset.lastT = "";
+        msgs.forEach((m) => { daySep(box, m.time); box.appendChild(wrapMsg(m, bubble(m))); });
         Object.keys(pendingMsgs).forEach((cid) => { if (peer && pendingMsgs[cid].to === peer.id) { daySep(box, pendingMsgs[cid].m ? pendingMsgs[cid].m.time : nowISO()); box.appendChild(pendingMsgs[cid].el); } });
+        fixAvatars(box);
         box.scrollTop = box.scrollHeight;
         updateSeen();
       }
@@ -3026,7 +3195,7 @@
           mid.append(nm, pv);
           li.append(av, mid);
           if (unread) { const d = document.createElement("span"); d.className = "cDot"; li.appendChild(d); }
-          li.onclick = () => openThread({ id: c.peer_id, username: c.username });
+          li.onclick = () => openThread({ id: c.peer_id, username: c.username, avatar: c.avatar });
           ul.appendChild(li);
         });
       }
@@ -3189,8 +3358,8 @@
         const bd = noteBdays.find((f) => f.username === ntTag);
         const ord = (n) => n + (n % 100 >= 11 && n % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][n % 10] || "th");
         const wish = ntTag ? "Happy " + (bd && bd.turns ? ord(bd.turns) + " " : "") + "birthday @" + ntTag + " 🎂" : "";
-        if (ntTag && (!cur || /^Happy( \d+\w\w)? birthday/i.test(cur))) $("ntText").value = wish.slice(0, 60);
-        else if (ntTag && cur.toLowerCase().indexOf("@" + ntTag.toLowerCase()) < 0) $("ntText").value = (cur + " @" + ntTag).slice(0, 60);
+        if (ntTag && (!cur || /^Happy( \d+\w\w)? birthday/i.test(cur))) $("ntText").value = wish.slice(0, 120);
+        else if (ntTag && cur.toLowerCase().indexOf("@" + ntTag.toLowerCase()) < 0) $("ntText").value = (cur + " @" + ntTag).slice(0, 120);
         else if (!ntTag && /^Happy( \d+\w\w)? birthday @/i.test(cur)) $("ntText").value = "";
         $("ntCount").textContent = $("ntText").value.length;
       }
@@ -3274,6 +3443,9 @@
         markRead(p.id);
         $("cTitle").hidden = false;
         $("cTitle").textContent = "@" + p.username;
+        setPeerHeader(p);
+        clearReply();
+        $("cStk").hidden = true;
         $("cList").hidden = true;
         $("cThread").hidden = false;
         $("cTyping").hidden = true;
@@ -3346,38 +3518,21 @@
         if (!text.trim() || !peer || !socket) return;
         const cid = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
         const m = { from: me.id, to: peer.id, text, time: nowISO(), cid };
+        if (REPLY) m.reply = { id: REPLY.id, from: REPLY.from, kind: REPLY.kind || "text", text: REPLY.text || "" };
         const el = bubble(m);
         el.classList.add("pending");
-        pendingMsgs[cid] = { to: peer.id, el };
+        pendingMsgs[cid] = { to: peer.id, el, m };
         const box = $("cMessages");
+        daySep(box, m.time);
         box.appendChild(el);
         box.scrollTop = box.scrollHeight;
-        socket.emit("dm", { to: peer.id, text, cid });
+        socket.emit("dm", { to: peer.id, text, cid, reply_to: REPLY ? REPLY.id : undefined });
         $("cInput").value = "";
+        clearReply();
+        toolsToggle();
       });
 
       // Send a photo in a private chat
-      $("cFile").addEventListener("change", async () => {
-        const f = $("cFile").files[0];
-        $("cFile").value = "";
-        const st = $("cStatus");
-        if (!f || !peer) return;
-        if (!f.type.startsWith("image/")) { st.textContent = "Please choose a photo."; return; }
-        if (f.size > 10 * 1024 * 1024) { st.textContent = "Photo is too big (max 10 MB)."; return; }
-        st.textContent = "Sending photo...";
-        try {
-          const pre = await shrinkImage(f, 1280);
-          const ext = pre.ext;
-          const up = await api("/api/dms/upload-url", "POST", { ext });
-          if (up.error) throw new Error(up.error);
-          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
-          if (error) throw error;
-          const r = await api("/api/dms/send", "POST", { to: peer.id, kind: "image", path: up.path });
-          st.textContent = r.error || "";
-        } catch (e) {
-          st.textContent = "Photo failed: " + (e.message || "please try again.");
-        }
-      });
 
       // ---------- Photo posts ----------
       function postCard(p, idx) {
@@ -3535,7 +3690,7 @@
         const input = document.createElement("input");
         input.type = "text";
         input.placeholder = "Add a comment...";
-        input.maxLength = 300;
+        input.maxLength = 2200;
         input.autocomplete = "off";
         const send = document.createElement("button");
         send.type = "submit";
@@ -3563,11 +3718,9 @@
             list.appendChild(l);
           });
         }
-        cbtn.onclick = () => {
-          com.hidden = !com.hidden;
-          if (!com.hidden) loadComments();
-        };
-        viewAll.onclick = () => { viewAll.hidden = true; com.hidden = false; loadComments(); };
+        const onC = (n) => { p.comments = n; viewAll.textContent = "View all " + n + " comments"; viewAll.hidden = !(n > 0); };
+        cbtn.onclick = () => openComments(isReel ? "reel" : "post", p, onC);
+        viewAll.onclick = () => openComments(isReel ? "reel" : "post", p, onC);
         form.onsubmit = async (e) => {
           e.preventDefault();
           const t = input.value.trim();
@@ -3707,7 +3860,7 @@
           return;
         }
         if (!f.type.startsWith("image/")) { msg.textContent = "That file is not a photo or a video."; return; }
-        if (f.size > 10 * 1024 * 1024) { msg.textContent = "Photo is too big (max 10 MB)."; return; }
+        if (f.size > 40 * 1024 * 1024) { msg.textContent = "Photo is too big (max 40 MB)."; return; }
 
         $("pbPost").disabled = true;
         msg.textContent = "Uploading... please wait.";
@@ -3745,7 +3898,7 @@
       }
 
       // ---------- Reels ----------
-      const MAX_MB = 40;
+      const MAX_MB = 50; // Supabase free plan allows 50 MB per file; raise this if you upgrade Supabase
       let observer = null;
 
       let reelMuted = true;
@@ -3785,14 +3938,7 @@
         rcReel.comments = cs.length;
         if (rcOnCount) rcOnCount(cs.length);
       }
-      function openReelComments(r, onCount) {
-        rcReel = r;
-        rcOnCount = onCount;
-        $("rcList").innerHTML = "";
-        $("rcInput").value = "";
-        $("rcSheet").hidden = false;
-        loadReelComments();
-      }
+      function openReelComments(r, onCount) { openComments("reel", r, onCount); }
       $("rcClose").addEventListener("click", () => { $("rcSheet").hidden = true; });
       $("rcSheet").addEventListener("click", (e) => { if (e.target === $("rcSheet")) $("rcSheet").hidden = true; });
       $("rcForm").addEventListener("submit", async (e) => {
@@ -4479,7 +4625,7 @@
       }
       $("mkDiscard").addEventListener("click", mkBackToCamera);
       async function uploadPhotoPost(f, caption) {
-        if (f.size > 12 * 1024 * 1024) throw new Error("Photo is too big (max 10 MB).");
+        if (f.size > 40 * 1024 * 1024) throw new Error("Photo is too big (max 40 MB).");
         const pre = await shrinkImage(f, 1440);
         const up = await api("/api/posts/upload-url", "POST", { ext: pre.ext });
         if (up.error) throw new Error(up.error);
@@ -4817,52 +4963,384 @@
 
       // ---- who is online ----
       async function checkOnline(id) {
-        $("cOnline").hidden = true;
+        $("cOnline").textContent = "";
         try {
           const d = await api("/api/presence/" + id);
-          if (peer && peer.id === id && d && d.online) $("cOnline").hidden = false;
+          if (!peer || peer.id !== id || !d) return;
+          if (d.online) $("cOnline").textContent = trW("Active now");
+          else if (d.last) { const a = ago(d.last); $("cOnline").textContent = a === "now" ? trW("Active now") : trW("Active") + " " + a + " " + trW("ago"); }
         } catch (e) {}
       }
+      // (voice messages: see v23 block below)
 
-      // ---- voice messages (hold the mic) ----
-      const VOICE = { rec: null, chunks: [], t0: 0, stream: null };
+      // ================= v23: Instagram-style comments =================
+      const CM = { kind: "", item: null, onCount: null, reply: null, media: null, list: [], open: {}, gifOk: null };
+      const HEART_SVG = '<svg viewBox="0 0 24 24"><path d="M12 20.5s-7.5-4.6-9.2-9.4C1.6 7.6 3.6 4.5 6.9 4.5c2 0 3.7 1.1 5.1 3 1.4-1.9 3.1-3 5.1-3 3.3 0 5.3 3.1 4.1 6.6-1.7 4.8-9.2 9.4-9.2 9.4z"/></svg>';
+      function cmUpdateSend() {
+        const has = !!($("cmInput").value.trim() || CM.media);
+        $("cmSend").hidden = !has; $("cmGif").hidden = has;
+      }
+      function cmSetReply(c) {
+        CM.reply = c;
+        $("cmReplyBar").hidden = !c;
+        if (c) {
+          $("cmReplyTxt").textContent = trW("Replying to") + " @" + c.username;
+          const inp = $("cmInput");
+          if (!inp.value.startsWith("@" + c.username)) inp.value = "@" + c.username + " " + inp.value;
+          inp.focus();
+        }
+        cmUpdateSend();
+      }
+      function cmRow(c, isReply) {
+        const wrap = document.createDocumentFragment();
+        const r = document.createElement("div");
+        r.className = "cmRow" + (isReply ? " reply" : "");
+        r.dataset.id = c.id;
+        r.appendChild(smallAvatar(c.avatar, c.username));
+        const body = document.createElement("div");
+        body.className = "cmBody";
+        const meta = document.createElement("div");
+        meta.className = "cmMeta";
+        const b = document.createElement("b"); b.textContent = c.username; b.dataset.notr = "1";
+        meta.append(b, document.createTextNode(ago(c.created_at)));
+        if (c.by_owner) { const bd = document.createElement("span"); bd.className = "cmBadge"; bd.textContent = trW("Author"); meta.appendChild(bd); }
+        body.appendChild(meta);
+        if (c.text) { const t = document.createElement("div"); t.className = "cmTxt"; mentionText(t, c.text); body.appendChild(t); }
+        if (c.media) { const im = document.createElement("img"); im.className = "cmImg"; im.src = c.media; im.alt = ""; im.loading = "lazy"; body.appendChild(im); }
+        const rb = document.createElement("button"); rb.type = "button"; rb.className = "cmRep"; rb.textContent = trW("Reply");
+        rb.onclick = () => cmSetReply(c.parent_id ? { id: c.parent_id, username: c.username } : c);
+        body.appendChild(rb);
+        const lk = document.createElement("button");
+        lk.type = "button"; lk.className = "cmLike" + (c.liked ? " on" : "");
+        lk.innerHTML = HEART_SVG + '<span></span>';
+        const cnt = lk.querySelector("span"); cnt.textContent = c.likes > 0 ? String(c.likes) : "";
+        lk.onclick = async () => {
+          const was = lk.classList.contains("on");
+          lk.classList.toggle("on", !was);
+          c.likes = Math.max(0, (c.likes || 0) + (was ? -1 : 1)); cnt.textContent = c.likes > 0 ? String(c.likes) : "";
+          if (was) heartBreak(lk);
+          const d = await api("/api/comments/like", "POST", { kind: CM.kind, id: c.id });
+          if (d && typeof d.likes === "number") { cnt.textContent = d.likes > 0 ? String(d.likes) : ""; lk.classList.toggle("on", !!d.liked); c.likes = d.likes; c.liked = d.liked; }
+        };
+        r.append(body, lk);
+        // long press / right click menu
+        let tm = null;
+        const menu = (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          openSheet("Comment", (bx) => {
+            if (c.text) sheetBtn(bx, "Copy", async () => { try { await navigator.clipboard.writeText(c.text); toast("Copied"); } catch (er) {} closeSheet(); });
+            if (c.can_delete) sheetBtn(bx, "Delete", async () => { closeSheet(); await api("/api/comments/delete", "POST", { id: c.id, kind: CM.kind }); cmLoad(); }, true);
+            if (!c.mine) sheetBtn(bx, "Report", () => { closeSheet(); reportFlow("comment", c.id); }, true);
+          });
+        };
+        r.addEventListener("contextmenu", menu);
+        r.addEventListener("touchstart", () => { tm = setTimeout(menu, 550); }, { passive: true });
+        ["touchend", "touchmove", "touchcancel"].forEach((ev) => r.addEventListener(ev, () => clearTimeout(tm), { passive: true }));
+        wrap.appendChild(r);
+        return wrap;
+      }
+      function cmRender() {
+        const list = $("cmList");
+        list.innerHTML = "";
+        const all = CM.list;
+        if (!all.length) { list.innerHTML = '<div class="pbEmpty">' + trW("No comments yet. Say something nice!") + "</div>"; return; }
+        const tops = all.filter((c) => !c.parent_id).sort((a, b) => (b.likes - a.likes) || (T(b.created_at) - T(a.created_at)));
+        tops.forEach((c) => {
+          list.appendChild(cmRow(c, false));
+          const kids = all.filter((x) => x.parent_id === c.id).sort((a, b) => T(a.created_at) - T(b.created_at));
+          if (!kids.length) return;
+          const open = !!CM.open[c.id];
+          const more = document.createElement("button");
+          more.type = "button"; more.className = "cmMore";
+          more.textContent = open ? "— " + trW("Hide replies") : "— " + trW("View") + " " + kids.length + " " + trW(kids.length === 1 ? "reply" : "replies");
+          more.onclick = () => { CM.open[c.id] = !open; cmRender(); };
+          list.appendChild(more);
+          if (open) kids.forEach((k) => list.appendChild(cmRow(k, true)));
+        });
+      }
+      async function cmLoad() {
+        const d = await api("/api/comments/" + CM.kind + "/" + CM.item.id);
+        CM.list = (d && d.comments) || [];
+        cmRender();
+        if (CM.onCount) CM.onCount(CM.list.length);
+      }
+      function openComments(kind, item, onCount) {
+        CM.kind = kind; CM.item = item; CM.onCount = onCount; CM.reply = null; CM.media = null; CM.open = {};
+        $("cmInput").value = ""; $("cmReplyBar").hidden = true; $("cmPrev").hidden = true; $("cmGifPanel").hidden = true;
+        $("cmMyAv").innerHTML = ""; $("cmMyAv").appendChild(smallAvatar(MYPROF && MYPROF.avatar_url, (MYPROF && MYPROF.username) || (me && me.user_metadata && me.user_metadata.username) || "me"));
+        const box = document.querySelector("#cm .cmBox"); box.style.transform = "";
+        $("cm").hidden = false;
+        cmUpdateSend();
+        $("cmList").innerHTML = '<div class="pbEmpty">…</div>';
+        cmLoad();
+      }
+      function cmClose() { $("cm").hidden = true; $("cmGifPanel").hidden = true; }
+      $("cm").addEventListener("click", (e) => { if (e.target === $("cm")) cmClose(); });
+      (function () {
+        const box = document.querySelector("#cm .cmBox"), g = $("cmGrab"); let y0 = null, dy = 0;
+        g.addEventListener("pointerdown", (e) => { y0 = e.clientY; dy = 0; try { g.setPointerCapture(e.pointerId); } catch (x) {} });
+        g.addEventListener("pointermove", (e) => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); box.style.transform = "translateY(" + dy + "px)"; });
+        const end = () => { if (y0 === null) return; y0 = null; if (dy > 110) cmClose(); else box.style.transform = ""; };
+        g.addEventListener("pointerup", end); g.addEventListener("pointercancel", end);
+        g.addEventListener("click", () => { if (dy < 5) cmClose(); });
+      })();
+      $("cmReplyX").addEventListener("click", () => { CM.reply = null; $("cmReplyBar").hidden = true; });
+      $("cmInput").addEventListener("input", cmUpdateSend);
+      const EMO8 = ["❤️", "🙌", "🔥", "👏", "😢", "😍", "😮", "😂"];
+      EMO8.forEach((em) => { const b = document.createElement("button"); b.type = "button"; b.textContent = em; b.onclick = () => { const i = $("cmInput"); i.value += em; i.focus(); cmUpdateSend(); }; $("cmEmoji").appendChild(b); });
+      async function cmUploadPic(f) {
+        if (!f || !f.type.startsWith("image/")) return;
+        try {
+          const pre = f.type === "image/gif" ? { blob: f, ext: "gif" } : await shrinkImage(f, 1280);
+          const up = await api("/api/comments/upload-url", "POST", { ext: pre.ext });
+          if (up.error) throw new Error(up.error);
+          const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
+          if (error) throw error;
+          CM.media = up.path;
+          $("cmPrevImg").src = URL.createObjectURL(pre.blob); $("cmPrev").hidden = false; cmUpdateSend();
+        } catch (e) { toast("Picture failed: " + (e.message || "try again")); }
+      }
+      $("cmFile").addEventListener("change", () => { const f = $("cmFile").files[0]; $("cmFile").value = ""; cmUploadPic(f); });
+      $("cmPrevX").addEventListener("click", () => { CM.media = null; $("cmPrev").hidden = true; cmUpdateSend(); });
+      async function gifSearch(q, grid, onPick) {
+        const d = await api("/api/gifs?q=" + encodeURIComponent(q || ""));
+        grid.innerHTML = "";
+        if (!d || !d.enabled) { grid.innerHTML = '<div class="pbEmpty" style="grid-column:1/-1">' + trW("GIF search is not turned on yet. Use the gallery.") + "</div>"; return false; }
+        (d.gifs || []).forEach((g) => { const im = document.createElement("img"); im.src = g.preview || g.url; im.alt = ""; im.loading = "lazy"; im.onclick = () => onPick(g.url); grid.appendChild(im); });
+        return true;
+      }
+      let cmGifT = null;
+      $("cmGif").addEventListener("click", async () => {
+        const p = $("cmGifPanel"); p.hidden = !p.hidden;
+        if (!p.hidden) gifSearch("", $("cmGifGrid"), (u) => { CM.media = u; $("cmPrevImg").src = u; $("cmPrev").hidden = false; p.hidden = true; cmUpdateSend(); });
+      });
+      $("cmGifQ").addEventListener("input", () => { clearTimeout(cmGifT); cmGifT = setTimeout(() => gifSearch($("cmGifQ").value, $("cmGifGrid"), (u) => { CM.media = u; $("cmPrevImg").src = u; $("cmPrev").hidden = false; $("cmGifPanel").hidden = true; cmUpdateSend(); }), 350); });
+      $("cmGifPick").addEventListener("click", () => $("cmFile").click());
+      $("cmGifClose").addEventListener("click", () => { $("cmGifPanel").hidden = true; });
+      $("cmForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const text = $("cmInput").value.trim();
+        if (!text && !CM.media) return;
+        $("cmSend").disabled = true;
+        const body = { kind: CM.kind, id: CM.item.id, text };
+        if (CM.reply) body.parent_id = CM.reply.id;
+        if (CM.media) body.media = CM.media;
+        const d = await api("/api/comments", "POST", body);
+        $("cmSend").disabled = false;
+        if (d && d.error) { toast(d.error); return; }
+        if (CM.reply) CM.open[CM.reply.id] = true;
+        $("cmInput").value = ""; CM.media = null; CM.reply = null; $("cmPrev").hidden = true; $("cmReplyBar").hidden = true; cmUpdateSend();
+        await cmLoad();
+      });
+
+      // ================= v23: Instagram-style chat =================
+      let REPLY = null;
+      function previewOf(m) {
+        const k = m.kind || "text";
+        return k === "image" ? "📷 Photo" : k === "video" ? "🎥 Video" : k === "audio" ? "🎤 Voice message" : k === "gif" ? "GIF" : k === "sticker" ? (m.text || "Sticker") : k === "reel" ? "🎬 Reel" : k === "post" ? "📷 Post" : (m.text || "");
+      }
+      function setReply(m) {
+        REPLY = { id: m.id, from: m.from, kind: m.kind || "text", text: previewOf(m) };
+        const mine = me && m.from === me.id;
+        $("cReplyTxt").textContent = trW("Replying to") + " " + (mine ? trW("yourself") : "@" + (peer ? peer.username : "")) + ": " + previewOf(m).slice(0, 60);
+        $("cReplyBar").hidden = false; $("cInput").focus();
+      }
+      function clearReply() { REPLY = null; $("cReplyBar").hidden = true; }
+      $("cReplyX").addEventListener("click", clearReply);
+      function setPeerHeader(p) {
+        $("cpAv").innerHTML = ""; $("cpAv").appendChild(smallAvatar(p.avatar, p.username));
+        $("cpName").textContent = p.username; $("cOnline").textContent = "";
+      }
+      function toolsToggle() {
+        const has = !!$("cInput").value.trim();
+        $("cSend").hidden = !has; $("cTools").hidden = has;
+      }
+      $("cInput").addEventListener("input", toolsToggle);
+      function decorateBubble(div, m) {
+        if (m.reply && m.reply.id) {
+          const q = document.createElement("div"); q.className = "rpQ";
+          const lbl = document.createElement("div"); lbl.className = "rpLbl";
+          const mineR = me && m.reply.from === me.id;
+          lbl.textContent = (me && m.from === me.id) ? (mineR ? trW("You replied to yourself") : trW("You replied")) : (mineR ? trW("Replied to you") : trW("Replied"));
+          q.textContent = previewOf(m.reply).slice(0, 80);
+          div.insertBefore(q, div.firstChild); div.insertBefore(lbl, q);
+        }
+        setReactions(div, m.reactions);
+      }
+      function setReactions(div, rs) {
+        const old = div.querySelector(".rxRow"); if (old) old.remove();
+        if (!rs || !rs.length) return;
+        const row = document.createElement("div"); row.className = "rxRow";
+        const seen = {}; rs.forEach((r) => { seen[r.emoji] = (seen[r.emoji] || 0) + 1; });
+        Object.keys(seen).forEach((em) => { const s = document.createElement("span"); s.textContent = em + (seen[em] > 1 ? " " + seen[em] : ""); row.appendChild(s); });
+        div.appendChild(row);
+      }
+      async function reactTo(id, emoji) {
+        if (!id) return;
+        const d = await api("/api/dms/react", "POST", { id, emoji });
+        if (d && d.reactions) applyReactions(id, d.reactions);
+      }
+      function applyReactions(id, rs) {
+        const el = document.querySelector('#cMessages .msg[data-id="' + id + '"]');
+        if (el) setReactions(el, rs);
+        Object.keys(threads).forEach((k) => (threads[k] || []).forEach((x) => { if (x.id === id) x.reactions = rs; }));
+      }
+      function wrapMsg(m, el) {
+        if (me && m.from === me.id) return el;
+        const row = document.createElement("div"); row.className = "mrow";
+        const av = smallAvatar(peer && peer.avatar, peer && peer.username);
+        row.append(av, el);
+        return row;
+      }
+      function fixAvatars(box) {
+        const rows = box.querySelectorAll(".mrow");
+        rows.forEach((r, i) => {
+          const nx = r.nextElementSibling;
+          const hide = nx && nx.classList.contains("mrow");
+          const a = r.querySelector(".sAv"); if (a) a.classList.toggle("hide", !!hide);
+        });
+      }
+      const fmtDur = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+      function bubbleMedia(m) {
+        const div = document.createElement("div");
+        const mine = me && m.from === me.id;
+        div.className = "msg" + (mine ? " mine" : "") + (m.kind === "sticker" ? " stk" : m.kind === "gif" ? " gifm" : "");
+        if (m.id) div.dataset.id = m.id;
+        if (m.read) div.dataset.read = "1";
+        attachMsgMenu(div, m);
+        if (m.kind === "sticker") { const s = document.createElement("div"); s.className = "big"; s.textContent = m.text; div.appendChild(s); }
+        else if (m.kind === "gif") { const im = document.createElement("img"); im.src = m.text; im.alt = "GIF"; im.loading = "lazy"; div.appendChild(im); }
+        else if (m.kind === "video") {
+          if (m.video) { const v = document.createElement("video"); v.src = m.video; v.controls = true; v.playsInline = true; v.preload = "metadata"; div.appendChild(v); }
+          else div.appendChild(document.createTextNode("🎥 This video is no longer available"));
+        } else if (m.kind === "audio") {
+          const vm = document.createElement("div"); vm.className = "vm";
+          const au = new Audio(); au.preload = "none"; au.src = m.audio || "";
+          const pb = document.createElement("button"); pb.type = "button"; pb.className = "vp";
+          const PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.500v15l13-7.500z"/></svg>', PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+          pb.innerHTML = PLAY;
+          const bars = document.createElement("div"); bars.className = "vbars";
+          const pk = (m.peaks || "").split("").map((c) => Number(c));
+          const N = 28;
+          for (let i = 0; i < N; i++) { const b = document.createElement("i"); const v = pk.length ? pk[Math.floor(i * pk.length / N)] : (3 + ((i * 7) % 6)); b.style.height = (4 + (v || 3) * 2.6) + "px"; bars.appendChild(b); }
+          const dur = document.createElement("span"); dur.className = "vdur"; dur.textContent = fmtDur(m.secs || 0);
+          let rate = 1;
+          au.addEventListener("timeupdate", () => { const t = au.duration && isFinite(au.duration) ? au.duration : (m.secs || 1); const k = Math.floor((au.currentTime / t) * N); [].forEach.call(bars.children, (b, i) => b.classList.toggle("on", i < k)); dur.textContent = fmtDur(Math.max(0, Math.round(t - au.currentTime))); });
+          au.addEventListener("ended", () => { pb.innerHTML = PLAY; [].forEach.call(bars.children, (b) => b.classList.remove("on")); dur.textContent = fmtDur(m.secs || 0); });
+          pb.onclick = () => { if (au.paused) { document.querySelectorAll("audio").forEach((a) => { if (a !== au) a.pause(); }); au.playbackRate = rate; au.play().catch(() => {}); pb.innerHTML = PAUSE; } else { au.pause(); pb.innerHTML = PLAY; } };
+          dur.onclick = () => { rate = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1; au.playbackRate = rate; toast(rate + "x"); };
+          vm.append(pb, bars, dur); div.appendChild(vm);
+        }
+        if (m.kind !== "sticker" && m.kind !== "gif") { const time = document.createElement("div"); time.className = "time"; time.textContent = clock(m.time); div.appendChild(time); }
+        return div;
+      }
+      async function sendMediaFile(f) {
+        if (!f || !peer) return;
+        const st = $("cStatus"), to = peer.id;
+        try {
+          if (f.type.startsWith("image/")) {
+            if (f.size > 40 * 1024 * 1024) { st.textContent = "Photo is too big (max 40 MB)."; return; }
+            st.textContent = "Sending photo...";
+            const pre = await shrinkImage(f, 1600);
+            const up = await api("/api/dms/upload-url", "POST", { ext: pre.ext });
+            if (up.error) throw new Error(up.error);
+            const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
+            if (error) throw error;
+            const r = await api("/api/dms/send", "POST", { to, kind: "image", path: up.path, reply_to: REPLY ? REPLY.id : undefined });
+            st.textContent = r.error || "";
+          } else if (f.type.startsWith("video/")) {
+            if (f.size > MAX_MB * 1024 * 1024) { st.textContent = "Video is too big (max " + MAX_MB + " MB)."; return; }
+            st.textContent = "Sending video...";
+            const ext = (f.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) || "mp4";
+            const up = await api("/api/dms/video-url", "POST", { ext });
+            if (up.error) throw new Error(up.error);
+            const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
+            if (error) throw error;
+            const r = await api("/api/dms/send", "POST", { to, kind: "video", path: up.path, reply_to: REPLY ? REPLY.id : undefined });
+            st.textContent = r.error || "";
+          } else { st.textContent = "Please choose a photo or video."; return; }
+          clearReply();
+        } catch (e) { st.textContent = "Sending failed: " + (e.message || "please try again."); }
+      }
+      ["cFile", "cCam"].forEach((id) => $(id).addEventListener("change", () => { const f = $(id).files[0]; $(id).value = ""; sendMediaFile(f); }));
+      async function sendKind(kind, text) {
+        if (!peer) return;
+        const r = await api("/api/dms/send", "POST", { to: peer.id, kind, text, reply_to: REPLY ? REPLY.id : undefined });
+        if (r && r.error) toast(r.error); else clearReply();
+      }
+      // stickers + GIFs
+      const STICKERS = "😀 😂 🥹 😍 😘 🥰 😎 🤩 😜 🤗 🤔 😴 😭 😡 🥳 🤯 😱 🙄 😏 🤝 👍 👎 👏 🙌 🙏 💪 🔥 ❤️ 💔 💯 ✨ 🎉 🎂 🌹 🎁 ⭐ 👀 🤣 😅 😇 🫶 🫡 🤌 💋 🍕 🍔 ⚽ 🎵 🚀 🌍 🇧🇮 😈 💀 🤡 👻 🦋 🌸".split(" ");
+      function stkShow(tab) {
+        $("stkTabE").classList.toggle("on", tab === "e"); $("stkTabG").classList.toggle("on", tab === "g");
+        $("stkQWrap").hidden = tab !== "g";
+        const g = $("stkGrid"); g.innerHTML = ""; g.classList.toggle("gifs", tab === "g");
+        if (tab === "e") STICKERS.forEach((em) => { const b = document.createElement("button"); b.type = "button"; b.textContent = em; b.onclick = () => { $("cStk").hidden = true; sendKind("sticker", em); }; g.appendChild(b); });
+        else gifSearch($("stkQ").value, g, (u) => { $("cStk").hidden = true; sendKind("gif", u); });
+      }
+      $("cSticker").addEventListener("click", () => { const p = $("cStk"); p.hidden = !p.hidden; if (!p.hidden) stkShow("e"); });
+      $("stkTabE").addEventListener("click", () => stkShow("e"));
+      $("stkTabG").addEventListener("click", () => stkShow("g"));
+      $("stkX").addEventListener("click", () => { $("cStk").hidden = true; });
+      let stkT = null; $("stkQ").addEventListener("input", () => { clearTimeout(stkT); stkT = setTimeout(() => stkShow("g"), 350); });
+      $("cPlus").addEventListener("click", () => {
+        if (!peer) return;
+        openSheet("More", (b) => {
+          sheetBtn(b, "📷 Photo or video", () => { closeSheet(); $("cFile").click(); });
+          sheetBtn(b, "🎨 Chat theme", () => { closeSheet(); openTheme(false); });
+          sheetBtn(b, "📞 Voice call", () => { closeSheet(); $("cCallA").click(); });
+          sheetBtn(b, "🎥 Video call", () => { closeSheet(); $("cCallV").click(); });
+        });
+      });
+      // ---- voice messages with waveform: tap mic to start, tap again to send, slide-cancel via long hold left ----
+      const VOICE = { rec: null, chunks: [], t0: 0, stream: null, peaks: [], ctx: null, iv: null, cancel: false };
       async function voiceStart() {
         if (VOICE.rec || !peer) return;
         if (!window.MediaRecorder || !navigator.mediaDevices) { toast("Recording is not supported on this phone."); return; }
-        try { VOICE.stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { toast("Could not use the microphone or camera."); return; }
+        try { VOICE.stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { toast("Could not use the microphone."); return; }
         const types = ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"];
         const mime = types.find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
-        VOICE.chunks = [];
-        const to = peer.id;
+        VOICE.chunks = []; VOICE.peaks = []; VOICE.cancel = false;
+        const to = peer.id, reply = REPLY ? REPLY.id : undefined;
         const rec = new MediaRecorder(VOICE.stream, mime ? { mimeType: mime } : {});
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext; VOICE.ctx = new AC();
+          const an = VOICE.ctx.createAnalyser(); an.fftSize = 256; VOICE.ctx.createMediaStreamSource(VOICE.stream).connect(an);
+          const buf = new Uint8Array(an.fftSize);
+          VOICE.iv = setInterval(() => { an.getByteTimeDomainData(buf); let mx = 0; for (let i = 0; i < buf.length; i++) mx = Math.max(mx, Math.abs(buf[i] - 128)); VOICE.peaks.push(Math.min(9, Math.round(mx / 128 * 14))); }, 100);
+        } catch (e) {}
         rec.ondataavailable = (e) => { if (e.data && e.data.size) VOICE.chunks.push(e.data); };
         rec.onstop = async () => {
+          clearInterval(VOICE.iv); try { VOICE.ctx && VOICE.ctx.close(); } catch (e) {}
           VOICE.stream.getTracks().forEach((t) => t.stop());
-          $("cMic").classList.remove("rec");
-          $("cStatus").textContent = "";
+          $("cMic").classList.remove("rec"); $("cStatus").textContent = "";
           const secs = Math.round((Date.now() - VOICE.t0) / 1000);
           VOICE.rec = null;
-          if (secs < 1 || !VOICE.chunks.length) return;
+          if (VOICE.cancel || secs < 1 || !VOICE.chunks.length) return;
           const type = (rec.mimeType || mime || "audio/webm").split(";")[0];
           const blob = new Blob(VOICE.chunks, { type });
           const ext = type.indexOf("mp4") >= 0 ? "mp4" : "webm";
+          // shrink peaks to 40 digits
+          const pk = VOICE.peaks, out = [];
+          for (let i = 0; i < 40; i++) out.push(pk.length ? pk[Math.floor(i * pk.length / 40)] : 3);
           try {
             const up = await api("/api/dms/voice-url", "POST", { ext });
             if (up.error) throw new Error(up.error);
             const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, blob, { contentType: type });
             if (error) throw error;
-            const r = await api("/api/dms/send", "POST", { to, kind: "audio", path: up.path, secs });
+            const r = await api("/api/dms/send", "POST", { to, kind: "audio", path: up.path, secs, peaks: out.join(""), reply_to: reply });
             if (r.error) throw new Error(r.error);
+            clearReply();
           } catch (e) { toast("Voice message failed: " + (e.message || "try again.")); }
         };
         VOICE.rec = rec; VOICE.t0 = Date.now();
         rec.start();
         $("cMic").classList.add("rec");
-        $("cStatus").textContent = "Recording... release to send";
+        $("cStatus").textContent = "Recording... tap the mic again to send (hold and slide left to cancel)";
       }
-      function voiceStop() { if (VOICE.rec && VOICE.rec.state !== "inactive") VOICE.rec.stop(); }
-      $("cMic").addEventListener("pointerdown", (e) => { e.preventDefault(); voiceStart(); });
-      ["pointerup", "pointerleave", "pointercancel"].forEach((ev) => $("cMic").addEventListener(ev, voiceStop));
+      function voiceStop(cancel) { if (VOICE.rec && VOICE.rec.state !== "inactive") { VOICE.cancel = !!cancel; VOICE.rec.stop(); } }
+      let micX = 0, micDown = 0;
+      $("cMic").addEventListener("pointerdown", (e) => { e.preventDefault(); micX = e.clientX; micDown = Date.now(); if (!VOICE.rec) voiceStart(); else voiceStop(false); });
+      $("cMic").addEventListener("pointerup", (e) => { if (VOICE.rec && Date.now() - micDown > 900) voiceStop(micX - e.clientX > 70); });
       $("cMic").addEventListener("contextmenu", (e) => e.preventDefault());
 
       // ================= calls (voice + video, 1-to-1 and groups) =================

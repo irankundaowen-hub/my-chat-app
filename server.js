@@ -77,7 +77,7 @@ app.get("/config", (req, res) => {
 });
 
 // ---------- Profiles and followers ----------
-app.use(express.json({ limit: "200kb" }));
+app.use(express.json({ limit: "1mb" }));
 
 // Times from the database may come without a timezone. They are UTC, so say so (every phone then shows its own local clock).
 const NO_TZ = /^\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(\.\d+)?$/;
@@ -261,7 +261,7 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
 app.post("/api/me/bio", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
-  const bio = String(req.body.bio || "").trim().slice(0, 150);
+  const bio = String(req.body.bio || "").trim().slice(0, 500);
   const update = { bio };
   if (typeof req.body.name === "string") update.display_name = req.body.name.trim().slice(0, 30);
   if (typeof req.body.birthday === "string") {
@@ -392,7 +392,7 @@ const MD_RE = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 app.post("/api/notes", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
-  const text = String(req.body.text || "").trim().slice(0, 60);
+  const text = String(req.body.text || "").trim().slice(0, 120);
   if (!text) return res.json({ error: "Write something first." });
 
   let tagId = null;
@@ -467,7 +467,7 @@ async function cleanupStories() {
   await supabase.from("stories").delete().in("id", old.map((o) => o.id));
 }
 
-app.post("/api/stories/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/stories/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const wanted = String(req.body.ext || "").toLowerCase();
   const ext = ["jpg", "jpeg", "png", "webp", "gif", "mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "jpg";
   const path = req.user.id + "/story-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -482,7 +482,7 @@ app.post("/api/stories", requireUser, safe(async (req, res) => {
   const path = String(req.body.path || "");
   if (!path.startsWith(req.user.id + "/story-") || path.includes("..")) return res.status(400).json({ error: "Bad file" });
   const kind = req.body.kind === "video" ? "video" : "image";
-  const caption = String(req.body.caption || "").trim().slice(0, 120);
+  const caption = String(req.body.caption || "").trim().slice(0, 500);
   const row = { user_id: me.id, username: me.username, path, kind, caption };
   if (Array.isArray(req.body.audience)) {
     const friends = new Set(await mutualIds(me.id));
@@ -536,12 +536,12 @@ app.get("/api/stories", requireUser, safe(async (req, res) => {
   const cutoff = new Date(Date.now() - STORY_HOURS * 3600 * 1000).toISOString();
   let q = await supabase
     .from("stories").select("id, user_id, username, path, kind, caption, created_at, audience")
-    .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(300);
+    .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(1500);
   if (q.error) {
     // the "audience" column may not exist yet (SQL not run): fall back to the old query
     q = await supabase
       .from("stories").select("id, user_id, username, path, kind, caption, created_at")
-      .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(300);
+      .in("user_id", ids).gte("created_at", cutoff).order("created_at", { ascending: true }).limit(1500);
   }
   if (q.error) return res.json({ groups: [] });
   const list = (q.data || []).filter((r) => r.user_id === meId || !r.audience || !r.audience.length || r.audience.includes(meId));
@@ -965,7 +965,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
   const me = req.user.id;
   const [{ data }, { data: outRows }] = await Promise.all([
     supabase.from("dms").select("sender_id, receiver_id, text, kind, created_at")
-      .or(`sender_id.eq.${me},receiver_id.eq.${me}`).order("created_at", { ascending: false }).limit(200),
+      .or(`sender_id.eq.${me},receiver_id.eq.${me}`).order("created_at", { ascending: false }).limit(3000),
     supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted"),
   ]);
 
@@ -979,7 +979,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
     const peer = m.sender_id === me ? m.receiver_id : m.sender_id;
     if (!seen[peer] && !blockedD.has(peer)) {
       seen[peer] = true;
-      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "audio" ? "🎤 Voice message" : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
+      const preview = m.kind === "image" ? "📷 Photo" : m.kind === "audio" ? "🎤 Voice message" : m.kind === "video" ? "🎥 Video" : m.kind === "gif" ? "GIF" : m.kind === "sticker" ? m.text : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
       // A "request" = someone I don't follow and have never written to
       chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
@@ -1001,23 +1001,46 @@ app.post("/api/dms/start", requireUser, safe(async (req, res) => {
   res.json({ user: { id: t.id, username: t.username } });
 }));
 
-// The messages between you and one person
+// The messages between you and one person (newest 60; ?before=ISO loads older ones)
 app.get("/api/dms/:peer", requireUser, safe(async (req, res) => {
   const me = req.user.id;
   const peer = String(req.params.peer);
   if (!UUID_RE.test(peer)) return res.status(400).json({ error: "Bad request" });
-  const { data } = await supabase
+  const before = validIso(req.query.before);
+  let q = supabase
     .from("dms")
     .select("*")
     .or(`and(sender_id.eq.${me},receiver_id.eq.${peer}),and(sender_id.eq.${peer},receiver_id.eq.${me})`)
     .order("created_at", { ascending: false })
-    .limit(100);
-  const shaped = await shapeDms((data || []).reverse());
-  res.json({ messages: shaped });
-  // the other person's messages are now "seen"
-  supabase.from("dms").update({ read_at: new Date().toISOString() })
-    .eq("sender_id", peer).eq("receiver_id", me).is("read_at", null)
-    .then((r) => { if (!r.error) io.to("u:" + peer).emit("dm seen", { by: me }); }, () => {});
+    .limit(61);
+  if (before) q = q.lt("created_at", before);
+  const { data } = await q;
+  const rows = data || [];
+  const more = rows.length > 60;
+  const shaped = await shapeDms(rows.slice(0, 60).reverse());
+  res.json({ messages: shaped, more });
+  if (!before) {
+    // the other person's messages are now "seen"
+    supabase.from("dms").update({ read_at: new Date().toISOString() })
+      .eq("sender_id", peer).eq("receiver_id", me).is("read_at", null)
+      .then((r) => { if (!r.error) io.to("u:" + peer).emit("dm seen", { by: me }); }, () => {});
+  }
+}));
+
+// React to a message with an emoji (same emoji again takes it back)
+app.post("/api/dms/react", requireUser, limiter("rx", 120, 60000), safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const emoji = String(req.body.emoji || "").slice(0, 8);
+  const { data: m } = await supabase.from("dms").select("id, sender_id, receiver_id").eq("id", id).maybeSingle();
+  if (!m || (m.sender_id !== req.user.id && m.receiver_id !== req.user.id)) return res.json({ error: "Message not found." });
+  const { data: ex } = await supabase.from("dm_reactions").select("emoji").eq("dm_id", id).eq("user_id", req.user.id).maybeSingle();
+  if (ex && (ex.emoji === emoji || !emoji)) await supabase.from("dm_reactions").delete().eq("dm_id", id).eq("user_id", req.user.id);
+  else if (emoji) await supabase.from("dm_reactions").upsert({ dm_id: id, user_id: req.user.id, emoji });
+  const { data: all } = await supabase.from("dm_reactions").select("user_id, emoji").eq("dm_id", id);
+  const reactions = (all || []).map((r) => ({ emoji: r.emoji, mine: r.user_id === req.user.id, by: r.user_id }));
+  const other = m.sender_id === req.user.id ? m.receiver_id : m.sender_id;
+  io.to("u:" + other).emit("dm react", { id, reactions: reactions.map((r) => ({ emoji: r.emoji, by: r.by })) });
+  res.json({ ok: true, reactions });
 }));
 
 // Take back (unsend) a message you sent
@@ -1036,7 +1059,7 @@ app.post("/api/dms/delete", requireUser, safe(async (req, res) => {
 const REELS_BUCKET = "reels";
 
 // Step 1 of posting: get a safe place to upload the video
-app.post("/api/reels/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/reels/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const wanted = String(req.body.ext || "").toLowerCase();
   const ext = ["mp4", "mov", "webm", "m4v"].includes(wanted) ? wanted : "mp4";
   const path = req.user.id + "/" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -1053,7 +1076,7 @@ app.post("/api/reels", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   const path = String(req.body.path || "");
   if (!me || !path.startsWith(req.user.id + "/") || path.includes("..")) return res.status(400).json({ error: "Bad request" });
-  const caption = String(req.body.caption || "").trim().slice(0, 150);
+  const caption = String(req.body.caption || "").trim().slice(0, 2200);
   const { error } = await supabase.from("reels").insert({ user_id: me.id, username: me.username, path, caption });
   if (error) {
     console.error("Reel save error:", error.message);
@@ -1196,11 +1219,11 @@ app.get("/api/reels/:id/comments", requireUser, safe(async (req, res) => {
   res.json({ comments: (data || []).filter((c) => !bl.has(c.user_id)).map((c) => ({ id: c.id, username: c.username, text: c.text, created_at: c.created_at, mine: c.user_id === req.user.id, can_delete: c.user_id === req.user.id || r.user_id === req.user.id })) });
 }));
 
-app.post("/api/reels/comment", requireUser, limiter("cm", 20, 60000), safe(async (req, res) => {
+app.post("/api/reels/comment", requireUser, limiter("cm", 60, 60000), safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const id = Number(req.body.reel_id) || 0;
-  const text = String(req.body.text || "").trim().slice(0, 300);
+  const text = String(req.body.text || "").trim().slice(0, 2200);
   if (!text) return res.json({ error: "Write a comment first." });
   const { data: r } = await supabase.from("reels").select("id, user_id").eq("id", id).maybeSingle();
   if (!r || !(await canSeeUser(me.id, r.user_id))) return res.json({ error: "Reel not found." });
@@ -1224,6 +1247,17 @@ async function shapeDms(rows) {
     const { data } = await supabase.from("photo_posts").select("id, username, caption, path").in("id", postIdsD);
     (data || []).forEach((p) => (postMap[p.id] = p));
   }
+  const replyIds = [...new Set(rows.filter((r) => r.reply_to).map((r) => r.reply_to))];
+  const replyMap = {};
+  if (replyIds.length) {
+    const { data } = await supabase.from("dms").select("id, sender_id, text, kind").in("id", replyIds);
+    (data || []).forEach((r) => (replyMap[r.id] = r));
+  }
+  const reactMap = {};
+  if (rows.length) {
+    const { data } = await supabase.from("dm_reactions").select("dm_id, user_id, emoji").in("dm_id", rows.map((r) => r.id));
+    (data || []).forEach((r) => { (reactMap[r.dm_id] = reactMap[r.dm_id] || []).push({ emoji: r.emoji, by: r.user_id }); });
+  }
   const paths = [...rows.map((r) => r.media_path), ...Object.values(reelMap).map((r) => r.path), ...Object.values(postMap).map((p) => p.path)].filter(Boolean);
   const urls = {};
   if (paths.length) {
@@ -1242,16 +1276,28 @@ async function shapeDms(rows) {
       kind: m.kind || "text",
       text: m.text || "",
       time: m.created_at,
-      image: m.media_path && m.kind !== "audio" ? urls[m.media_path] || null : null,
+      image: m.media_path && m.kind === "image" ? urls[m.media_path] || null : null,
+      video: m.media_path && m.kind === "video" ? urls[m.media_path] || null : null,
       audio: m.media_path && m.kind === "audio" ? urls[m.media_path] || null : null,
-      secs: m.kind === "audio" ? Number(m.text) || 0 : 0,
+      reactions: reactMap[m.id] || [],
+      reply: m.reply_to && replyMap[m.reply_to] ? { id: m.reply_to, from: replyMap[m.reply_to].sender_id, kind: replyMap[m.reply_to].kind || "text", text: String(replyMap[m.reply_to].text || "").slice(0, 80) } : null,
+      secs: m.kind === "audio" ? parseInt(String(m.text || "0"), 10) || 0 : 0,
+      peaks: m.kind === "audio" && String(m.text || "").indexOf("|") > 0 ? String(m.text).split("|")[1] : "",
       reel: reel ? { id: reel.id, username: reel.username, caption: reel.caption, url: urls[reel.path] || null } : null,
     };
   });
 }
 
 // Step 1 of sending a photo: get a safe place to upload it
-app.post("/api/dms/voice-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/dms/video-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
+  const ext = String(req.body.ext || "").toLowerCase();
+  if (!["mp4", "mov", "webm", "m4v"].includes(ext)) return res.json({ error: "Unsupported video." });
+  const path = req.user.id + "/vid-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+app.post("/api/dms/voice-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["webm", "mp4", "m4a", "ogg", "wav"].includes(ext)) return res.json({ error: "Unsupported audio." });
   const path = req.user.id + "/voice-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -1259,7 +1305,7 @@ app.post("/api/dms/voice-url", requireUser, limiter("up", 30, 60000), safe(async
   if (error) return res.status(500).json({ error: "Could not start the upload." });
   res.json({ path, token: data.token });
 }));
-app.post("/api/dms/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/dms/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
     return res.json({ error: "Please use a JPG, PNG, GIF or WEBP photo." });
@@ -1274,7 +1320,7 @@ app.post("/api/dms/upload-url", requireUser, limiter("up", 30, 60000), safe(asyn
 }));
 
 // Step 2: send a photo or a reel to one person
-app.post("/api/dms/send", requireUser, limiter("ds", 30, 60000), safe(async (req, res) => {
+app.post("/api/dms/send", requireUser, limiter("ds", 120, 60000), safe(async (req, res) => {
   const me = req.user.id;
   const to = String(req.body.to || "");
   if (!(await canMessage(me, to))) return res.json({ error: "You can't message this person." });
@@ -1286,11 +1332,26 @@ app.post("/api/dms/send", requireUser, limiter("ds", 30, 60000), safe(async (req
     const path = String(req.body.path || "");
     if (!path.startsWith(me + "/chat-")) return res.json({ error: "Bad photo." });
     row.media_path = path;
+  } else if (kind === "video") {
+    const path = String(req.body.path || "");
+    if (!path.startsWith(me + "/vid-")) return res.json({ error: "Bad video." });
+    row.media_path = path;
+  } else if (kind === "gif") {
+    const u = String(req.body.text || "");
+    let ok = false;
+    try { const x = new URL(u); ok = x.protocol === "https:" && /(^|\.)giphy\.com$|(^|\.)tenor\.com$/.test(x.hostname); } catch (e) {}
+    if (!ok) return res.json({ error: "Bad GIF." });
+    row.text = u;
+  } else if (kind === "sticker") {
+    const em = String(req.body.text || "").trim();
+    if (!em || em.length > 12) return res.json({ error: "Bad sticker." });
+    row.text = em;
   } else if (kind === "audio") {
     const path = String(req.body.path || "");
     if (!path.startsWith(me + "/voice-")) return res.json({ error: "Bad voice message." });
     row.media_path = path;
-    row.text = String(Math.max(1, Math.min(300, Number(req.body.secs) || 1)));
+    const peaks = String(req.body.peaks || "").replace(/[^0-9]/g, "").slice(0, 60);
+    row.text = String(Math.max(1, Math.min(3600, Number(req.body.secs) || 1))) + (peaks.length >= 10 ? "|" + peaks : "");
   } else if (kind === "reel") {
     const { data: reel } = await supabase
       .from("reels").select("id, user_id").eq("id", Number(req.body.reel_id) || 0).maybeSingle();
@@ -1325,7 +1386,10 @@ app.post("/api/dms/send", requireUser, limiter("ds", 30, 60000), safe(async (req
     return res.json({ error: "Unknown message type." });
   }
 
-  const { data: saved, error } = await supabase.from("dms").insert(row).select("*").single();
+  const replyTo = Number(req.body.reply_to) || 0;
+  if (replyTo) row.reply_to = replyTo;
+  let { data: saved, error } = await supabase.from("dms").insert(row).select("*").single();
+  if (error && row.reply_to) { delete row.reply_to; ({ data: saved, error } = await supabase.from("dms").insert(row).select("*").single()); }
   if (error) {
     console.error("DM media save error:", error.message);
     return res.status(500).json({ error: "Could not send that." });
@@ -1351,7 +1415,7 @@ async function canSeeUser(meId, authorId) {
 }
 
 // Step 1 of posting: a safe place to upload the photo
-app.post("/api/posts/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/posts/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) {
     return res.json({ error: "Please use a JPG, PNG, GIF or WEBP photo." });
@@ -1370,7 +1434,7 @@ app.post("/api/posts", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   const path = String(req.body.path || "");
   if (!me || !path.startsWith(req.user.id + "/post-")) return res.status(400).json({ error: "Bad request" });
-  const caption = String(req.body.caption || "").trim().slice(0, 200);
+  const caption = String(req.body.caption || "").trim().slice(0, 2200);
   const { error } = await supabase.from("photo_posts").insert({ user_id: me.id, username: me.username, path, caption });
   if (error) {
     console.error("Post save error:", error.message);
@@ -1513,11 +1577,11 @@ app.get("/api/posts/:id/comments", requireUser, safe(async (req, res) => {
 }));
 
 // Add a comment
-app.post("/api/posts/comment", requireUser, limiter("cm", 20, 60000), safe(async (req, res) => {
+app.post("/api/posts/comment", requireUser, limiter("cm", 60, 60000), safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
   const id = Number(req.body.post_id) || 0;
-  const text = String(req.body.text || "").trim().slice(0, 300);
+  const text = String(req.body.text || "").trim().slice(0, 2200);
   if (!text) return res.json({ error: "Write a comment first." });
   const { data: p } = await supabase.from("photo_posts").select("id, user_id").eq("id", id).maybeSingle();
   if (!p || !(await canSeeUser(me.id, p.user_id))) return res.json({ error: "Post not found." });
@@ -1528,6 +1592,100 @@ app.post("/api/posts/comment", requireUser, limiter("cm", 20, 60000), safe(async
     return res.status(500).json({ error: "Could not post the comment." });
   }
   res.json({ ok: true });
+}));
+
+// ---------- Comments (Instagram style): replies, likes, pictures and GIFs ----------
+const CKIND = {
+  reel: { t: "reel_comments", fk: "reel_id", item: "reels" },
+  post: { t: "photo_comments", fk: "post_id", item: "photo_posts" },
+};
+app.get("/api/comments/:kind/:id", requireUser, safe(async (req, res) => {
+  const k = CKIND[req.params.kind];
+  const id = Number(req.params.id) || 0;
+  if (!k) return res.status(400).json({ error: "Bad request" });
+  const { data: it } = await supabase.from(k.item).select("id, user_id").eq("id", id).maybeSingle();
+  if (!it || !(await canSeeUser(req.user.id, it.user_id))) return res.json({ error: "Not found." });
+  let q = await supabase.from(k.t).select("id, user_id, username, text, created_at, parent_id, media_path").eq(k.fk, id).order("created_at", { ascending: true }).limit(1500);
+  if (q.error) q = await supabase.from(k.t).select("id, user_id, username, text, created_at").eq(k.fk, id).order("created_at", { ascending: true }).limit(1500);
+  const bl = await blockedIds(req.user.id);
+  const rows = (q.data || []).filter((c) => !bl.has(c.user_id));
+  const ids = rows.map((c) => c.id);
+  const likes = {}, liked = {};
+  if (ids.length) {
+    const { data: lk } = await supabase.from("comment_likes").select("comment_id, user_id").eq("kind", req.params.kind).in("comment_id", ids);
+    (lk || []).forEach((x) => { likes[x.comment_id] = (likes[x.comment_id] || 0) + 1; if (x.user_id === req.user.id) liked[x.comment_id] = true; });
+  }
+  const pics = await avatarsFor([...new Set(rows.map((c) => c.user_id))]);
+  const own = rows.map((c) => c.media_path).filter((p) => p && !/^https:/.test(p));
+  const urls = {};
+  if (own.length) { const { data: sg } = await signMany(own); (sg || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; }); }
+  res.json({
+    comments: rows.map((c) => ({
+      id: c.id, parent_id: c.parent_id || null, username: c.username, avatar: pics[c.user_id] || null, text: c.text || "",
+      created_at: c.created_at, likes: likes[c.id] || 0, liked: !!liked[c.id], mine: c.user_id === req.user.id,
+      can_delete: c.user_id === req.user.id || it.user_id === req.user.id, by_owner: c.user_id === it.user_id,
+      media: c.media_path ? (/^https:/.test(c.media_path) ? c.media_path : urls[c.media_path] || null) : null,
+    })),
+  });
+}));
+app.post("/api/comments", requireUser, limiter("cm", 60, 60000), safe(async (req, res) => {
+  const me = await getOrCreateProfile(req.user);
+  const k = CKIND[req.body.kind];
+  const id = Number(req.body.id) || 0;
+  if (!me || !k) return res.status(400).json({ error: "Bad request" });
+  const text = String(req.body.text || "").trim().slice(0, 2200);
+  let media = String(req.body.media || "");
+  if (media) {
+    let ok = media.startsWith(me.id + "/cm-");
+    if (!ok) { try { const u = new URL(media); ok = u.protocol === "https:" && /(^|\.)giphy\.com$|(^|\.)tenor\.com$/.test(u.hostname); } catch (e) {} }
+    if (!ok) media = "";
+  }
+  if (!text && !media) return res.json({ error: "Write a comment first." });
+  const { data: it } = await supabase.from(k.item).select("id, user_id").eq("id", id).maybeSingle();
+  if (!it || !(await canSeeUser(me.id, it.user_id))) return res.json({ error: "Not found." });
+  const row = { [k.fk]: id, user_id: me.id, username: me.username, text };
+  let parent = Number(req.body.parent_id) || 0;
+  if (parent) {
+    const { data: pc } = await supabase.from(k.t).select("id, parent_id").eq("id", parent).maybeSingle();
+    parent = pc ? (pc.parent_id || pc.id) : 0; // replies stay one level deep, like Instagram
+    if (parent) row.parent_id = parent;
+  }
+  if (media) row.media_path = media;
+  let { error } = await supabase.from(k.t).insert(row);
+  if (error && (row.parent_id || row.media_path)) { console.error("Comment error:", error.message); return res.json({ error: "Could not post that. Run the new SQL in Supabase first." }); }
+  if (error) return res.status(500).json({ error: "Could not post the comment." });
+  res.json({ ok: true });
+}));
+app.post("/api/comments/like", requireUser, limiter("cl", 200, 60000), safe(async (req, res) => {
+  const kind = req.body.kind === "reel" ? "reel" : "post";
+  const id = Number(req.body.id) || 0;
+  const { data: ex } = await supabase.from("comment_likes").select("comment_id").eq("user_id", req.user.id).eq("kind", kind).eq("comment_id", id).maybeSingle();
+  if (ex) await supabase.from("comment_likes").delete().eq("user_id", req.user.id).eq("kind", kind).eq("comment_id", id);
+  else { const { error } = await supabase.from("comment_likes").insert({ user_id: req.user.id, kind, comment_id: id }); if (error) return res.json({ error: "Run the new SQL first." }); }
+  const { count } = await supabase.from("comment_likes").select("comment_id", { count: "exact", head: true }).eq("kind", kind).eq("comment_id", id);
+  res.json({ liked: !ex, likes: count || 0 });
+}));
+app.post("/api/comments/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
+  const ext = String(req.body.ext || "").toLowerCase();
+  if (!["jpg", "jpeg", "png", "gif", "webp"].includes(ext)) return res.json({ error: "Please use a JPG, PNG, GIF or WEBP picture." });
+  const path = req.user.id + "/cm-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+// GIF search (turns on when you add GIPHY_API_KEY in Render's Environment settings)
+app.get("/api/gifs", requireUser, limiter("gif", 60, 60000), safe(async (req, res) => {
+  const key = process.env.GIPHY_API_KEY;
+  if (!key) return res.json({ enabled: false, gifs: [] });
+  const q = String(req.query.q || "").trim().slice(0, 60);
+  const url = q
+    ? "https://api.giphy.com/v1/gifs/search?api_key=" + encodeURIComponent(key) + "&q=" + encodeURIComponent(q) + "&limit=30&rating=pg-13"
+    : "https://api.giphy.com/v1/gifs/trending?api_key=" + encodeURIComponent(key) + "&limit=30&rating=pg-13";
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+    const j = await r.json();
+    res.json({ enabled: true, gifs: (j.data || []).map((g) => ({ url: g.images && g.images.fixed_height && g.images.fixed_height.url, preview: g.images && g.images.fixed_height_small && g.images.fixed_height_small.url })).filter((g) => g.url) });
+  } catch (e) { res.json({ enabled: true, gifs: [] }); }
 }));
 
 // Delete a comment (your own, or any comment on your own post / reel)
@@ -1543,6 +1701,7 @@ app.post("/api/comments/delete", requireUser, safe(async (req, res) => {
     ownsItem = !!(it && it.user_id === req.user.id);
   }
   if (c.user_id !== req.user.id && !ownsItem) return res.status(403).json({ error: "Not allowed." });
+  await supabase.from(ctable).delete().eq("parent_id", id);
   await supabase.from(ctable).delete().eq("id", id);
   res.json({ ok: true });
 }));
@@ -1601,7 +1760,7 @@ io.on("connection", async (socket) => {
   socket.on("dm", async (msg) => {
     try {
       const to = String((msg && msg.to) || "");
-      const text = String((msg && msg.text) || "").slice(0, 500);
+      const text = String((msg && msg.text) || "").slice(0, 4000);
       if (!text.trim() || !UUID_RE.test(to)) return;
 
       if (!(await canMessage(socket.data.userId, to))) {
@@ -1612,18 +1771,23 @@ io.on("connection", async (socket) => {
         socket.emit("dm error", "Slow down a little.");
         return;
       }
-      const { data: saved, error } = await supabase
-        .from("dms")
-        .insert({ sender_id: socket.data.userId, receiver_id: to, text })
-        .select("id, created_at")
-        .single();
+      const replyTo = Number(msg && msg.reply_to) || 0;
+      const ins = { sender_id: socket.data.userId, receiver_id: to, text };
+      if (replyTo) ins.reply_to = replyTo;
+      let { data: saved, error } = await supabase.from("dms").insert(ins).select("id, created_at").single();
+      if (error && replyTo) { delete ins.reply_to; ({ data: saved, error } = await supabase.from("dms").insert(ins).select("id, created_at").single()); }
       if (error) {
         console.error("DM save error:", error.message);
         socket.emit("dm error", "Could not send that message.");
         return;
       }
       const cid = String((msg && msg.cid) || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
-      const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid };
+      let reply = null;
+      if (ins.reply_to) {
+        const { data: rm } = await supabase.from("dms").select("id, sender_id, text, kind").eq("id", ins.reply_to).maybeSingle();
+        if (rm) reply = { id: rm.id, from: rm.sender_id, kind: rm.kind || "text", text: String(rm.text || "").slice(0, 80) };
+      }
+      const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid, reply, reactions: [] };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
     } catch (e) {
@@ -1684,7 +1848,7 @@ app.get("/api/groups", requireUser, safe(async (req, res) => {
   }
   res.json({ groups: gs.map((g) => ({ id: g.id, name: g.name, mine: g.owner_id === req.user.id, avatar: g.avatar_path ? urls[g.avatar_path] || null : null })) });
 }));
-app.post("/api/groups/upload-url", requireUser, limiter("up", 30, 60000), safe(async (req, res) => {
+app.post("/api/groups/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
   if (!["jpg", "jpeg", "png", "webp"].includes(ext)) return res.json({ error: "Please use a JPG, PNG or WEBP photo." });
   const path = req.user.id + "/group-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
@@ -1705,7 +1869,7 @@ app.post("/api/groups/picture", requireUser, safe(async (req, res) => {
 app.post("/api/groups", requireUser, safe(async (req, res) => {
   const me = await getOrCreateProfile(req.user);
   if (!me) return res.status(500).json({ error: "Could not load profile" });
-  const name = String(req.body.name || "").trim().slice(0, 40);
+  const name = String(req.body.name || "").trim().slice(0, 60);
   if (!name) return res.json({ message: "Give the group a name." });
 
   const pic = String(req.body.picture || "");
@@ -1870,7 +2034,7 @@ io.on("connection", (socket) => {
 
 // ---------- Calls: voice and video, 1-to-1 and groups ----------
 const callRooms = new Map(); // room -> Map(socketId -> { uid, username })
-const CALL_MAX = 6;
+const CALL_MAX = 8;
 async function callRoomInfo(uid, room) {
   room = String(room || "");
   let m = room.match(/^dm:([0-9a-f-]{36}):([0-9a-f-]{36})$/i);
@@ -1952,31 +2116,40 @@ io.on("connection", (socket) => {
 
 // ---------- Who is online ----------
 const onlineCount = new Map();
+const lastSeenMap = new Map();
 io.on("connection", (socket) => {
   const uid = socket.data.userId;
   onlineCount.set(uid, (onlineCount.get(uid) || 0) + 1);
   socket.on("disconnect", () => {
     const n = (onlineCount.get(uid) || 1) - 1;
-    if (n <= 0) onlineCount.delete(uid); else onlineCount.set(uid, n);
+    if (n <= 0) {
+      onlineCount.delete(uid);
+      const now = new Date().toISOString();
+      lastSeenMap.set(uid, now);
+      supabase.from("profiles").update({ last_seen: now }).eq("id", uid).then(() => {}, () => {});
+    } else onlineCount.set(uid, n);
   });
 });
 app.get("/api/presence/:id", requireUser, safe(async (req, res) => {
   const id = String(req.params.id || "");
   if (!UUID_RE.test(id)) return res.json({ online: false });
   if (!(await canMessage(req.user.id, id)) && !(await canMessage(id, req.user.id))) return res.json({ online: false });
-  res.json({ online: onlineCount.has(id) });
+  if (onlineCount.has(id)) return res.json({ online: true });
+  let last = lastSeenMap.get(id) || null;
+  if (!last) { const { data } = await supabase.from("profiles").select("last_seen").eq("id", id).maybeSingle(); last = data && data.last_seen ? new Date(data.last_seen).toISOString() : null; }
+  res.json({ online: false, last });
 }));
 
 // ---------- Edit a caption ----------
 app.post("/api/posts/edit", requireUser, safe(async (req, res) => {
   const id = Number(req.body.id) || 0;
-  const caption = String(req.body.caption || "").trim().slice(0, 200);
+  const caption = String(req.body.caption || "").trim().slice(0, 2200);
   const { error } = await supabase.from("photo_posts").update({ caption }).eq("id", id).eq("user_id", req.user.id);
   res.json(error ? { error: "Could not save." } : { ok: true });
 }));
 app.post("/api/reels/edit", requireUser, safe(async (req, res) => {
   const id = Number(req.body.id) || 0;
-  const caption = String(req.body.caption || "").trim().slice(0, 150);
+  const caption = String(req.body.caption || "").trim().slice(0, 2200);
   const { error } = await supabase.from("reels").update({ caption }).eq("id", id).eq("user_id", req.user.id);
   res.json(error ? { error: "Could not save." } : { ok: true });
 }));
@@ -1990,7 +2163,7 @@ io.on("connection", (socket) => {
 
   socket.on("group message", async (msg) => {
     const gid = Number(msg && msg.groupId);
-    const text = String((msg && msg.text) || "").slice(0, 500);
+    const text = String((msg && msg.text) || "").slice(0, 4000);
     if (!gid || !text.trim()) return;
     if (!(await isMember(gid, socket.data.userId))) return;
 
