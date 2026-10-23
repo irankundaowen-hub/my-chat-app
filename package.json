@@ -1,6 +1,6 @@
 {
   "name": "twik-chat",
-  "version": "4.0.0",
+  "version": "5.0.0",
   "description": "Twik Chat",
   "main": "server.js",
   "scripts": {
@@ -14,5 +14,8 @@
     "express": "^4.19.2",
     "socket.io": "^4.7.5",
     "compression": "^1.7.4"
+  },
+  "optionalDependencies": {
+    "firebase-admin": "^12.6.0"
   }
 }

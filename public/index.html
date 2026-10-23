@@ -877,6 +877,22 @@
     #stkGrid.gifs img { width: 100%; height: 84px; object-fit: cover; border-radius: 12px; cursor: pointer; }
     #stkQWrap input { margin: 0 0 6px; }
     .cMic.rec, .cTool.rec { animation: livePulse 1.200s infinite; }
+
+    /* ===== v25: highlights, vanish ===== */
+    .hlRow { display: flex; gap: 14px; overflow-x: auto; padding: 10px 0 4px; scrollbar-width: none; }
+    .hlRow[hidden] { display: none; }
+    .hlRow::-webkit-scrollbar { display: none; }
+    .hlItem { width: 70px; flex-shrink: 0; text-align: center; cursor: pointer; background: none !important; border: none !important; padding: 0 !important; margin: 0 !important; color: #fff; }
+    .hlItem .ring { width: 66px; height: 66px; border-radius: 50% 50% 50% 14px; padding: 3px; background: var(--grad); overflow: hidden; margin: 0 auto 4px; }
+    .hlItem .ring img, .hlItem .ring video { width: 100%; height: 100%; object-fit: cover; border-radius: 50% 50% 50% 11px; display: block; background: #000; }
+    .hlItem span { display: block; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #storyViewer.hl .svBottom { display: none; }
+    #cThread.vanish #cMessages { background: #050507; }
+    #cThread.vanish form.igBar { background: #15151a !important; box-shadow: 0 0 0 1.5px #7c3aed inset; }
+    #vanishBanner { text-align: center; font-size: 12.5px; color: #c4b5fd; padding: 6px 10px; background: #1a1230; border-radius: 14px; margin: 4px 0; }
+    #vanishBanner[hidden] { display: none; }
+    .msg[data-vanish]::after { content: "👻"; font-size: 11px; position: absolute; right: 6px; top: -6px; }
+    .msg { position: relative; }
   </style>
 </head>
 <body>
@@ -935,6 +951,7 @@
         </div>
         <div class="pDisplay" id="pDisplay"></div>
         <div class="pBioText" id="pBioText"></div>
+        <div class="hlRow" id="pHl" hidden></div>
         <div class="pBtns">
           <button type="button" id="pEditBtn">Edit profile</button>
           <button type="button" id="pSettingsBtn">Settings</button>
@@ -1046,6 +1063,7 @@
       </div>
       <div class="pDisplay" id="uvDisplay"></div>
       <div class="pBioText" id="uvBio"></div>
+      <div class="hlRow" id="uvHl" hidden></div>
       <div class="pBtns">
         <button type="button" id="uvFollowBtn" class="primary">Follow</button>
         <button type="button" id="uvMsgBtn">Message</button>
@@ -1156,6 +1174,7 @@
         </div>
         <div id="cMessages"></div>
         <div id="cTyping" class="typing" hidden>typing…</div>
+        <div id="vanishBanner" hidden>👻 Vanish mode is on. Seen messages disappear when you leave the chat.</div>
         <div id="cReplyBar" hidden><span id="cReplyTxt" data-notr></span><button id="cReplyX" type="button" aria-label="Cancel">✕</button></div>
         <div id="cStk" hidden>
           <div class="stkTabs"><button type="button" id="stkTabE" class="on">Stickers</button><button type="button" id="stkTabG">GIF</button><button type="button" id="stkX" aria-label="Close">✕</button></div>
@@ -1409,7 +1428,7 @@
             <button type="button" class="svBtn" id="svClose" aria-label="Close">✕</button>
           </span>
         </div>
-        <div class="svMenu" id="svMenu" hidden><button type="button" id="svDelete">🗑 Delete story</button></div>
+        <div class="svMenu" id="svMenu" hidden><button type="button" id="svHighlight" style="color:#fff">⭐ Add to highlight</button><button type="button" id="svDelete">🗑 Delete story</button></div>
         <div class="svCaption" id="svCaption"></div>
         <button type="button" class="svTap left" id="svPrev" aria-label="Previous"></button>
         <button type="button" class="svTap right" id="svNext" aria-label="Next"></button>
@@ -1900,6 +1919,8 @@
         $("who").textContent =
           (user.user_metadata && user.user_metadata.username) || user.email;
 
+        ensureRtc();
+        initPush();
         // Connect, and prove who we are with our login token
         socket = io({
           auth: (cb) => {
@@ -2118,6 +2139,7 @@
         else { $("uvAvatar").hidden = true; $("uvLetter").hidden = false; }
         $("uvDisplay").textContent = d.display_name; $("uvDisplay").hidden = !d.display_name;
         $("uvBio").textContent = d.bio; $("uvBio").hidden = !d.bio;
+        if (d.can_see) loadHighlights(d.id, $("uvHl"), { username: d.username, avatar: d.avatar }); else $("uvHl").hidden = true;
         $("uvPosts").textContent = d.posts_count;
         $("uvFollowers").textContent = d.followers;
         $("uvFollowing").textContent = d.following;
@@ -2346,6 +2368,7 @@
         const seen = getSeen()[g.user_id] || 0;
         const firstNew = g.stories.findIndex((s) => s.id > seen);
         sv.i = firstNew >= 0 ? firstNew : 0;
+        $("storyViewer").classList.toggle("hl", !!g.hl);
         $("storyViewer").hidden = false;
         showStory();
       }
@@ -2399,7 +2422,7 @@
         const g = sv.g;
         const st = g.stories[sv.i];
         markSeen(g.user_id, st.id);
-        if (!g.mine && !viewedStories.has(st.id)) { viewedStories.add(st.id); api("/api/stories/view", "POST", { id: st.id }); }
+        if (!g.mine && !g.hl && !viewedStories.has(st.id)) { viewedStories.add(st.id); api("/api/stories/view", "POST", { id: st.id }); }
         $("svWho").innerHTML = "";
         const av = smallAvatar(g.avatar, g.username);
         $("svWho").append(av, document.createTextNode(" @" + g.username + " · " + ago(st.time)));
@@ -2742,6 +2765,7 @@
         $("pDisplay").hidden = !p.display_name;
         $("pBioText").textContent = p.bio || "";
         $("pBioText").hidden = !p.bio;
+        if (me) loadHighlights(me.id, $("pHl"), { username: p.username, avatar: p.avatar_url });
         $("sPosts").textContent = p.posts_count || 0;
         $("sFollowersN").textContent = p.followers.length;
         $("sFollowingN").textContent = p.following.length;
@@ -3476,6 +3500,7 @@
         $("cTitle").hidden = false;
         $("cTitle").textContent = "@" + p.username;
         setPeerHeader(p);
+        setVanish(false);
         clearReply();
         $("cStk").hidden = true;
         $("cList").hidden = true;
@@ -3524,8 +3549,8 @@
         $("chatsPanel").hidden = false;
         showList();
       });
-      $("cClose").addEventListener("click", () => { $("chatsPanel").hidden = true; peer = null; });
-      $("cBack").addEventListener("click", showList);
+      $("cClose").addEventListener("click", () => { vanishLeave(); $("chatsPanel").hidden = true; peer = null; });
+      $("cBack").addEventListener("click", () => { vanishLeave(); showList(); });
 
       $("cStart").addEventListener("click", async () => {
         const r = await api("/api/dms/start", "POST", { username: $("cUser").value });
@@ -3549,7 +3574,7 @@
         const text = $("cInput").value;
         if (!text.trim() || !peer || !socket) return;
         const cid = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
-        const m = { from: me.id, to: peer.id, text, time: nowISO(), cid };
+        const m = { from: me.id, to: peer.id, text, time: nowISO(), cid, vanish: VANISH };
         if (REPLY) m.reply = { id: REPLY.id, from: REPLY.from, kind: REPLY.kind || "text", text: REPLY.text || "" };
         const el = bubble(m);
         el.classList.add("pending");
@@ -3558,7 +3583,7 @@
         daySep(box, m.time);
         box.appendChild(el);
         box.scrollTop = box.scrollHeight;
-        socket.emit("dm", { to: peer.id, text, cid, reply_to: REPLY ? REPLY.id : undefined });
+        socket.emit("dm", { to: peer.id, text, cid, reply_to: REPLY ? REPLY.id : undefined, vanish: VANISH || undefined });
         $("cInput").value = "";
         clearReply();
         toolsToggle();
@@ -5197,6 +5222,7 @@
           q.textContent = previewOf(m.reply).slice(0, 80);
           div.insertBefore(q, div.firstChild); div.insertBefore(lbl, q);
         }
+        if (m.vanish) div.dataset.vanish = "1";
         setReactions(div, m.reactions);
       }
       function setReactions(div, rs) {
@@ -5278,7 +5304,7 @@
             if (up.error) throw new Error(up.error);
             const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || f.type });
             if (error) throw error;
-            const r = await api("/api/dms/send", "POST", { to, kind: "image", path: up.path, reply_to: REPLY ? REPLY.id : undefined });
+            const r = await api("/api/dms/send", "POST", { to, kind: "image", path: up.path, reply_to: REPLY ? REPLY.id : undefined, vanish: VANISH || undefined });
             st.textContent = r.error || "";
           } else if (f.type.startsWith("video/")) {
             if (f.size > MAX_MB * 1024 * 1024) { st.textContent = "Video is too big (max " + MAX_MB + " MB)."; return; }
@@ -5288,7 +5314,7 @@
             if (up.error) throw new Error(up.error);
             const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, f, { contentType: f.type });
             if (error) throw error;
-            const r = await api("/api/dms/send", "POST", { to, kind: "video", path: up.path, reply_to: REPLY ? REPLY.id : undefined });
+            const r = await api("/api/dms/send", "POST", { to, kind: "video", path: up.path, reply_to: REPLY ? REPLY.id : undefined, vanish: VANISH || undefined });
             st.textContent = r.error || "";
           } else { st.textContent = "Please choose a photo or video."; return; }
           clearReply();
@@ -5297,7 +5323,7 @@
       ["cFile", "cCam"].forEach((id) => $(id).addEventListener("change", () => { const f = $(id).files[0]; $(id).value = ""; sendMediaFile(f); }));
       async function sendKind(kind, text) {
         if (!peer) return;
-        const r = await api("/api/dms/send", "POST", { to: peer.id, kind, text, reply_to: REPLY ? REPLY.id : undefined });
+        const r = await api("/api/dms/send", "POST", { to: peer.id, kind, text, reply_to: REPLY ? REPLY.id : undefined, vanish: VANISH || undefined });
         if (r && r.error) toast(r.error); else clearReply();
       }
       // stickers + GIFs
@@ -5317,6 +5343,7 @@
       $("cPlus").addEventListener("click", () => {
         if (!peer) return;
         openSheet("More", (b) => {
+          sheetBtn(b, VANISH ? "👻 Turn vanish mode off" : "👻 Turn vanish mode on", () => { closeSheet(); setVanish(!VANISH); });
           sheetBtn(b, "📷 Photo or video", () => { closeSheet(); $("cFile").click(); });
           sheetBtn(b, "🎨 Chat theme", () => { closeSheet(); openTheme(false); });
           sheetBtn(b, "📞 Voice call", () => { closeSheet(); $("cCallA").click(); });
@@ -5359,7 +5386,7 @@
             if (up.error) throw new Error(up.error);
             const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, blob, { contentType: type });
             if (error) throw error;
-            const r = await api("/api/dms/send", "POST", { to, kind: "audio", path: up.path, secs, peaks: out.join(""), reply_to: reply });
+            const r = await api("/api/dms/send", "POST", { to, kind: "audio", path: up.path, secs, peaks: out.join(""), reply_to: reply, vanish: VANISH || undefined });
             if (r.error) throw new Error(r.error);
             clearReply();
           } catch (e) { toast("Voice message failed: " + (e.message || "try again.")); }
@@ -5374,6 +5401,86 @@
       $("cMic").addEventListener("pointerdown", (e) => { e.preventDefault(); micX = e.clientX; micDown = Date.now(); if (!VOICE.rec) voiceStart(); else voiceStop(false); });
       $("cMic").addEventListener("pointerup", (e) => { if (VOICE.rec && Date.now() - micDown > 900) voiceStop(micX - e.clientX > 70); });
       $("cMic").addEventListener("contextmenu", (e) => e.preventDefault());
+
+
+      // ================= v25: relay config, push, vanish, highlights =================
+      let rtcDone = false;
+      async function ensureRtc() {
+        if (rtcDone) return; rtcDone = true;
+        try { const d = await api("/api/rtc-config"); if (d && d.iceServers) RTC_CFG.iceServers = d.iceServers; } catch (e) { rtcDone = false; }
+      }
+      async function initPush() {
+        try {
+          const C = window.Capacitor;
+          if (!C || !C.isNativePlatform || !C.isNativePlatform()) return;
+          const PN = C.registerPlugin ? C.registerPlugin("PushNotifications") : (C.Plugins && C.Plugins.PushNotifications);
+          if (!PN) return;
+          let p = await PN.checkPermissions();
+          if (p.receive !== "granted") p = await PN.requestPermissions();
+          if (p.receive !== "granted") return;
+          try { await PN.createChannel({ id: "default", name: "Twik Chat", importance: 5, sound: "default", vibration: true }); } catch (e) {}
+          PN.addListener("registration", (t) => { api("/api/push/register", "POST", { token: t.value, platform: C.getPlatform() }); });
+          await PN.register();
+        } catch (e) {}
+      }
+      // ---- vanish mode ----
+      let VANISH = false;
+      function setVanish(on) {
+        VANISH = !!on;
+        $("cThread").classList.toggle("vanish", VANISH);
+        $("vanishBanner").hidden = !VANISH;
+      }
+      function vanishLeave() {
+        if (!peer || !socket) return;
+        if (VANISH || document.querySelector("#cMessages .msg[data-vanish]")) socket.emit("vanish clear", { peer: peer.id });
+        setVanish(false);
+      }
+      // ---- highlights ----
+      function hlCircle(h) {
+        const b = document.createElement("button"); b.type = "button"; b.className = "hlItem";
+        const ring = document.createElement("div"); ring.className = "ring";
+        const f = h.items[0];
+        const el = document.createElement(f.kind === "video" ? "video" : "img");
+        el.src = f.url; if (f.kind === "video") { el.muted = true; el.preload = "metadata"; } else { el.alt = ""; el.loading = "lazy"; }
+        ring.appendChild(el);
+        const t = document.createElement("span"); t.textContent = h.title;
+        b.append(ring, t);
+        return b;
+      }
+      async function loadHighlights(uid, box, who) {
+        if (!uid) { box.hidden = true; return; }
+        const d = await api("/api/highlights/" + uid);
+        const list = (d && d.highlights) || [];
+        box.innerHTML = ""; box.hidden = !list.length;
+        list.forEach((h) => {
+          const b = hlCircle(h);
+          b.onclick = () => {
+            openStories({ user_id: "hl" + h.id, username: who.username, avatar: who.avatar, mine: false, hl: true, stories: h.items.map((i) => ({ id: i.id, url: i.url, kind: i.kind, caption: i.caption || h.title, time: i.time })) });
+          };
+          if (h.mine) {
+            let tm = null;
+            const del = (e) => { if (e && e.preventDefault) e.preventDefault(); openSheet(h.title, (bx) => { sheetBtn(bx, "Delete highlight", async () => { closeSheet(); await api("/api/highlights/delete", "POST", { id: h.id }); loadHighlights(uid, box, who); }, true); }); };
+            b.addEventListener("contextmenu", del);
+            b.addEventListener("touchstart", () => { tm = setTimeout(del, 600); }, { passive: true });
+            ["touchend", "touchmove", "touchcancel"].forEach((ev) => b.addEventListener(ev, () => clearTimeout(tm), { passive: true }));
+          }
+          box.appendChild(b);
+        });
+      }
+      $("svHighlight").addEventListener("click", async () => {
+        const st = sv.g && sv.g.stories[sv.i];
+        if (!st || !me) return;
+        $("svMenu").hidden = true;
+        svPause(); sheetOnClose = svResume;
+        const d = await api("/api/highlights/" + me.id);
+        const list = (d && d.highlights) || [];
+        openSheet("Add to highlight", (b) => {
+          list.forEach((h) => sheetBtn(b, "⭐ " + h.title, async () => { closeSheet(); const r = await api("/api/highlights", "POST", { story_id: st.id, highlight_id: h.id }); toast(r.error || "Added to highlight"); }));
+          const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 40; inp.placeholder = "New highlight name"; inp.style.cssText = "width:100%;margin:8px 0";
+          b.appendChild(inp);
+          sheetBtn(b, "➕ Create new highlight", async () => { const title = inp.value.trim() || "Highlights"; closeSheet(); const r = await api("/api/highlights", "POST", { story_id: st.id, title }); toast(r.error || "Highlight created"); });
+        });
+      });
 
       // ================= calls (voice + video, 1-to-1 and groups) =================
       const CALL = { room: null, video: false, title: "", isGroup: false, pcs: {}, local: null, ringing: false, connected: false, t0: 0, timer: null, ringTimer: null, facing: "user", incoming: null, inTimer: null };

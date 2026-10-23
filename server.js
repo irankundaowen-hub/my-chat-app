@@ -832,7 +832,7 @@ app.get("/api/users/:username", requireUser, safe(async (req, res) => {
   const canSee = await canSeeUser(meId, u.id);
   const media = canSee ? await mediaFor(u.id, meId) : { posts: [], reels: [] };
   res.json({
-    username: u.username, display_name: u.display_name || "", bio: u.bio || "", avatar: pics[u.id] || null,
+    id: u.id, username: u.username, display_name: u.display_name || "", bio: u.bio || "", avatar: pics[u.id] || null,
     is_private: !!u.is_private, relation: rel ? (rel.status === "pending" ? "pending" : "following") : "none",
     can_see: canSee, followers: followers || 0, following: following || 0, posts_count: (pc || 0) + (rc || 0),
     posts: media.posts, reels: media.reels,
@@ -899,6 +899,7 @@ app.post("/api/follow", requireUser, limiter("fl", 40, 60000), safe(async (req, 
 
   const status = t.is_private ? "pending" : "accepted";
   await supabase.from("follows").insert({ follower_id: me.id, following_id: t.id, status });
+  pushIfAway(t.id, status === "pending" ? "Follow request" : "New follower", "@" + me.username + (status === "pending" ? " wants to follow you" : " started following you"), { type: "follow" });
   res.json({ message: status === "pending" ? "Request sent to @" + t.username : "You now follow @" + t.username });
 }));
 
@@ -1269,6 +1270,7 @@ async function shapeDms(rows) {
     const post = m.post_id ? postMap[m.post_id] : null;
     return {
       id: m.id,
+      vanish: !!m.vanish,
       read: !!m.read_at,
       post: post ? { id: post.id, username: post.username, caption: post.caption, url: urls[post.path] || null } : null,
       from: m.sender_id,
@@ -1388,8 +1390,9 @@ app.post("/api/dms/send", requireUser, limiter("ds", 120, 60000), safe(async (re
 
   const replyTo = Number(req.body.reply_to) || 0;
   if (replyTo) row.reply_to = replyTo;
+  if (req.body.vanish) row.vanish = true;
   let { data: saved, error } = await supabase.from("dms").insert(row).select("*").single();
-  if (error && row.reply_to) { delete row.reply_to; ({ data: saved, error } = await supabase.from("dms").insert(row).select("*").single()); }
+  if (error && (row.reply_to || row.vanish)) { delete row.reply_to; delete row.vanish; ({ data: saved, error } = await supabase.from("dms").insert(row).select("*").single()); }
   if (error) {
     console.error("DM media save error:", error.message);
     return res.status(500).json({ error: "Could not send that." });
@@ -1397,6 +1400,7 @@ app.post("/api/dms/send", requireUser, limiter("ds", 120, 60000), safe(async (re
   const [payload] = await shapeDms([saved]);
   io.to("u:" + to).emit("dm", payload);
   io.to("u:" + me).emit("dm", payload);
+  pushIfAway(to, "@" + (req.user.user_metadata && req.user.user_metadata.username || "new message"), kind === "audio" ? "🎤 Voice message" : kind === "image" ? "📷 Photo" : kind === "video" ? "🎥 Video" : kind === "gif" ? "GIF" : kind === "sticker" ? row.text : "Sent you something", { type: "dm", from: me });
   res.json({ ok: true });
 }));
 
@@ -1756,6 +1760,25 @@ io.on("connection", async (socket) => {
     if (!r.error) io.to("u:" + peer).emit("dm seen", { by: socket.data.userId });
   });
 
+  // Vanish mode: when someone leaves the chat, messages that were seen disappear
+  socket.on("vanish clear", async (msg) => {
+    try {
+      const peer = String((msg && msg.peer) || "");
+      const me = socket.data.userId;
+      if (!UUID_RE.test(peer) || !allow("vc:" + me, 30, 10000)) return;
+      const { data: rows } = await supabase.from("dms").select("id, sender_id, receiver_id, read_at, media_path")
+        .eq("vanish", true)
+        .or(`and(sender_id.eq.${peer},receiver_id.eq.${me}),and(sender_id.eq.${me},receiver_id.eq.${peer})`).limit(500);
+      const gone = (rows || []).filter((r) => r.receiver_id === me || r.read_at);
+      if (!gone.length) return;
+      const files = gone.map((r) => r.media_path).filter(Boolean);
+      if (files.length) await supabase.storage.from(REELS_BUCKET).remove(files);
+      await supabase.from("dm_reactions").delete().in("dm_id", gone.map((r) => r.id));
+      await supabase.from("dms").delete().in("id", gone.map((r) => r.id));
+      gone.forEach((r) => { io.to("u:" + me).to("u:" + peer).emit("dm deleted", { id: r.id }); });
+    } catch (e) { console.error(e); }
+  });
+
   // A private message to one person
   socket.on("dm", async (msg) => {
     try {
@@ -1774,8 +1797,10 @@ io.on("connection", async (socket) => {
       const replyTo = Number(msg && msg.reply_to) || 0;
       const ins = { sender_id: socket.data.userId, receiver_id: to, text };
       if (replyTo) ins.reply_to = replyTo;
+      const vanish = !!(msg && msg.vanish);
+      if (vanish) ins.vanish = true;
       let { data: saved, error } = await supabase.from("dms").insert(ins).select("id, created_at").single();
-      if (error && replyTo) { delete ins.reply_to; ({ data: saved, error } = await supabase.from("dms").insert(ins).select("id, created_at").single()); }
+      if (error && (replyTo || vanish)) { delete ins.reply_to; delete ins.vanish; ({ data: saved, error } = await supabase.from("dms").insert(ins).select("id, created_at").single()); }
       if (error) {
         console.error("DM save error:", error.message);
         socket.emit("dm error", "Could not send that message.");
@@ -1787,14 +1812,120 @@ io.on("connection", async (socket) => {
         const { data: rm } = await supabase.from("dms").select("id, sender_id, text, kind").eq("id", ins.reply_to).maybeSingle();
         if (rm) reply = { id: rm.id, from: rm.sender_id, kind: rm.kind || "text", text: String(rm.text || "").slice(0, 80) };
       }
-      const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid, reply, reactions: [] };
+      const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid, reply, reactions: [], vanish: !!ins.vanish };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
+      pushIfAway(to, "@" + (socket.data.username || "new message"), ins.vanish ? "Vanish message" : text, { type: "dm", from: socket.data.userId });
     } catch (e) {
       console.error(e);
     }
   });
 });
+
+// ---------- Push notifications (Firebase). Optional: needs FIREBASE_SERVICE_ACCOUNT on Render ----------
+let fbAdmin = null;
+try {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const admin = require("firebase-admin");
+    admin.initializeApp({ credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)) });
+    fbAdmin = admin;
+    console.log("Push notifications: ON");
+  }
+} catch (e) { console.error("Push setup failed:", e.message); }
+
+async function pushTo(userId, title, body, data) {
+  if (!fbAdmin) return;
+  try {
+    const { data: rows } = await supabase.from("push_tokens").select("token").eq("user_id", userId).limit(10);
+    if (!rows || !rows.length) return;
+    const tokens = rows.map((r) => r.token);
+    const out = await fbAdmin.messaging().sendEachForMulticast({
+      tokens,
+      notification: { title: String(title).slice(0, 80), body: String(body).slice(0, 160) },
+      data: Object.fromEntries(Object.entries(data || {}).map(([k, v]) => [k, String(v)])),
+      android: { priority: "high", notification: { channelId: "default", sound: "default" } },
+    });
+    const dead = [];
+    out.responses.forEach((r, i) => { if (!r.success && r.error && /registration-token-not-registered|invalid-argument|invalid-registration/.test(r.error.code || "")) dead.push(tokens[i]); });
+    if (dead.length) await supabase.from("push_tokens").delete().in("token", dead);
+  } catch (e) { console.error("push error:", e.message); }
+}
+const pushIfAway = (userId, title, body, data) => { if (!onlineCount.get(userId)) pushTo(userId, title, body, data); };
+
+app.post("/api/push/register", requireUser, safe(async (req, res) => {
+  const token = String(req.body.token || "").slice(0, 500);
+  if (token.length < 20) return res.json({ error: "Bad token" });
+  await supabase.from("push_tokens").upsert({ token, user_id: req.user.id, platform: String(req.body.platform || "").slice(0, 20) }, { onConflict: "token" });
+  res.json({ ok: true, push: !!fbAdmin });
+}));
+app.post("/api/push/unregister", requireUser, safe(async (req, res) => {
+  await supabase.from("push_tokens").delete().eq("token", String(req.body.token || "")).eq("user_id", req.user.id);
+  res.json({ ok: true });
+}));
+
+// ---------- Call relay (TURN) so calls work on every network ----------
+app.get("/api/rtc-config", requireUser, (req, res) => {
+  const ice = [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }];
+  const urls = String(process.env.TURN_URLS || "").split(",").map((x) => x.trim()).filter(Boolean);
+  if (urls.length) ice.push({ urls, username: process.env.TURN_USERNAME || "", credential: process.env.TURN_CREDENTIAL || "" });
+  res.set("Cache-Control", "no-store");
+  res.json({ iceServers: ice, turn: urls.length > 0 });
+});
+
+// ---------- Story highlights ----------
+app.get("/api/highlights/:uid", requireUser, safe(async (req, res) => {
+  const uid = String(req.params.uid || "");
+  if (!UUID_RE.test(uid)) return res.json({ highlights: [] });
+  if (uid !== req.user.id && !(await canSeeUser(req.user.id, uid))) return res.json({ highlights: [] });
+  const { data: hs, error } = await supabase.from("highlights").select("id, title, created_at").eq("user_id", uid).order("created_at", { ascending: false }).limit(50);
+  if (error || !hs || !hs.length) return res.json({ highlights: [] });
+  const { data: items } = await supabase.from("highlight_items").select("id, highlight_id, path, kind, caption, created_at").in("highlight_id", hs.map((h) => h.id)).order("created_at", { ascending: true }).limit(1000);
+  const { data: signed } = await signMany([...new Set((items || []).map((i) => i.path))], 3600);
+  const urls = {};
+  (signed || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
+  res.json({ highlights: hs.map((h) => ({ id: h.id, title: h.title, mine: uid === req.user.id, items: (items || []).filter((i) => i.highlight_id === h.id && urls[i.path]).map((i) => ({ id: i.id, url: urls[i.path], kind: i.kind, caption: i.caption || "", time: i.created_at })) })).filter((h) => h.items.length) });
+}));
+app.post("/api/highlights", requireUser, limiter("hl", 40, 60000), safe(async (req, res) => {
+  const me = req.user.id;
+  const { data: st } = await supabase.from("stories").select("id, user_id, path, kind, caption").eq("id", Number(req.body.story_id) || 0).maybeSingle();
+  if (!st || st.user_id !== me) return res.json({ error: "Story not found." });
+  let hid = Number(req.body.highlight_id) || 0;
+  if (hid) {
+    const { data: h } = await supabase.from("highlights").select("id").eq("id", hid).eq("user_id", me).maybeSingle();
+    if (!h) return res.json({ error: "Highlight not found." });
+  } else {
+    const title = String(req.body.title || "").trim().slice(0, 40) || "Highlights";
+    const { data: h, error } = await supabase.from("highlights").insert({ user_id: me, title }).select("id").single();
+    if (error) return res.json({ error: "Run the v25 SQL in Supabase first." });
+    hid = h.id;
+  }
+  const ext = (st.path.split(".").pop() || "jpg").replace(/[^a-z0-9]/gi, "").slice(0, 5);
+  const np = me + "/hl-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const cp = await supabase.storage.from(REELS_BUCKET).copy(st.path, np);
+  if (cp.error) return res.json({ error: "Could not save that story." });
+  await supabase.from("highlight_items").insert({ highlight_id: hid, path: np, kind: st.kind, caption: st.caption || "" });
+  res.json({ ok: true, id: hid });
+}));
+app.post("/api/highlights/delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: h } = await supabase.from("highlights").select("id").eq("id", id).eq("user_id", req.user.id).maybeSingle();
+  if (!h) return res.json({ error: "Not found." });
+  const { data: items } = await supabase.from("highlight_items").select("path").eq("highlight_id", id);
+  if (items && items.length) await supabase.storage.from(REELS_BUCKET).remove(items.map((i) => i.path));
+  await supabase.from("highlight_items").delete().eq("highlight_id", id);
+  await supabase.from("highlights").delete().eq("id", id);
+  res.json({ ok: true });
+}));
+app.post("/api/highlights/item-delete", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: it } = await supabase.from("highlight_items").select("id, path, highlight_id").eq("id", id).maybeSingle();
+  if (!it) return res.json({ error: "Not found." });
+  const { data: h } = await supabase.from("highlights").select("id").eq("id", it.highlight_id).eq("user_id", req.user.id).maybeSingle();
+  if (!h) return res.json({ error: "Not found." });
+  await supabase.storage.from(REELS_BUCKET).remove([it.path]);
+  await supabase.from("highlight_items").delete().eq("id", id);
+  res.json({ ok: true });
+}));
 
 // ---------- Private groups ----------
 async function isMember(groupId, userId) {
@@ -2071,7 +2202,7 @@ io.on("connection", (socket) => {
       const room = String((msg && msg.room) || "");
       const info = await callRoomInfo(uid, room);
       if (!info) return;
-      info.targets.forEach((t) => io.to("u:" + t).emit("call incoming", { room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: info.name }));
+      info.targets.forEach((t) => { io.to("u:" + t).emit("call incoming", { room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: info.name }); pushIfAway(t, "📞 " + (socket.data.username || "Someone") + " is calling", msg && msg.video ? "Video call" : "Voice call", { type: "call", room }); });
     } catch (e) {}
   });
   socket.on("call cancel", async (msg) => {
