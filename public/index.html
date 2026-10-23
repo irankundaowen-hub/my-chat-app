@@ -2990,6 +2990,17 @@
       }
 
       // long-press (or right-click) a message: unsend, copy or report
+      function forwardText(text) {
+        openSheet("Forward to", (b) => {
+          convos.filter((c) => !c.request).slice(0, 30).forEach((c) => {
+            sheetBtn(b, "@" + c.username, () => {
+              closeSheet();
+              if (socket) socket.emit("dm", { to: c.peer_id, text, cid: "f" + Date.now().toString(36) + Math.floor(Math.random() * 1e6) });
+              toast("Forwarded");
+            });
+          });
+        });
+      }
       function attachMsgMenu(div, m) {
         let timer = null, sx = 0, sy = 0, lastTap = 0;
         const mid = () => Number(div.dataset.id || m.id || 0);
@@ -3011,6 +3022,7 @@
             });
             b.appendChild(row);
             sheetBtn(b, "Reply", () => { closeSheet(); setReply(Object.assign({}, m, { id })); });
+            if (m.text && (!m.kind || m.kind === "text")) sheetBtn(b, "Forward", () => { closeSheet(); forwardText(m.text); });
             if (m.text && (!m.kind || m.kind === "text")) sheetBtn(b, "Copy text", async () => { try { await navigator.clipboard.writeText(m.text); toast("Copied"); } catch (er) {} closeSheet(); });
             if (mine) sheetBtn(b, "Unsend", async () => { closeSheet(); const r = await api("/api/dms/delete", "POST", { id }); if (r.error) toast(r.error); }, true);
             else sheetBtn(b, "Report message", () => { closeSheet(); reportFlow("message", id); }, true);
@@ -3159,6 +3171,14 @@
         loadConvos();
       }
 
+      const prefGet = (k) => { try { return JSON.parse(localStorage.getItem("twik_" + k) || "[]"); } catch (e) { return []; } };
+      const isPinned = (id) => prefGet("pin").indexOf(String(id)) >= 0 ? 1 : 0;
+      const isMuted = (id) => prefGet("mute").indexOf(String(id)) >= 0;
+      function togglePref(k, id) {
+        const a = prefGet(k), i = a.indexOf(String(id));
+        if (i >= 0) a.splice(i, 1); else a.push(String(id));
+        try { localStorage.setItem("twik_" + k, JSON.stringify(a)); } catch (e) {}
+      }
       function renderConvos() {
         const q = $("cSearch").value.trim().toLowerCase();
         const rd = getRead() || {};
@@ -3168,7 +3188,8 @@
         $("cTabReq").classList.toggle("on", cTab === "req");
         const list = convos
           .filter((c) => (cTab === "req") === !!c.request)
-          .filter((c) => !q || c.username.toLowerCase().indexOf(q) >= 0);
+          .filter((c) => !q || c.username.toLowerCase().indexOf(q) >= 0)
+          .sort((a, b) => (isPinned(b.peer_id) - isPinned(a.peer_id)));
         const ul = $("cConvos");
         ul.innerHTML = "";
         if (!list.length) {
@@ -3187,7 +3208,7 @@
           mid.className = "cMid";
           const nm = document.createElement("div");
           nm.className = "cName";
-          nm.textContent = c.username;
+          nm.textContent = (isPinned(c.peer_id) ? "📌 " : "") + c.username + (isMuted(c.peer_id) ? " 🔕" : "");
           const pv = document.createElement("div");
           pv.className = "cPrev";
           const t = (c.mine ? "You: " : "") + c.text;
@@ -3196,6 +3217,17 @@
           li.append(av, mid);
           if (unread) { const d = document.createElement("span"); d.className = "cDot"; li.appendChild(d); }
           li.onclick = () => openThread({ id: c.peer_id, username: c.username, avatar: c.avatar });
+          const menu = (e) => {
+            if (e && e.preventDefault) e.preventDefault();
+            openSheet("@" + c.username, (b) => {
+              sheetBtn(b, isPinned(c.peer_id) ? "Unpin chat" : "Pin chat", () => { togglePref("pin", c.peer_id); closeSheet(); renderConvos(); });
+              sheetBtn(b, isMuted(c.peer_id) ? "Unmute notifications" : "Mute notifications", () => { togglePref("mute", c.peer_id); closeSheet(); renderConvos(); });
+            });
+          };
+          li.addEventListener("contextmenu", menu);
+          let lp = null;
+          li.addEventListener("touchstart", () => { lp = setTimeout(menu, 600); }, { passive: true });
+          ["touchend", "touchmove", "touchcancel"].forEach((ev) => li.addEventListener(ev, () => clearTimeout(lp), { passive: true }));
           ul.appendChild(li);
         });
       }
