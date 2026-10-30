@@ -893,6 +893,67 @@
     #vanishBanner[hidden] { display: none; }
     .msg[data-vanish]::after { content: "👻"; font-size: 11px; position: absolute; right: 6px; top: -6px; }
     .msg { position: relative; }
+
+    /* ===== v26: Instagram-style calls + call log + sending ===== */
+    #cl { background: #0b0b10; }
+    #clBg { position: absolute; inset: 0; background: #1a1a20 center/cover no-repeat; filter: blur(46px) brightness(0.55) saturate(1.2); transform: scale(1.4); z-index: 0; }
+    #cl > * { position: relative; z-index: 1; }
+    #clBg { position: absolute !important; z-index: 0 !important; }
+    #clMin { position: absolute !important; top: calc(14px + env(safe-area-inset-top)); left: 12px; z-index: 6 !important; background: none !important; border: none !important; width: 44px; height: 44px; padding: 0 !important; margin: 0 !important; }
+    #clMin svg { width: 30px; height: 30px; fill: none; stroke: #fff; stroke-width: 2.200; stroke-linecap: round; stroke-linejoin: round; }
+    #cl.min { display: none !important; }
+    #clPill { position: fixed; top: calc(8px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 220; background: #1fbf6a !important; color: #fff; border: none !important; border-radius: 22px 22px 22px 6px !important; padding: 8px 16px !important; margin: 0 !important; font-weight: 700; font-size: 14px; box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+    #clPill[hidden], #clEnded[hidden], #clMeAv[hidden] { display: none; }
+    #clRing { position: absolute !important; left: 0; right: 0; top: calc(15% + env(safe-area-inset-top)); display: flex; flex-direction: column; align-items: center; gap: 4px; text-shadow: 0 1px 10px rgba(0,0,0,0.7); z-index: 3 !important; pointer-events: none; }
+    #clRingAv { width: 160px; height: 160px; border-radius: 50%; background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 64px; font-weight: 800; overflow: hidden; margin-bottom: 10px; box-shadow: 0 8px 40px rgba(0,0,0,0.5); }
+    #clRingAv img { width: 100%; height: 100%; object-fit: cover; }
+    #clRing b { font-size: 20px; }
+    #clRing span { font-size: 18px; font-weight: 700; opacity: 0.95; }
+    #cl.video.live #clRing { top: calc(14px + env(safe-area-inset-top)); }
+    #cl.video.live #clRingAv { display: none; }
+    #cl.video.live #clRing b { font-size: 17px; }
+    #cl.video.live #clRing span { font-size: 14px; }
+    #cl.group #clRingAv { display: none; }
+    #cl.group.live #clRing { top: calc(14px + env(safe-area-inset-top)); }
+    #cl.audio #clGrid { position: absolute !important; width: 2px; height: 2px; opacity: 0; pointer-events: none; padding: 0; overflow: hidden; }
+    #cl.video.ringing #clGrid { display: none; }
+    #cl.video #clBg { display: none; }
+    #cl.video.ringing #clSelf { position: absolute; inset: 0; width: 100%; height: 100%; right: auto; top: 0; border-radius: 0; border: none; z-index: 1; }
+    #clMeAv { position: absolute !important; top: calc(56px + env(safe-area-inset-top)); right: 12px; width: 92px; height: 132px; border-radius: 24px 24px 24px 7px; background: rgba(255,255,255,0.12); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 4 !important; }
+    #clMeAv .sAv { width: 52px; height: 52px; font-size: 22px; border-radius: 50%; object-fit: cover; }
+    #clBar { margin: 0 14px calc(22px + env(safe-area-inset-bottom)); padding: 10px 12px; background: rgba(40,40,46,0.88); border-radius: 44px; justify-content: space-between; gap: 6px; backdrop-filter: blur(14px); margin-top: auto; z-index: 5 !important; }
+    #clBar .clB { width: 52px; height: 52px; background: transparent !important; }
+    #clBar .clB.end { width: 62px; height: 62px; background: #ff2d4f !important; }
+    #clBar .clB.off { background: transparent !important; }
+    #clBar .clB.off svg { stroke: #fff; }
+    .clB .sOff { display: none; }
+    .clB.off .sOff { display: block; }
+    .clB.off .sOn { display: none; }
+    #clBar [hidden] { display: none; }
+    #cl.audio #clSelf { display: none; }
+    #clEnded { position: fixed; inset: 0; z-index: 230; background: #000; display: flex; flex-direction: column; align-items: center; padding-top: 12vh; }
+    #ceX { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; background: none !important; border: none !important; width: 44px; height: 44px; padding: 0 !important; margin: 0 !important; }
+    #ceX svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2.200; stroke-linecap: round; }
+    #ceAv { width: 130px; height: 130px; border-radius: 50%; background: var(--grad); display: flex; align-items: center; justify-content: center; font-size: 54px; font-weight: 800; overflow: hidden; margin-bottom: 18px; }
+    #ceAv img { width: 100%; height: 100%; object-fit: cover; }
+    #clEnded > b { font-size: 24px; }
+    #ceDur { font-size: 22px; margin-top: 4px; }
+    #clEnded p { margin: 8vh 24px 18px; font-size: 18px; text-align: center; max-width: 280px; }
+    .ceBtns { display: flex; gap: 38px; }
+    .ceBtns button { background: none !important; border: none !important; color: #fff; display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 0 !important; margin: 0 !important; font-size: 17px; }
+    .ceBtns i { font-style: normal; width: 74px; height: 74px; border-radius: 50%; background: #2e2e33; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+    #clInAv { border-radius: 50%; }
+    /* call record in chat */
+    .msg.callLog { background: #06191b !important; box-shadow: none !important; display: flex; align-items: center; gap: 14px; padding: 12px 22px 12px 12px !important; border-radius: 30px !important; cursor: pointer; min-width: 230px; }
+    .msg.callLog .cIc { width: 50px; height: 50px; border-radius: 50%; background: #bcbcc1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .msg.callLog .cIc svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .msg.callLog.missed .cIc { background: #8a2a3a; }
+    .msg.callLog b { display: block; font-size: 17px; }
+    .msg.callLog small { display: block; font-size: 15px; opacity: 0.9; margin-top: 2px; }
+    /* sending label */
+    .msg.pending { margin-bottom: 18px; }
+    .msg.pending::before, .msg.failed::before { content: "◷ Sending…"; position: absolute; left: 2px; bottom: -19px; font-size: 11.500px; color: #bbb; white-space: nowrap; }
+    .msg.failed::before { content: "⚠ Not sent"; color: #ff5a6e; }
   </style>
 </head>
 <body>
@@ -1249,14 +1310,30 @@
 
   <!-- Calls -->
   <div id="cl" hidden>
+    <div id="clBg"></div>
+    <button id="clMin" type="button" aria-label="Minimize"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div id="clMeAv" hidden data-notr></div>
+    <div id="clRing"><div id="clRingAv" data-notr></div><b id="clName" data-notr></b><span id="clStatus" data-notr></span></div>
     <div id="clGrid"></div>
     <video id="clSelf" muted playsinline autoplay hidden></video>
-    <div id="clTop"><b id="clName" data-notr></b><span id="clStatus" data-notr></span></div>
     <div id="clBar">
-      <button id="clMute" class="clB" type="button" aria-label="Mute"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
-      <button id="clCam" class="clB" type="button" aria-label="Camera"><svg viewBox="0 0 24 24"><rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/></svg></button>
+      <button id="clCam" class="clB" type="button" aria-label="Camera"><svg class="sOn" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="M15.5 10.5L21.5 7v10l-6-3.5z"/></svg><svg class="sOff" viewBox="0 0 24 24"><rect x="2.5" y="6" width="13" height="12" rx="3"/><path d="M15.5 10.5L21.5 7v10l-6-3.5zM3 3l18 18"/></svg></button>
+      <button id="clMute" class="clB" type="button" aria-label="Mute"><svg class="sOn" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><svg class="sOff" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M4 4l16 16"/></svg></button>
       <button id="clFlip" class="clB" type="button" aria-label="Flip"><svg viewBox="0 0 24 24"><path d="M4 9a8 8 0 0 1 14-3l2 2M20 15a8 8 0 0 1-14 3l-2-2M20 4v4h-4M4 20v-4h4"/></svg></button>
+      <button id="clSpk" class="clB" type="button" aria-label="Speaker"><svg class="sOn" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.500 8.500 0 0 1 0 12"/></svg><svg class="sOff" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M17 9l5 6M22 9l-5 6"/></svg></button>
       <button id="clEnd" class="clB end" type="button" aria-label="End call"><svg viewBox="0 0 24 24"><path d="M3 14c5-4 13-4 18 0l-2 3-4-1.500V13a12 12 0 0 0-6 0v2.500L5 17z"/></svg></button>
+    </div>
+  </div>
+  <button id="clPill" type="button" hidden></button>
+  <div id="clEnded" hidden>
+    <button id="ceX" type="button" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
+    <div id="ceAv" data-notr></div>
+    <b>Call ended</b>
+    <span id="ceDur" data-notr></span>
+    <p>How was the quality of your call?</p>
+    <div class="ceBtns">
+      <button id="ceGood" type="button"><i>👍</i><span>Good</span></button>
+      <button id="ceBad" type="button"><i>👎</i><span>Not good</span></button>
     </div>
   </div>
   <div id="clIn" hidden>
@@ -3082,7 +3159,8 @@
 
       function bubble(m) {
         let div;
-        if (m.kind === "audio" || m.kind === "video" || m.kind === "gif" || m.kind === "sticker") div = bubbleMedia(m);
+        if (m.kind === "call") div = bubbleCall(m);
+        else if (m.kind === "audio" || m.kind === "video" || m.kind === "gif" || m.kind === "sticker") div = bubbleMedia(m);
         else div = bubbleCore(m);
         decorateBubble(div, m);
         return div;
@@ -5194,6 +5272,7 @@
       let REPLY = null;
       function previewOf(m) {
         const k = m.kind || "text";
+        if (k === "call" || String(m.text || "").indexOf("\u0001call") === 0) return "📞 Call";
         return k === "image" ? "📷 Photo" : k === "video" ? "🎥 Video" : k === "audio" ? "🎤 Voice message" : k === "gif" ? "GIF" : k === "sticker" ? (m.text || "Sticker") : k === "reel" ? "🎬 Reel" : k === "post" ? "📷 Post" : (m.text || "");
       }
       function setReply(m) {
@@ -5259,6 +5338,28 @@
         });
       }
       const fmtDur = (s) => Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+      function bubbleCall(m) {
+        const div = document.createElement("div");
+        const mine = me && m.from === me.id;
+        const c = m.call || { video: false, status: "missed", secs: 0 };
+        div.className = "msg callLog" + (mine ? " mine" : "") + (c.status === "ended" ? "" : " missed");
+        if (m.id) div.dataset.id = m.id;
+        const ic = document.createElement("div"); ic.className = "cIc";
+        const PH = '<path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" transform="translate(-1 2) scale(.82)"/>';
+        const CAMI = '<rect x="2.500" y="6" width="13" height="12" rx="3"/><path d="M15.500 10.500L21.500 7v10l-6-3.500z"/>';
+        const ARR = mine ? '<path d="M14 9l7-7M15 2h6v6"/>' : '<path d="M21 3l-6 6M15 4v5h5"/>';
+        ic.innerHTML = '<svg viewBox="0 0 24 24">' + (c.video ? CAMI : PH + ARR) + "</svg>";
+        const tx = document.createElement("div");
+        const t = document.createElement("b");
+        t.textContent = c.status === "ended" ? trW(c.video ? "Video call ended" : "Audio call ended") : mine ? trW("No answer") : trW(c.video ? "Missed video call" : "Missed audio call");
+        const sm = document.createElement("small");
+        sm.className = "time";
+        sm.textContent = clock(m.time) + (c.status === "ended" && c.secs ? " · " + Math.floor(c.secs / 60) + ":" + String(c.secs % 60).padStart(2, "0") : "");
+        tx.append(t, sm);
+        div.append(ic, tx);
+        div.addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), !!c.video, "@" + peer.username, false, peer.avatar); });
+        return div;
+      }
       function bubbleMedia(m) {
         const div = document.createElement("div");
         const mine = me && m.from === me.id;
@@ -5322,11 +5423,23 @@
       }
       ["cFile", "cCam"].forEach((id) => $(id).addEventListener("change", () => { const f = $(id).files[0]; $(id).value = ""; sendMediaFile(f); }));
       async function sendKind(kind, text) {
-        if (!peer) return;
-        const r = await api("/api/dms/send", "POST", { to: peer.id, kind, text, reply_to: REPLY ? REPLY.id : undefined, vanish: VANISH || undefined });
-        if (r && r.error) toast(r.error); else clearReply();
+        if (!peer || !me) return;
+        const cid = "k" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
+        const m = { from: me.id, to: peer.id, kind, text, time: nowISO(), cid, vanish: VANISH };
+        if (REPLY) m.reply = { id: REPLY.id, from: REPLY.from, kind: REPLY.kind || "text", text: REPLY.text || "" };
+        const rid = REPLY ? REPLY.id : undefined;
+        const el = bubble(m);
+        el.classList.add("pending");
+        pendingMsgs[cid] = { to: peer.id, el, m };
+        const box = $("cMessages");
+        daySep(box, m.time);
+        box.appendChild(el);
+        box.scrollTop = box.scrollHeight;
+        clearReply();
+        const r = await api("/api/dms/send", "POST", { to: m.to, kind, text, cid, reply_to: rid, vanish: VANISH || undefined });
+        if (r && r.error) { delete pendingMsgs[cid]; el.remove(); toast(r.error); }
       }
-      // stickers + GIFs
+
       const STICKERS = "😀 😂 🥹 😍 😘 🥰 😎 🤩 😜 🤗 🤔 😴 😭 😡 🥳 🤯 😱 🙄 😏 🤝 👍 👎 👏 🙌 🙏 💪 🔥 ❤️ 💔 💯 ✨ 🎉 🎂 🌹 🎁 ⭐ 👀 🤣 😅 😇 🫶 🫡 🤌 💋 🍕 🍔 ⚽ 🎵 🚀 🌍 🇧🇮 😈 💀 🤡 👻 🦋 🌸".split(" ");
       function stkShow(tab) {
         $("stkTabE").classList.toggle("on", tab === "e"); $("stkTabG").classList.toggle("on", tab === "g");
@@ -5506,27 +5619,48 @@
         } catch (e) {}
       }
       function ringStop() { clearInterval(ringIv); ringIv = null; if (navigator.vibrate) navigator.vibrate(0); }
-      function clStatus(t) { $("clStatus").textContent = t; }
+      function clStatus(t) { $("clStatus").textContent = t; if (!$("clPill").hidden) $("clPill").textContent = "📞 " + trW("Tap to return to call") + " · " + t; }
+      function avFill(el, url, name) {
+        el.innerHTML = "";
+        if (url) { const im = document.createElement("img"); im.src = url; im.alt = ""; el.appendChild(im); }
+        else el.textContent = String(name || "?").replace(/^@/, "").charAt(0).toUpperCase();
+      }
+      function callUi() {
+        const c = $("cl");
+        c.classList.remove("min");
+        c.classList.toggle("video", !!CALL.video && !CALL.isGroup);
+        c.classList.toggle("audio", !CALL.video && !CALL.isGroup);
+        c.classList.toggle("group", !!CALL.isGroup);
+        c.classList.toggle("ringing", !CALL.connected);
+        c.classList.toggle("live", !!CALL.connected);
+        $("clBg").style.backgroundImage = CALL.avatar ? 'url("' + CALL.avatar + '")' : "none";
+        avFill($("clRingAv"), CALL.avatar, CALL.title);
+        $("clMeAv").hidden = !(CALL.connected && !CALL.video && !CALL.isGroup);
+        if (!$("clMeAv").hidden) { $("clMeAv").innerHTML = ""; $("clMeAv").appendChild(smallAvatar(MYPROF && MYPROF.avatar_url, (MYPROF && MYPROF.username) || "me")); }
+        $("clSpk").hidden = !!CALL.video;
+        $("clSpk").classList.toggle("off", !!CALL.spkOff);
+      }
       async function callMedia(video) {
         try {
           CALL.local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: video ? { facingMode: CALL.facing, width: { ideal: 640 }, height: { ideal: 480 } } : false });
         } catch (e) { toast("Could not use the microphone or camera."); return false; }
         $("clSelf").srcObject = CALL.local;
         $("clSelf").hidden = !video;
-        $("clCam").hidden = !video;
+        $("clCam").hidden = false;
         $("clFlip").hidden = !video;
-        $("clMute").classList.remove("off"); $("clCam").classList.remove("off");
+        $("clMute").classList.remove("off"); $("clCam").classList.toggle("off", !video);
         return true;
       }
-      async function startCall(room, video, title, isGroup) {
+      async function startCall(room, video, title, isGroup, avatar) {
         if (CALL.room) { toast("You're already in a call"); return; }
         if (!socket || !me) { toast("You're offline."); return; }
         if (!(await callMedia(video))) return;
-        Object.assign(CALL, { room, video, title, isGroup, ringing: true, connected: false, pcs: {} });
+        Object.assign(CALL, { room, video, title, isGroup, ringing: true, connected: false, pcs: {}, avatar: avatar || null, caller: true, spkOff: false });
         $("clGrid").innerHTML = ""; $("clGrid").className = "";
         $("clName").textContent = title;
         clStatus(trW("Calling…"));
         $("cl").hidden = false;
+        callUi();
         socket.emit("call join", { room, video });
         socket.emit("call ring", { room, video });
         ringStart("out");
@@ -5543,8 +5677,10 @@
         Object.assign(CALL, { room: inc.room, video: inc.video, title: inc.group ? inc.group : "@" + inc.username, isGroup: !!inc.group, ringing: false, connected: false, pcs: {} });
         $("clGrid").innerHTML = ""; $("clGrid").className = "";
         $("clName").textContent = CALL.title;
+        CALL.avatar = inc.avatar || null; CALL.caller = false; CALL.spkOff = false;
         clStatus(trW("Connecting…"));
         $("cl").hidden = false;
+        callUi();
         socket.emit("call join", { room: inc.room, video: inc.video });
       }
       function callPc(sid, name) {
@@ -5564,7 +5700,7 @@
           tile.className = "clTile"; tile.dataset.sid = sid;
           if (!CALL.video) { const av = document.createElement("div"); av.className = "clAv"; av.textContent = (name || "?").charAt(0).toUpperCase(); tile.appendChild(av); }
           const v = document.createElement("video");
-          v.autoplay = true; v.playsInline = true;
+          v.autoplay = true; v.playsInline = true; v.muted = !!CALL.spkOff;
           if (!CALL.video) v.style.opacity = "0";
           tile.appendChild(v);
           const lb = document.createElement("div");
@@ -5587,12 +5723,16 @@
         CALL.connected = true; CALL.ringing = false;
         ringStop(); clearTimeout(CALL.ringTimer);
         CALL.t0 = Date.now();
+        callUi();
         const tick = () => { const sec = Math.floor((Date.now() - CALL.t0) / 1000); clStatus(Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0")); };
         tick(); CALL.timer = setInterval(tick, 1000);
       }
       function endCall(msg) {
         if (!CALL.room) return;
         const room = CALL.room;
+        const wasLive = !!CALL.connected, wasCaller = !!CALL.caller, wasVideo = !!CALL.video, wasGroup = !!CALL.isGroup;
+        const secs = wasLive && CALL.t0 ? Math.max(1, Math.floor((Date.now() - CALL.t0) / 1000)) : 0;
+        const endInfo = { avatar: CALL.avatar, title: CALL.title };
         if (socket) {
           if (CALL.ringing && !CALL.connected) socket.emit("call cancel", { room });
           socket.emit("call leave", { room });
@@ -5605,8 +5745,27 @@
         $("clSelf").srcObject = null;
         $("cl").hidden = true;
         $("clGrid").innerHTML = "";
-        toast(msg === undefined ? "Call ended" : msg);
+        $("cl").classList.remove("min", "video", "audio", "group", "ringing", "live");
+        $("clPill").hidden = true; $("clMeAv").hidden = true;
+        if (socket && wasCaller && !wasGroup && String(room).indexOf("dm:") === 0) socket.emit("call log", { room, video: wasVideo, secs, status: wasLive ? "ended" : "missed" });
+        if (wasLive) showCallEnded(endInfo, secs);
+        else toast(msg === undefined ? "Call ended" : msg);
       }
+      function showCallEnded(info, secs) {
+        avFill($("ceAv"), info.avatar, info.title);
+        $("ceDur").textContent = Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
+        $("clEnded").hidden = false;
+      }
+      $("ceX").addEventListener("click", () => { $("clEnded").hidden = true; });
+      $("ceGood").addEventListener("click", () => { api("/api/call-feedback", "POST", { good: true }); $("clEnded").hidden = true; toast(trW("Thanks for your feedback")); });
+      $("ceBad").addEventListener("click", () => { api("/api/call-feedback", "POST", { good: false }); $("clEnded").hidden = true; toast(trW("Thanks for your feedback")); });
+      $("clMin").addEventListener("click", () => { $("cl").classList.add("min"); $("clPill").hidden = false; clStatus($("clStatus").textContent); });
+      $("clPill").addEventListener("click", () => { $("cl").classList.remove("min"); $("clPill").hidden = true; });
+      $("clSpk").addEventListener("click", () => {
+        CALL.spkOff = !CALL.spkOff;
+        document.querySelectorAll("#clGrid video").forEach((v) => { v.muted = CALL.spkOff; });
+        $("clSpk").classList.toggle("off", CALL.spkOff);
+      });
       $("clEnd").addEventListener("click", () => endCall("Call ended"));
       $("clMute").addEventListener("click", () => {
         const t = CALL.local && CALL.local.getAudioTracks()[0];
@@ -5616,7 +5775,7 @@
       });
       $("clCam").addEventListener("click", () => {
         const t = CALL.local && CALL.local.getVideoTracks()[0];
-        if (!t) return;
+        if (!t) { toast(trW("Start a video call to use the camera")); return; }
         t.enabled = !t.enabled;
         $("clCam").classList.toggle("off", !t.enabled);
       });
@@ -5643,7 +5802,8 @@
           $("clInName").textContent = inc.group ? inc.group : "@" + inc.username;
           $("clInKind").textContent = trW(inc.group ? "Incoming group call" : inc.video ? "Incoming video call" : "Incoming voice call");
           const av = $("clInAv"); av.innerHTML = "";
-          av.textContent = (inc.group || inc.username || "?").charAt(0).toUpperCase();
+          if (inc.avatar && !inc.group) { const im = document.createElement("img"); im.src = inc.avatar; im.alt = ""; av.appendChild(im); }
+          else av.textContent = (inc.group || inc.username || "?").charAt(0).toUpperCase();
           $("clIn").hidden = false;
           ringStart("in");
           clearTimeout(CALL.inTimer);
@@ -5686,8 +5846,8 @@
           if (!CALL.isGroup && !Object.keys(CALL.pcs).length) endCall("Call ended");
         });
       }
-      $("cCallA").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), false, "@" + peer.username, false); });
-      $("cCallV").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), true, "@" + peer.username, false); });
+      $("cCallA").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), false, "@" + peer.username, false, peer.avatar); });
+      $("cCallV").addEventListener("click", () => { if (peer && me) startCall(dmRoom(me.id, peer.id), true, "@" + peer.username, false, peer.avatar); });
       $("gCallA").addEventListener("click", () => { if (currentGroup) startCall("g:" + currentGroup.id, false, currentGroup.name, true); });
       $("gCallV").addEventListener("click", () => { if (currentGroup) startCall("g:" + currentGroup.id, true, currentGroup.name, true); });
 

@@ -982,7 +982,7 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
       seen[peer] = true;
       const preview = m.kind === "image" ? "📷 Photo" : m.kind === "audio" ? "🎤 Voice message" : m.kind === "video" ? "🎥 Video" : m.kind === "gif" ? "GIF" : m.kind === "sticker" ? m.text : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
       // A "request" = someone I don't follow and have never written to
-      chats.push({ peer_id: peer, text: preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
+      chats.push({ peer_id: peer, text: callPreview(m.text) || preview, time: m.created_at, mine: m.sender_id === me, request: !iFollow.has(peer) && !iSentTo.has(peer) });
     }
   });
   const [names, pics] = await Promise.all([namesFor(chats.map((c) => c.peer_id)), avatarsFor(chats.map((c) => c.peer_id))]);
@@ -1235,6 +1235,17 @@ app.post("/api/reels/comment", requireUser, limiter("cm", 60, 60000), safe(async
 
 // ---------- Photos and shared reels in private chats ----------
 // Turns saved messages into what the page needs (with safe, temporary links for photos and videos)
+// A call record is stored as a normal text message that starts with a hidden marker: "\u0001call|a|e|20"
+function parseCallLog(text) {
+  if (typeof text !== "string" || text.indexOf("\u0001call|") !== 0) return null;
+  const p = text.split("|");
+  return { video: p[1] === "v", status: p[2] === "e" ? "ended" : "missed", secs: Number(p[3]) || 0 };
+}
+function callPreview(text) {
+  const c = parseCallLog(text);
+  if (!c) return "";
+  return c.status === "ended" ? (c.video ? "📹 Video call" : "📞 Audio call") : (c.video ? "Missed video call" : "Missed audio call");
+}
 async function shapeDms(rows) {
   const reelIds = [...new Set(rows.filter((r) => r.reel_id).map((r) => r.reel_id))];
   const reelMap = {};
@@ -1275,8 +1286,9 @@ async function shapeDms(rows) {
       post: post ? { id: post.id, username: post.username, caption: post.caption, url: urls[post.path] || null } : null,
       from: m.sender_id,
       to: m.receiver_id,
-      kind: m.kind || "text",
-      text: m.text || "",
+      kind: parseCallLog(m.text) ? "call" : (m.kind || "text"),
+      call: parseCallLog(m.text),
+      text: parseCallLog(m.text) ? "" : (m.text || ""),
       time: m.created_at,
       image: m.media_path && m.kind === "image" ? urls[m.media_path] || null : null,
       video: m.media_path && m.kind === "video" ? urls[m.media_path] || null : null,
@@ -1398,6 +1410,7 @@ app.post("/api/dms/send", requireUser, limiter("ds", 120, 60000), safe(async (re
     return res.status(500).json({ error: "Could not send that." });
   }
   const [payload] = await shapeDms([saved]);
+  payload.cid = String(req.body.cid || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
   io.to("u:" + to).emit("dm", payload);
   io.to("u:" + me).emit("dm", payload);
   pushIfAway(to, "@" + (req.user.user_metadata && req.user.user_metadata.username || "new message"), kind === "audio" ? "🎤 Voice message" : kind === "image" ? "📷 Photo" : kind === "video" ? "🎥 Video" : kind === "gif" ? "GIF" : kind === "sticker" ? row.text : "Sent you something", { type: "dm", from: me });
@@ -1863,6 +1876,11 @@ app.post("/api/push/unregister", requireUser, safe(async (req, res) => {
   res.json({ ok: true });
 }));
 
+app.post("/api/call-feedback", requireUser, (req, res) => {
+  console.log("call feedback:", req.body && req.body.good ? "good" : "not good");
+  res.json({ ok: true });
+});
+
 // ---------- Call relay (TURN) so calls work on every network ----------
 app.get("/api/rtc-config", requireUser, (req, res) => {
   const ice = [{ urls: "stun:stun.l.google.com:19302" }, { urls: "stun:stun1.l.google.com:19302" }];
@@ -2202,7 +2220,8 @@ io.on("connection", (socket) => {
       const room = String((msg && msg.room) || "");
       const info = await callRoomInfo(uid, room);
       if (!info) return;
-      info.targets.forEach((t) => { io.to("u:" + t).emit("call incoming", { room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: info.name }); pushIfAway(t, "📞 " + (socket.data.username || "Someone") + " is calling", msg && msg.video ? "Video call" : "Voice call", { type: "call", room }); });
+      const myPic = (await avatarsFor([uid]))[uid] || null;
+      info.targets.forEach((t) => { io.to("u:" + t).emit("call incoming", { avatar: myPic, room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: info.name }); pushIfAway(t, "📞 " + (socket.data.username || "Someone") + " is calling", msg && msg.video ? "Video call" : "Voice call", { type: "call", room }); });
     } catch (e) {}
   });
   socket.on("call cancel", async (msg) => {
@@ -2211,6 +2230,24 @@ io.on("connection", (socket) => {
       const info = await callRoomInfo(uid, room);
       if (info) info.targets.forEach((t) => io.to("u:" + t).emit("call cancelled", { room }));
     } catch (e) {}
+  });
+  // The caller reports how the call ended; it becomes a message in their chat
+  socket.on("call log", async (msg) => {
+    try {
+      if (!allow("cl:" + uid, 20, 60000)) return;
+      const room = String((msg && msg.room) || "");
+      const info = await callRoomInfo(uid, room);
+      if (!info || info.kind !== "dm" || !info.targets.length) return;
+      const to = info.targets[0];
+      const ok = !!(msg && msg.status === "ended");
+      const secs = ok ? Math.max(0, Math.min(86400, Math.floor(Number(msg.secs) || 0))) : 0;
+      const text = "\u0001call|" + (msg && msg.video ? "v" : "a") + "|" + (ok ? "e" : "m") + "|" + secs;
+      const { data: saved, error } = await supabase.from("dms").insert({ sender_id: uid, receiver_id: to, text }).select("*").single();
+      if (error) return;
+      const [payload] = await shapeDms([saved]);
+      io.to("u:" + to).emit("dm", payload);
+      io.to("u:" + uid).emit("dm", payload);
+    } catch (e) { console.error(e); }
   });
   socket.on("call decline", (msg) => {
     const to = String((msg && msg.to) || "");

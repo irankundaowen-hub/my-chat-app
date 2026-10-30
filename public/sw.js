@@ -1,7 +1,7 @@
 // Twik Chat: opens instantly by keeping the app page, the logo and the fonts on the phone.
 // The page is shown from memory first and refreshed in the background (like the big apps do).
 const STATIC = "twik-static-v2";
-const SHELL = "twik-shell-v6";
+const SHELL = "twik-shell-v7";
 const HOSTS = ["cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com"];
 const FILES = ["/logo.svg", "/manifest.json", "/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"];
 
