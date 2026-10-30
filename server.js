@@ -2184,14 +2184,19 @@ io.on("connection", (socket) => {
 // ---------- Calls: voice and video, 1-to-1 and groups ----------
 const callRooms = new Map(); // room -> Map(socketId -> { uid, username })
 const CALL_MAX = 8;
+const callInvites = new Map(); // room -> Set of extra people invited into a 1-to-1 call
 async function callRoomInfo(uid, room) {
   room = String(room || "");
   let m = room.match(/^dm:([0-9a-f-]{36}):([0-9a-f-]{36})$/i);
   if (m) {
-    if (uid !== m[1] && uid !== m[2]) return null;
+    const inv = callInvites.get(room);
+    if (uid !== m[1] && uid !== m[2]) {
+      if (!(inv && inv.has(uid))) return null;
+      return { kind: "group", targets: [m[1], m[2], ...inv].filter((x) => x !== uid), name: "Group call" };
+    }
     const other = uid === m[1] ? m[2] : m[1];
     if (!(await canMessage(uid, other)) && !(await canMessage(other, uid))) return null;
-    return { kind: "dm", targets: [other], name: null };
+    return { kind: "dm", targets: [other, ...(inv ? [...inv] : [])], name: null };
   }
   m = room.match(/^g:(\d+)$/);
   if (m) {
@@ -2209,7 +2214,7 @@ function callLeave(socket, room) {
   r.delete(socket.id);
   socket.leave("call:" + room);
   io.to("call:" + room).emit("call left", { room, sid: socket.id });
-  if (!r.size) callRooms.delete(room);
+  if (!r.size) { callRooms.delete(room); callInvites.delete(room); }
 }
 io.on("connection", (socket) => {
   const uid = socket.data.userId;
@@ -2247,6 +2252,27 @@ io.on("connection", (socket) => {
       const [payload] = await shapeDms([saved]);
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + uid).emit("dm", payload);
+    } catch (e) { console.error(e); }
+  });
+  // Add another person to a call that is already running
+  socket.on("call add", async (msg) => {
+    try {
+      if (!allow("ca:" + uid, 10, 60000)) return;
+      const room = String((msg && msg.room) || "");
+      const target = String((msg && msg.user) || "");
+      if (!UUID_RE.test(target) || target === uid) return;
+      const r = callRooms.get(room);
+      if (!r || !r.has(socket.id)) return;
+      const info = await callRoomInfo(uid, room);
+      if (!info || !/^dm:/.test(room)) return socket.emit("call error", { error: "You can add people to a 1-to-1 call." });
+      if (!(await canMessage(uid, target))) return socket.emit("call error", { error: "You can't call this person." });
+      const inv = callInvites.get(room) || new Set();
+      if (r.size + inv.size >= CALL_MAX) return socket.emit("call error", { error: "This call is full." });
+      inv.add(target);
+      callInvites.set(room, inv);
+      const myPic = (await avatarsFor([uid]))[uid] || null;
+      io.to("u:" + target).emit("call incoming", { room, from: uid, username: socket.data.username, video: !!(msg && msg.video), group: "Group call", avatar: myPic });
+      pushIfAway(target, "📞 " + (socket.data.username || "Someone") + " is calling", "Group call", { type: "call", room });
     } catch (e) { console.error(e); }
   });
   socket.on("call decline", (msg) => {

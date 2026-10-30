@@ -954,6 +954,20 @@
     .msg.pending { margin-bottom: 18px; }
     .msg.pending::before, .msg.failed::before { content: "◷ Sending…"; position: absolute; left: 2px; bottom: -19px; font-size: 11.500px; color: #bbb; white-space: nowrap; }
     .msg.failed::before { content: "⚠ Not sent"; color: #ff5a6e; }
+
+    /* ===== v27: call extras ===== */
+    #sh { z-index: 240; }
+    #clTopR { position: absolute !important; top: calc(14px + env(safe-area-inset-top)); right: 8px; display: flex; z-index: 6 !important; }
+    #clTopR button, #clFx button { background: none !important; border: none !important; width: 44px; height: 44px; padding: 0 !important; margin: 0 !important; display: flex; align-items: center; justify-content: center; }
+    #clTopR svg, #clFx svg { width: 28px; height: 28px; fill: none; stroke: #fff; stroke-width: 1.900; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 1px 4px rgba(0,0,0,0.6)); }
+    #clTopR [hidden], #clFx[hidden] { display: none; }
+    #clFx { position: absolute !important; left: 10px; top: 40%; display: flex; flex-direction: column; gap: 18px; z-index: 5 !important; }
+    #cl.audio #clMeAv { top: calc(64px + env(safe-area-inset-top)); }
+    .fxGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .fxGrid button { background: var(--surface2) !important; border: 2px solid transparent !important; border-radius: 18px 18px 18px 6px !important; padding: 14px 6px !important; margin: 0 !important; color: #fff; font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .fxGrid button i { font-style: normal; font-size: 30px; }
+    .fxGrid button.on { border-color: #fff !important; }
+    .fxRange { width: 100%; margin: 14px 0 6px; accent-color: #ec4899; }
   </style>
 </head>
 <body>
@@ -1312,6 +1326,12 @@
   <div id="cl" hidden>
     <div id="clBg"></div>
     <button id="clMin" type="button" aria-label="Minimize"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+    <div id="clTopR"><button id="clAdd" type="button" aria-label="Add people" hidden><svg viewBox="0 0 24 24"><circle cx="10" cy="8" r="3.500"/><path d="M3 20c0-3.500 3-6 7-6s7 2.500 7 6M19 8v6M16 11h6"/></svg></button><button id="clMore" type="button" aria-label="More"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.600" fill="#fff"/><circle cx="12" cy="12" r="1.600" fill="#fff"/><circle cx="19" cy="12" r="1.600" fill="#fff"/></svg></button></div>
+    <div id="clFx" hidden>
+      <button id="fxEff" type="button" aria-label="Effects"><svg viewBox="0 0 24 24"><path d="M9 3l1.800 5.200L16 10l-5.200 1.800L9 17l-1.800-5.200L2 10l5.200-1.800zM18 14l.9 2.600L21.500 17.500l-2.600.9L18 21l-.9-2.600-2.600-.9 2.600-.9z"/></svg></button>
+      <button id="fxTouch" type="button" aria-label="Touch up"><svg viewBox="0 0 24 24"><path d="M4 20L16 8M14 6l4 4M18 3v3M16.500 4.500h3M20 12v2M19 13h2"/></svg></button>
+      <button id="fxFilt" type="button" aria-label="Filters"><svg viewBox="0 0 24 24"><circle cx="9" cy="9" r="5.500"/><circle cx="15" cy="9" r="5.500"/><circle cx="12" cy="15" r="5.500"/></svg></button>
+    </div>
     <div id="clMeAv" hidden data-notr></div>
     <div id="clRing"><div id="clRingAv" data-notr></div><b id="clName" data-notr></b><span id="clStatus" data-notr></span></div>
     <div id="clGrid"></div>
@@ -5638,6 +5658,8 @@
         $("clMeAv").hidden = !(CALL.connected && !CALL.video && !CALL.isGroup);
         if (!$("clMeAv").hidden) { $("clMeAv").innerHTML = ""; $("clMeAv").appendChild(smallAvatar(MYPROF && MYPROF.avatar_url, (MYPROF && MYPROF.username) || "me")); }
         $("clSpk").hidden = !!CALL.video;
+        $("clFx").hidden = !CALL.video;
+        $("clAdd").hidden = !(CALL.connected && String(CALL.room || "").indexOf("dm:") === 0);
         $("clSpk").classList.toggle("off", !!CALL.spkOff);
       }
       async function callMedia(video) {
@@ -5689,7 +5711,7 @@
         CALL.pcs[sid] = pc; pc._name = name || "";
         CALL.local.getTracks().forEach((t) => pc.addTrack(t, CALL.local));
         pc.onicecandidate = (e) => { if (e.candidate) socket.emit("call signal", { to: sid, data: { ice: e.candidate } }); };
-        pc.ontrack = (e) => { addTile(sid, pc._name, e.streams[0]); callConnected(); };
+        pc.ontrack = (e) => { addTile(sid, pc._name, e.streams[0]); callConnected(); if (e.track && e.track.kind === "video") remoteVideoOn(sid); };
         pc.onconnectionstatechange = () => { if (pc.connectionState === "failed" || pc.connectionState === "closed") dropPeer(sid); };
         return pc;
       }
@@ -5708,6 +5730,7 @@
           tile.appendChild(lb);
           $("clGrid").appendChild(tile);
           $("clGrid").className = "n" + $("clGrid").children.length;
+          if (!CALL.isGroup && $("clGrid").children.length >= 2) { CALL.isGroup = true; callUi(); }
         }
         const v = tile.querySelector("video");
         if (v.srcObject !== stream) { v.srcObject = stream; v.play().catch(() => {}); }
@@ -5738,6 +5761,7 @@
           socket.emit("call leave", { room });
         }
         Object.keys(CALL.pcs).forEach((k) => { try { CALL.pcs[k].close(); } catch (e) {} });
+        fxReset();
         if (CALL.local) CALL.local.getTracks().forEach((t) => t.stop());
         clearInterval(CALL.timer); clearTimeout(CALL.ringTimer); ringStop();
         document.querySelectorAll("#clGrid video").forEach((v) => { v.srcObject = null; });
@@ -5751,6 +5775,160 @@
         if (wasLive) showCallEnded(endInfo, secs);
         else toast(msg === undefined ? "Call ended" : msg);
       }
+
+      // ================= v27: camera on mid-call, effects, add people, menu =================
+      async function upgradeToVideo() {
+        if (!CALL.room || !CALL.local || CALL.upgrading || !socket) return;
+        CALL.upgrading = true;
+        try {
+          const vs = await navigator.mediaDevices.getUserMedia({ video: { facingMode: CALL.facing, width: { ideal: 640 }, height: { ideal: 480 } } });
+          const vt = vs.getVideoTracks()[0];
+          CALL.local.addTrack(vt);
+          CALL.video = true;
+          $("clSelf").srcObject = CALL.local; $("clSelf").hidden = false;
+          $("clFlip").hidden = false; $("clCam").classList.remove("off");
+          callUi();
+          Object.keys(CALL.pcs).forEach((sid) => {
+            const pc = CALL.pcs[sid];
+            pc.addTrack(vt, CALL.local);
+            pcChain(pc, async () => {
+              const off = await pc.createOffer();
+              await pc.setLocalDescription(off);
+              socket.emit("call signal", { to: sid, data: { sdp: pc.localDescription } });
+            });
+          });
+        } catch (e) { toast(trW("Could not use the camera.")); }
+        CALL.upgrading = false;
+      }
+      function remoteVideoOn(sid) {
+        if (!CALL.video) { CALL.video = true; callUi(); }
+        const tile = document.querySelector('.clTile[data-sid="' + sid + '"]');
+        if (tile) { const a = tile.querySelector(".clAv"); if (a) a.remove(); const v = tile.querySelector("video"); if (v) v.style.opacity = "1"; }
+        $("clFlip").hidden = !(CALL.local && CALL.local.getVideoTracks().length);
+      }
+      // ---- effects, touch up and filters (drawn on the video that is sent) ----
+      const FX = { filter: "none", smooth: 0, overlay: "none", on: false, raw: null, canvas: null, ctx: null, vid: null, iv: null, parts: [], out: null };
+      const FX_FILTERS = [["Normal", "none"], ["Black & white", "grayscale(1) contrast(1.1)"], ["Warm", "sepia(.35) saturate(1.35) hue-rotate(-8deg)"], ["Cool", "hue-rotate(14deg) saturate(1.15) brightness(1.05)"], ["Vivid", "saturate(1.9) contrast(1.12)"], ["Vintage", "sepia(.7) contrast(.92) brightness(1.05)"], ["Dreamy", "blur(1.2px) brightness(1.12) saturate(1.3)"]];
+      const FX_EFFECTS = [["None", "none", "🚫", ""], ["Sparkles", "sparkles", "✨", "twinkle"], ["Hearts", "hearts", "💖", "rise"], ["Confetti", "confetti", "🎉", "fall"], ["Snow", "snow", "❄️", "fall"], ["Stars", "stars", "⭐", "fall"], ["Fire", "fire", "🔥", "rise"]];
+      const fxWanted = () => FX.filter !== "none" || FX.smooth > 0 || FX.overlay !== "none";
+      function fxFilterString() {
+        const f = [];
+        if (FX.filter !== "none") f.push(FX.filter);
+        if (FX.smooth > 0) { const k = FX.smooth / 100; f.push("blur(" + (k * 1.4).toFixed(2) + "px) brightness(" + (1 + k * 0.08).toFixed(3) + ") contrast(" + (1 - k * 0.1).toFixed(3) + ") saturate(" + (1 + k * 0.1).toFixed(3) + ")"); }
+        return f.join(" ") || "none";
+      }
+      function fxNew(c, init) {
+        const e = FX_EFFECTS.find((a) => a[1] === FX.overlay), mode = e ? e[3] : "fall";
+        const p = { x: Math.random() * c.width, s: 22 + Math.random() * 26, a: 0.6 + Math.random() * 0.4, t: Math.random() * 6, vx: (Math.random() - 0.5) * 1.2 };
+        if (mode === "rise") { p.vy = -(1.5 + Math.random() * 3.5); p.y = init ? Math.random() * c.height : c.height + 30; }
+        else if (mode === "twinkle") { p.vy = 0; p.vx = 0; p.y = Math.random() * c.height; }
+        else { p.vy = 1.5 + Math.random() * 3.5; p.y = init ? Math.random() * c.height : -30; }
+        return p;
+      }
+      function fxDraw() {
+        const v = FX.vid, c = FX.canvas, x = FX.ctx;
+        if (!v || v.readyState < 2) return;
+        if (v.videoWidth && c.width !== v.videoWidth) { c.width = v.videoWidth; c.height = v.videoHeight; }
+        x.filter = fxFilterString();
+        x.drawImage(v, 0, 0, c.width, c.height);
+        x.filter = "none";
+        if (FX.overlay === "none") return;
+        const e = FX_EFFECTS.find((a) => a[1] === FX.overlay); if (!e) return;
+        while (FX.parts.length < 22) FX.parts.push(fxNew(c, true));
+        x.textAlign = "center";
+        FX.parts.forEach((p) => {
+          p.y += p.vy; p.x += p.vx; p.t += 0.12;
+          if (p.y > c.height + 40 || p.y < -40) Object.assign(p, fxNew(c, false));
+          x.globalAlpha = e[3] === "twinkle" ? 0.35 + 0.65 * Math.abs(Math.sin(p.t)) : p.a;
+          x.font = Math.round(p.s * (c.width / 480)) + "px sans-serif";
+          x.fillText(e[2], p.x, p.y);
+        });
+        x.globalAlpha = 1;
+      }
+      function fxSwap(nt) {
+        const old = CALL.local.getVideoTracks()[0];
+        Object.keys(CALL.pcs).forEach((k) => { const snd = CALL.pcs[k].getSenders().find((x) => x.track && x.track.kind === "video"); if (snd) snd.replaceTrack(nt); });
+        if (old) CALL.local.removeTrack(old);
+        CALL.local.addTrack(nt);
+        $("clSelf").srcObject = CALL.local;
+      }
+      async function fxStart() {
+        if (FX.on) return true;
+        const vt = CALL.local && CALL.local.getVideoTracks()[0];
+        if (!vt) return false;
+        const probe = document.createElement("canvas").getContext("2d");
+        if (!probe || !("filter" in probe) || !document.createElement("canvas").captureStream) { toast(trW("Effects are not supported on this phone.")); return false; }
+        FX.raw = vt;
+        const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.srcObject = new MediaStream([vt]);
+        try { await v.play(); } catch (e) {}
+        FX.vid = v;
+        const st = vt.getSettings ? vt.getSettings() : {};
+        const c = document.createElement("canvas"); c.width = st.width || 640; c.height = st.height || 480;
+        FX.canvas = c; FX.ctx = c.getContext("2d"); FX.parts = [];
+        FX.out = c.captureStream(30).getVideoTracks()[0];
+        FX.iv = setInterval(fxDraw, 33);
+        fxSwap(FX.out);
+        FX.on = true;
+        return true;
+      }
+      async function fxStop() {
+        if (!FX.on) return;
+        clearInterval(FX.iv);
+        try { fxSwap(FX.raw); } catch (e) {}
+        try { FX.out.stop(); } catch (e) {}
+        if (FX.vid) FX.vid.srcObject = null;
+        FX.on = false;
+      }
+      function fxReset() {
+        clearInterval(FX.iv);
+        if (FX.on) { try { FX.raw.stop(); FX.out.stop(); } catch (e) {} }
+        if (FX.vid) FX.vid.srcObject = null;
+        Object.assign(FX, { on: false, filter: "none", smooth: 0, overlay: "none", parts: [], raw: null, out: null, vid: null });
+      }
+      async function fxSet(o) {
+        if (!CALL.local || !CALL.local.getVideoTracks().length) { toast(trW("Turn your camera on first.")); return; }
+        Object.assign(FX, o);
+        if (o.overlay !== undefined) FX.parts = [];
+        if (fxWanted()) await fxStart(); else await fxStop();
+      }
+      function fxGrid(b, items, cur, pick) {
+        const g = document.createElement("div"); g.className = "fxGrid";
+        items.forEach((it) => {
+          const bt = document.createElement("button"); bt.type = "button";
+          bt.className = it.key === cur ? "on" : "";
+          bt.innerHTML = "<i></i><span></span>"; bt.querySelector("i").textContent = it.icon; bt.querySelector("span").textContent = trW(it.label);
+          bt.onclick = () => { g.querySelectorAll("button").forEach((x) => x.classList.remove("on")); bt.classList.add("on"); pick(it.key); };
+          g.appendChild(bt);
+        });
+        b.appendChild(g);
+      }
+      $("fxEff").addEventListener("click", () => openSheet("Effects", (b) => fxGrid(b, FX_EFFECTS.map((e) => ({ key: e[1], icon: e[2], label: e[0] })), FX.overlay, (k) => fxSet({ overlay: k }))));
+      $("fxFilt").addEventListener("click", () => openSheet("Filters", (b) => fxGrid(b, FX_FILTERS.map((f, i) => ({ key: f[1], icon: ["🙂", "🖤", "🌅", "❄️", "🌈", "📷", "☁️"][i], label: f[0] })), FX.filter, (k) => fxSet({ filter: k }))));
+      $("fxTouch").addEventListener("click", () => openSheet("Touch up", (b) => {
+        sheetNote(b, trW("Softens your skin and brightens the picture."));
+        const r = document.createElement("input"); r.type = "range"; r.min = 0; r.max = 100; r.value = FX.smooth; r.className = "fxRange";
+        r.oninput = () => { fxSet({ smooth: Number(r.value) }); };
+        b.appendChild(r);
+      }));
+      // ---- add people + menu ----
+      $("clAdd").addEventListener("click", () => {
+        if (!CALL.room || !socket) return;
+        openSheet("Add people", (b) => {
+          const list = convos.filter((c) => !c.request).slice(0, 40);
+          if (!list.length) sheetNote(b, trW("No chats yet."));
+          list.forEach((c) => sheetBtn(b, "@" + c.username, () => { closeSheet(); socket.emit("call add", { room: CALL.room, user: c.peer_id, video: !!CALL.video }); toast(trW("Calling") + " @" + c.username + "…"); }));
+        });
+      });
+      $("clMore").addEventListener("click", () => {
+        openSheet("Call", (b) => {
+          if (CALL.video && CALL.local && CALL.local.getVideoTracks().length) sheetBtn(b, "🔄 " + trW("Switch camera"), () => { closeSheet(); $("clFlip").click(); });
+          if (!CALL.video) sheetBtn(b, "📷 " + trW("Turn camera on"), () => { closeSheet(); upgradeToVideo(); });
+          sheetBtn(b, CALL.spkOff ? "🔊 " + trW("Turn speaker on") : "🔇 " + trW("Turn speaker off"), () => { closeSheet(); $("clSpk").click(); });
+          if (CALL.connected && String(CALL.room || "").indexOf("dm:") === 0) sheetBtn(b, "➕ " + trW("Add people"), () => { closeSheet(); $("clAdd").click(); });
+          sheetBtn(b, "⚠️ " + trW("Report a problem with this call"), () => { closeSheet(); api("/api/call-feedback", "POST", { good: false }); toast(trW("Thanks, we got your report.")); }, true);
+        });
+      });
+
       function showCallEnded(info, secs) {
         avFill($("ceAv"), info.avatar, info.title);
         $("ceDur").textContent = Math.floor(secs / 60) + ":" + String(secs % 60).padStart(2, "0");
@@ -5775,13 +5953,15 @@
       });
       $("clCam").addEventListener("click", () => {
         const t = CALL.local && CALL.local.getVideoTracks()[0];
-        if (!t) { toast(trW("Start a video call to use the camera")); return; }
+        if (!t) { upgradeToVideo(); return; }
         t.enabled = !t.enabled;
         $("clCam").classList.toggle("off", !t.enabled);
       });
       $("clFlip").addEventListener("click", async () => {
         if (!CALL.local || !CALL.video) return;
         CALL.facing = CALL.facing === "user" ? "environment" : "user";
+        const hadFx = FX.on;
+        if (hadFx) await fxStop();
         try {
           const ns = await navigator.mediaDevices.getUserMedia({ video: { facingMode: CALL.facing } });
           const nt = ns.getVideoTracks()[0];
@@ -5792,6 +5972,7 @@
           $("clSelf").srcObject = CALL.local;
           $("clSelf").style.transform = CALL.facing === "user" ? "scaleX(-1)" : "none";
         } catch (e) {}
+        if (hadFx) await fxStart();
       });
       $("clAccept").addEventListener("click", acceptCall);
       $("clDecline").addEventListener("click", () => { const inc = CALL.incoming; hideIncoming(); if (inc && socket) socket.emit("call decline", { room: inc.room, to: inc.from }); });
