@@ -965,7 +965,7 @@ async function canMessageSlow(meId, targetId) {
 app.get("/api/dms", requireUser, safe(async (req, res) => {
   const me = req.user.id;
   const [{ data }, { data: outRows }] = await Promise.all([
-    supabase.from("dms").select("sender_id, receiver_id, text, kind, created_at")
+    supabase.from("dms").select("id, sender_id, receiver_id, text, kind, created_at")
       .or(`sender_id.eq.${me},receiver_id.eq.${me}`).order("created_at", { ascending: false }).limit(3000),
     supabase.from("follows").select("following_id").eq("follower_id", me).eq("status", "accepted"),
   ]);
@@ -976,8 +976,10 @@ app.get("/api/dms", requireUser, safe(async (req, res) => {
   (data || []).forEach((m) => { if (m.sender_id === me) iSentTo.add(m.receiver_id); });
   const iFollow = new Set((outRows || []).map((r) => r.following_id));
   const chats = [];
+  const hidL = await hiddenSet(me);
   (data || []).forEach((m) => {
     const peer = m.sender_id === me ? m.receiver_id : m.sender_id;
+    if (hidL.has(m.id)) return;
     if (!seen[peer] && !blockedD.has(peer)) {
       seen[peer] = true;
       const preview = m.kind === "image" ? "📷 Photo" : m.kind === "audio" ? "🎤 Voice message" : m.kind === "video" ? "🎥 Video" : m.kind === "gif" ? "GIF" : m.kind === "sticker" ? m.text : m.kind === "reel" ? "🎬 Reel" : m.kind === "post" ? "📷 Post" : m.text || "";
@@ -1016,7 +1018,8 @@ app.get("/api/dms/:peer", requireUser, safe(async (req, res) => {
     .limit(61);
   if (before) q = q.lt("created_at", before);
   const { data } = await q;
-  const rows = data || [];
+  const hid = await hiddenSet(me);
+  const rows = (data || []).filter((r) => !hid.has(r.id));
   const more = rows.length > 60;
   const shaped = await shapeDms(rows.slice(0, 60).reverse());
   res.json({ messages: shaped, more });
@@ -1045,10 +1048,44 @@ app.post("/api/dms/react", requireUser, limiter("rx", 120, 60000), safe(async (r
 }));
 
 // Take back (unsend) a message you sent
+// Delete a message only for me
+app.post("/api/dms/hide", requireUser, safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const { data: m } = await supabase.from("dms").select("id, sender_id, receiver_id").eq("id", id).maybeSingle();
+  if (!m || (m.sender_id !== req.user.id && m.receiver_id !== req.user.id)) return res.json({ error: "Message not found." });
+  const { error } = await supabase.from("dm_hidden").upsert({ dm_id: id, user_id: req.user.id });
+  if (error) return res.json({ error: "Run the v28 SQL in Supabase first." });
+  res.json({ ok: true });
+}));
+async function hiddenSet(userId) {
+  const { data, error } = await supabase.from("dm_hidden").select("dm_id").eq("user_id", userId).limit(10000);
+  return new Set(error ? [] : (data || []).map((r) => r.dm_id));
+}
+
+// Edit a message I sent (text only, within 15 minutes)
+app.post("/api/dms/edit", requireUser, limiter("de", 60, 60000), safe(async (req, res) => {
+  const id = Number(req.body.id) || 0;
+  const text = String(req.body.text || "").slice(0, 4000).trim();
+  if (!text) return res.json({ error: "Type something first." });
+  const { data: m } = await supabase.from("dms").select("id, sender_id, receiver_id, kind, text, created_at").eq("id", id).maybeSingle();
+  if (!m || m.sender_id !== req.user.id) return res.json({ error: "Message not found." });
+  if ((m.kind && m.kind !== "text") || parseCallLog(m.text)) return res.json({ error: "Only text messages can be edited." });
+  if (Date.now() - new Date(utc(m.created_at)).getTime() > 15 * 60 * 1000) return res.json({ error: "You can only edit a message for 15 minutes." });
+  let { error } = await supabase.from("dms").update({ text, edited_at: new Date().toISOString() }).eq("id", id);
+  if (error) ({ error } = await supabase.from("dms").update({ text }).eq("id", id));
+  if (error) return res.json({ error: "Could not edit that message." });
+  const payload = { id, text, edited: true };
+  io.to("u:" + m.receiver_id).emit("dm edited", payload);
+  io.to("u:" + m.sender_id).emit("dm edited", payload);
+  res.json({ ok: true });
+}));
+
 app.post("/api/dms/delete", requireUser, safe(async (req, res) => {
   const id = Number(req.body.id) || 0;
   const { data: m } = await supabase.from("dms").select("id, sender_id, receiver_id, media_path").eq("id", id).maybeSingle();
   if (!m || m.sender_id !== req.user.id) return res.json({ error: "Message not found." });
+  const { data: rd } = await supabase.from("dms").select("read_at").eq("id", id).maybeSingle();
+  if (rd && rd.read_at) return res.json({ error: "They already saw this message. You can delete it for yourself." });
   await supabase.from("dms").delete().eq("id", id);
   if (m.media_path) await supabase.storage.from(REELS_BUCKET).remove([m.media_path]);
   io.to("u:" + m.receiver_id).emit("dm deleted", { id });
@@ -1282,6 +1319,7 @@ async function shapeDms(rows) {
     return {
       id: m.id,
       vanish: !!m.vanish,
+      edited: !!m.edited_at,
       read: !!m.read_at,
       post: post ? { id: post.id, username: post.username, caption: post.caption, url: urls[post.path] || null } : null,
       from: m.sender_id,

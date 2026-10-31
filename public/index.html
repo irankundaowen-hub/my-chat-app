@@ -968,6 +968,31 @@
     .fxGrid button i { font-style: normal; font-size: 30px; }
     .fxGrid button.on { border-color: #fff !important; }
     .fxRange { width: 100%; margin: 14px 0 6px; accent-color: #ec4899; }
+
+    /* ===== v28: message hold menu, swipe reply ===== */
+    .msg { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: pan-y; }
+    .msg.callLog, .msg.stk, .msg.gifm { touch-action: pan-y; }
+    .swIc { position: absolute; left: -46px; top: 50%; transform: translateY(-50%) scale(0.6); width: 34px; height: 34px; border-radius: 50%; background: #2b2b31; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; }
+    .swIc svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #mp { position: fixed; inset: 0; z-index: 250; background: rgba(0, 0, 0, 0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; overflow-y: auto; padding: 24px 14px; }
+    .mpStack { display: flex; flex-direction: column; gap: 10px; width: min(100%, 440px); margin: auto; align-items: flex-start; }
+    .mpStack.mine { align-items: flex-end; }
+    .mpBar { display: flex; align-items: center; gap: 2px; background: #26262c; border-radius: 34px 34px 34px 8px; padding: 6px 8px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5); animation: mpIn 0.16s ease-out; }
+    .mpStack.mine .mpBar { border-radius: 34px 34px 8px 34px; }
+    .mpBar button, .mpMore button { background: none !important; border: none !important; font-size: 30px; padding: 2px 5px !important; margin: 0 !important; border-radius: 50% !important; line-height: 1.2; transition: transform 0.12s; }
+    .mpBar button:active, .mpMore button:active { transform: scale(1.35); }
+    .mpBar button.on { background: rgba(255, 255, 255, 0.2) !important; }
+    .mpBar .plus { font-size: 22px; color: #fff; width: 34px; height: 34px; background: #3a3a42 !important; padding: 0 !important; margin-left: 4px !important; }
+    .mpMore { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; background: #26262c; border-radius: 22px; padding: 8px; width: min(100%, 330px); }
+    .mpMore[hidden] { display: none; }
+    .mpMore button { font-size: 26px; }
+    .mpClone { margin: 0 !important; max-width: 100%; pointer-events: none; box-shadow: 0 10px 36px rgba(0, 0, 0, 0.55); transform: none !important; }
+    .mpMenu { background: #26262c; border-radius: 22px 22px 22px 6px; overflow: hidden; min-width: 240px; box-shadow: 0 10px 36px rgba(0, 0, 0, 0.5); animation: mpIn 0.16s ease-out; }
+    .mpStack.mine .mpMenu { border-radius: 22px 22px 6px 22px; }
+    .mpMenu button { display: block; width: 100%; text-align: left; background: none !important; border: none !important; border-bottom: 1px solid #36363d !important; border-radius: 0 !important; color: #fff; font-size: 16px; padding: 14px 18px !important; margin: 0 !important; }
+    .mpMenu button.danger { color: #ff5a6e; }
+    .mpMenu button:last-child { border-bottom: none !important; }
+    @keyframes mpIn { from { transform: scale(0.75); opacity: 0; } to { transform: scale(1); opacity: 1; } }
   </style>
 </head>
 <body>
@@ -2052,6 +2077,18 @@
           updateSeen();
         });
         socket.on("dm react", (d) => { if (d) applyReactions(d.id, d.reactions || []); });
+        socket.on("dm edited", (d) => {
+          if (!d) return;
+          const el = document.querySelector('#cMessages .msg[data-id="' + d.id + '"]');
+          if (el) {
+            const t = el.querySelector(".mtxt");
+            if (t) { t.textContent = ""; t.appendChild(linkify(d.text)); }
+            const tm = el.querySelector(".time");
+            if (tm) tm.textContent = clock(el.dataset.t) + " · " + trW("Edited");
+          }
+          Object.keys(threads).forEach((k) => (threads[k] || []).forEach((x) => { if (x.id === d.id) { x.text = d.text; x.edited = true; } }));
+          if (!peer && !$("chatsPanel").hidden) loadConvos();
+        });
         socket.on("dm deleted", (d) => {
           const el = document.querySelector('#cMessages .msg[data-id="' + d.id + '"]');
           if (el) (el.closest(".mrow") || el).remove();
@@ -3122,43 +3159,110 @@
           });
         });
       }
+      // ---- message gestures: hold = reactions + menu, slide right = reply, double tap = ❤️ ----
+      let EDIT = null;
+      const MORE_EMOJI = "😍 🔥 👏 🎉 😭 🤣 😡 🥺 😎 🙌 💯 ✨ 💔 🤔 😴 🤝 🙄 😅 😇 🥰 😘 🤗 😬 🤯".split(" ");
+      function closePop() { const o = $("mp"); if (o) o.remove(); }
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
+      function threadMsg(id, fallback) { return ((peer && threads[peer.id]) || []).find((x) => x.id === id) || fallback; }
+      async function hideMsg(id, div) {
+        const r = await api("/api/dms/hide", "POST", { id });
+        if (r && r.error) { toast(r.error); return; }
+        (div.closest(".mrow") || div).remove();
+        Object.keys(threads).forEach((k) => { threads[k] = threads[k].filter((x) => x.id !== id); });
+        updateSeen();
+      }
+      function startEdit(id, text) {
+        EDIT = { id };
+        $("cInput").value = text; toolsToggle();
+        $("cReplyTxt").textContent = trW("Editing message");
+        $("cReplyBar").hidden = false;
+        $("cInput").focus();
+      }
+      function msgPop(div, m, id) {
+        closePop();
+        const mine = !!(me && m.from === me.id);
+        const rec = threadMsg(id, m);
+        const myR = (rec.reactions || []).find((r) => me && r.by === me.id);
+        const seen = div.dataset.read === "1";
+        const isText = (!rec.kind || rec.kind === "text") && rec.text;
+        const ov = document.createElement("div"); ov.id = "mp";
+        const stack = document.createElement("div"); stack.className = "mpStack" + (mine ? " mine" : "");
+        const bar = document.createElement("div"); bar.className = "mpBar";
+        const more = document.createElement("div"); more.className = "mpMore"; more.hidden = true;
+        const pick = (em) => { closePop(); reactTo(id, em); };
+        ["❤️", "😂", "😮", "😢", "🙏", "👍"].forEach((em) => {
+          const x = document.createElement("button"); x.type = "button"; x.textContent = em;
+          if (myR && myR.emoji === em) x.className = "on";
+          x.onclick = () => pick(em); bar.appendChild(x);
+        });
+        const plus = document.createElement("button"); plus.type = "button"; plus.className = "plus"; plus.textContent = "+";
+        plus.onclick = () => { more.hidden = !more.hidden; };
+        bar.appendChild(plus);
+        MORE_EMOJI.forEach((em) => { const x = document.createElement("button"); x.type = "button"; x.textContent = em; x.onclick = () => pick(em); more.appendChild(x); });
+        const cl = div.cloneNode(true);
+        cl.classList.add("mpClone"); cl.classList.remove("pending", "failed");
+        cl.removeAttribute("data-id"); cl.style.cssText = "";
+        const sw = cl.querySelector(".swIc"); if (sw) sw.remove();
+        const menu = document.createElement("div"); menu.className = "mpMenu";
+        const item = (label, fn, danger) => { const b = document.createElement("button"); b.type = "button"; b.textContent = label; if (danger) b.className = "danger"; b.onclick = () => { closePop(); fn(); }; menu.appendChild(b); };
+        item(trW("Reply"), () => setReply(Object.assign({}, rec, { id })));
+        if (isText) item(trW("Forward"), () => forwardText(rec.text));
+        if (isText) item(trW("Copy"), async () => { try { await navigator.clipboard.writeText(rec.text); toast(trW("Copied")); } catch (e) {} });
+        if (mine && isText && nowMs() - T(rec.time).getTime() < 15 * 60 * 1000) item(trW("Edit"), () => startEdit(id, rec.text));
+        if (mine && !seen) item(trW("Delete for everyone"), async () => { const r = await api("/api/dms/delete", "POST", { id }); if (r && r.error) toast(r.error); }, true);
+        item(trW("Delete for you"), () => hideMsg(id, div), true);
+        if (!mine) item(trW("Report"), () => reportFlow("message", id), true);
+        stack.append(bar, more, cl, menu);
+        ov.appendChild(stack);
+        ov.addEventListener("click", (e) => { if (e.target === ov) closePop(); });
+        document.body.appendChild(ov);
+      }
       function attachMsgMenu(div, m) {
-        let timer = null, sx = 0, sy = 0, lastTap = 0;
+        let timer = null, sx = 0, sy = 0, dx = 0, drag = false, pid = null, lastTap = 0, blockClick = 0;
         const mid = () => Number(div.dataset.id || m.id || 0);
         const busy = () => div.classList.contains("pending") || div.classList.contains("failed");
-        const open = (e) => {
-          if (e && e.preventDefault) e.preventDefault();
-          if (busy()) return;
-          const mine = me && m.from === me.id;
-          const id = mid();
-          openSheet("Message", (b) => {
-            const row = document.createElement("div");
-            row.className = "rxPick";
-            row.style.cssText = "display:flex;justify-content:space-between;margin-bottom:10px";
-            ["❤️", "😂", "😮", "😢", "🙏", "👍"].forEach((em) => {
-              const x = document.createElement("button");
-              x.type = "button"; x.textContent = em; x.style.cssText = "background:none;border:none;font-size:30px;padding:4px;margin:0";
-              x.onclick = () => { closeSheet(); reactTo(id, em); };
-              row.appendChild(x);
-            });
-            b.appendChild(row);
-            sheetBtn(b, "Reply", () => { closeSheet(); setReply(Object.assign({}, m, { id })); });
-            if (m.text && (!m.kind || m.kind === "text")) sheetBtn(b, "Forward", () => { closeSheet(); forwardText(m.text); });
-            if (m.text && (!m.kind || m.kind === "text")) sheetBtn(b, "Copy text", async () => { try { await navigator.clipboard.writeText(m.text); toast("Copied"); } catch (er) {} closeSheet(); });
-            if (mine) sheetBtn(b, "Unsend", async () => { closeSheet(); const r = await api("/api/dms/delete", "POST", { id }); if (r.error) toast(r.error); }, true);
-            else sheetBtn(b, "Report message", () => { closeSheet(); reportFlow("message", id); }, true);
-          });
-        };
+        const ic = document.createElement("span"); ic.className = "swIc";
+        ic.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
+        div.appendChild(ic);
+        const open = (e) => { if (e && e.preventDefault) e.preventDefault(); if (busy()) return; msgPop(div, m, mid()); };
+        const reset = () => { div.style.transition = "transform 0.18s ease"; div.style.transform = ""; ic.style.opacity = "0"; };
         div.addEventListener("contextmenu", open);
-        div.addEventListener("touchstart", (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; timer = setTimeout(() => open(), 550); }, { passive: true });
-        div.addEventListener("touchmove", (e) => { const t = e.touches[0]; if (Math.abs(t.clientX - sx) > 10 || Math.abs(t.clientY - sy) > 10) clearTimeout(timer); }, { passive: true });
-        div.addEventListener("touchend", (e) => {
+        div.addEventListener("pointerdown", (e) => {
+          if (e.button > 0) return;
+          pid = e.pointerId; sx = e.clientX; sy = e.clientY; dx = 0; drag = false;
           clearTimeout(timer);
-          const t = e.changedTouches[0];
-          if (t && t.clientX - sx > 70 && Math.abs(t.clientY - sy) < 40 && !busy()) setReply(Object.assign({}, m, { id: mid() }));
-        }, { passive: true });
-        div.addEventListener("touchcancel", () => clearTimeout(timer), { passive: true });
+          timer = setTimeout(() => { blockClick = Date.now(); if (navigator.vibrate) navigator.vibrate(15); open(); }, 480);
+        });
+        div.addEventListener("pointermove", (e) => {
+          if (e.pointerId !== pid) return;
+          const mx = e.clientX - sx, my = e.clientY - sy;
+          if (!drag && (Math.abs(mx) > 10 || Math.abs(my) > 10)) {
+            clearTimeout(timer);
+            if (mx > 10 && Math.abs(my) < Math.abs(mx) * 0.7 && !busy()) { drag = true; try { div.setPointerCapture(e.pointerId); } catch (x) {} }
+            else { pid = null; return; }
+          }
+          if (drag) {
+            dx = Math.max(0, Math.min(mx, 90));
+            div.style.transition = "none"; div.style.transform = "translateX(" + dx + "px)";
+            ic.style.opacity = String(Math.min(1, dx / 55));
+            ic.style.transform = "translateY(-50%) scale(" + (0.6 + Math.min(dx, 60) / 150) + ")";
+          }
+        });
+        const end = (e) => {
+          clearTimeout(timer);
+          if (e.pointerId !== pid) return;
+          if (drag) {
+            blockClick = Date.now();
+            reset();
+            if (dx >= 60) { if (navigator.vibrate) navigator.vibrate(12); setReply(Object.assign({}, threadMsg(mid(), m), { id: mid() })); }
+          }
+          drag = false; dx = 0; pid = null;
+        };
+        div.addEventListener("pointerup", end);
+        div.addEventListener("pointercancel", () => { clearTimeout(timer); if (drag) reset(); drag = false; pid = null; });
         div.addEventListener("click", (e) => {
+          if (Date.now() - blockClick < 400) return;
           if (e.target.closest("a, button, video, audio, .vm")) return;
           const now = Date.now();
           if (now - lastTap < 320 && !busy()) { lastTap = 0; reactTo(mid(), "❤️"); } else lastTap = now;
@@ -3190,6 +3294,7 @@
         div.className = "msg" + (me && m.from === me.id ? " mine" : "");
         if (m.id) div.dataset.id = m.id;
         if (m.read) div.dataset.read = "1";
+        div.dataset.t = m.time || "";
         attachMsgMenu(div, m);
 
         if (m.kind === "image") {
@@ -3244,13 +3349,14 @@
           }
         } else {
           const text = document.createElement("div");
+          text.className = "mtxt";
           text.appendChild(linkify(m.text || ""));
           div.appendChild(text);
         }
 
         const time = document.createElement("div");
         time.className = "time";
-        time.textContent = clock(m.time);
+        time.textContent = clock(m.time) + (m.edited ? " · " + trW("Edited") : "");
         div.appendChild(time);
         return div;
       }
@@ -3670,6 +3776,13 @@
       $("cForm").addEventListener("submit", (e) => {
         e.preventDefault();
         const text = $("cInput").value;
+        if (EDIT) {
+          const ed = EDIT;
+          if (!text.trim()) return;
+          EDIT = null; clearReply(); $("cInput").value = ""; toolsToggle();
+          api("/api/dms/edit", "POST", { id: ed.id, text }).then((r) => { if (r && r.error) toast(r.error); });
+          return;
+        }
         if (!text.trim() || !peer || !socket) return;
         const cid = "c" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
         const m = { from: me.id, to: peer.id, text, time: nowISO(), cid, vanish: VANISH };
@@ -5301,7 +5414,7 @@
         $("cReplyTxt").textContent = trW("Replying to") + " " + (mine ? trW("yourself") : "@" + (peer ? peer.username : "")) + ": " + previewOf(m).slice(0, 60);
         $("cReplyBar").hidden = false; $("cInput").focus();
       }
-      function clearReply() { REPLY = null; $("cReplyBar").hidden = true; }
+      function clearReply() { REPLY = null; if (EDIT) { EDIT = null; $("cInput").value = ""; toolsToggle(); } $("cReplyBar").hidden = true; }
       $("cReplyX").addEventListener("click", clearReply);
       function setPeerHeader(p) {
         $("cpAv").innerHTML = ""; $("cpAv").appendChild(smallAvatar(p.avatar, p.username));
