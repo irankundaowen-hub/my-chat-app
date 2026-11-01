@@ -1023,7 +1023,7 @@ app.get("/api/dms/:peer", requireUser, safe(async (req, res) => {
   const more = rows.length > 60;
   const shaped = await shapeDms(rows.slice(0, 60).reverse());
   res.json({ messages: shaped, more });
-  if (!before) {
+  if (!before && (await getSettings(me)).read_receipts) {
     // the other person's messages are now "seen"
     supabase.from("dms").update({ read_at: new Date().toISOString() })
       .eq("sender_id", peer).eq("receiver_id", me).is("read_at", null)
@@ -1806,6 +1806,7 @@ io.on("connection", async (socket) => {
   socket.on("dm read", async (msg) => {
     const peer = String((msg && msg.peer) || "");
     if (!UUID_RE.test(peer) || !allow("rd:" + socket.data.userId, 60, 10000)) return;
+    if (!(await getSettings(socket.data.userId)).read_receipts) return;
     const r = await supabase.from("dms").update({ read_at: new Date().toISOString() })
       .eq("sender_id", peer).eq("receiver_id", socket.data.userId).is("read_at", null);
     if (!r.error) io.to("u:" + peer).emit("dm seen", { by: socket.data.userId });
@@ -1884,9 +1885,41 @@ try {
   }
 } catch (e) { console.error("Push setup failed:", e.message); }
 
+const settingsCache = new Map();
+async function getSettings(uid) {
+  const c = settingsCache.get(uid);
+  if (c && Date.now() - c.at < 60000) return c.v;
+  const def = { show_activity: true, read_receipts: true, push_enabled: true, sounds: true };
+  let v = def;
+  try {
+    const { data, error } = await supabase.from("user_settings").select("*").eq("user_id", uid).maybeSingle();
+    if (!error && data) v = { show_activity: data.show_activity !== false, read_receipts: data.read_receipts !== false, push_enabled: data.push_enabled !== false, sounds: data.sounds !== false };
+  } catch (e) {}
+  settingsCache.set(uid, { at: Date.now(), v });
+  return v;
+}
+app.get("/api/settings", requireUser, safe(async (req, res) => { res.json(await getSettings(req.user.id)); }));
+app.post("/api/settings", requireUser, safe(async (req, res) => {
+  const cur = await getSettings(req.user.id);
+  const next = { ...cur };
+  ["show_activity", "read_receipts", "push_enabled", "sounds"].forEach((k) => { if (typeof req.body[k] === "boolean") next[k] = req.body[k]; });
+  const { error } = await supabase.from("user_settings").upsert({ user_id: req.user.id, ...next, updated_at: new Date().toISOString() });
+  if (error) return res.json({ error: "Could not save. Run the v29 SQL first." });
+  settingsCache.set(req.user.id, { at: Date.now(), v: next });
+  res.json(next);
+}));
+app.post("/api/feedback", requireUser, limiter("fb", 6, 3600000), safe(async (req, res) => {
+  const text = String(req.body.text || "").trim().slice(0, 2000);
+  if (text.length < 5) return res.json({ error: "Please tell us a little more." });
+  const { error } = await supabase.from("app_feedback").insert({ user_id: req.user.id, text, kind: String(req.body.kind || "problem").slice(0, 20) });
+  if (error) return res.json({ error: "Could not send. Run the v29 SQL first." });
+  res.json({ ok: true });
+}));
+
 async function pushTo(userId, title, body, data) {
   if (!fbAdmin) return;
   try {
+    if (!(await getSettings(userId)).push_enabled) return;
     const { data: rows } = await supabase.from("push_tokens").select("token").eq("user_id", userId).limit(10);
     if (!rows || !rows.length) return;
     const tokens = rows.map((r) => r.token);
@@ -2033,7 +2066,16 @@ app.get("/api/groups", requireUser, safe(async (req, res) => {
     const { data: sg } = await signMany(withPic.map((g) => g.avatar_path), 3600);
     (sg || []).forEach((x) => { if (x.signedUrl) urls[x.path] = x.signedUrl; });
   }
-  res.json({ groups: gs.map((g) => ({ id: g.id, name: g.name, mine: g.owner_id === req.user.id, avatar: g.avatar_path ? urls[g.avatar_path] || null : null })) });
+  const last = {};
+  try {
+    const { data: lm } = await supabase.from("group_messages").select("group_id, user_id, username, text, created_at").in("group_id", gs.map((g) => g.id)).order("created_at", { ascending: false }).limit(400);
+    (lm || []).forEach((m) => { if (!last[m.group_id]) last[m.group_id] = m; });
+  } catch (e) {}
+  res.json({ groups: gs.map((g) => {
+    const l = last[g.id];
+    return { id: g.id, name: g.name, mine: g.owner_id === req.user.id, avatar: g.avatar_path ? urls[g.avatar_path] || null : null,
+      last: l ? { text: l.text, time: utc(l.created_at), by: l.username, mine: l.user_id === req.user.id } : null };
+  }) });
 }));
 app.post("/api/groups/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
   const ext = String(req.body.ext || "").toLowerCase();
@@ -2089,19 +2131,77 @@ app.get("/api/groups/:id/messages", requireUser, safe(async (req, res) => {
   const gid = Number(req.params.id);
   if (!(await isMember(gid, req.user.id))) return res.status(403).json({ error: "You are not in this group." });
 
-  const { data } = await supabase
-    .from("group_messages")
-    .select("user_id, username, text, created_at")
-    .eq("group_id", gid)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  let q = await supabase.from("group_messages").select("id, user_id, username, text, created_at, reply_to, edited_at").eq("group_id", gid).order("created_at", { ascending: false }).limit(80);
+  if (q.error) q = await supabase.from("group_messages").select("id, user_id, username, text, created_at").eq("group_id", gid).order("created_at", { ascending: false }).limit(80);
+  if (q.error) q = await supabase.from("group_messages").select("user_id, username, text, created_at").eq("group_id", gid).order("created_at", { ascending: false }).limit(80);
   const { data: mem } = await supabase.from("group_members").select("user_id").eq("group_id", gid);
   const names = await namesFor((mem || []).map((m) => m.user_id));
-
-  res.json({
-    members: Object.values(names),
-    messages: (data || []).reverse().map((m) => ({ uid: m.user_id, user: m.username, text: m.text, time: m.created_at })),
+  const rows = q.data || [];
+  const ids = rows.map((r) => r.id).filter((x) => x != null);
+  let hid = new Set(), rx = {};
+  if (ids.length) {
+    const [h, r] = await Promise.all([
+      supabase.from("group_hidden").select("msg_id").eq("user_id", req.user.id).in("msg_id", ids),
+      supabase.from("group_reactions").select("msg_id, user_id, emoji").in("msg_id", ids),
+    ]);
+    if (!h.error) hid = new Set((h.data || []).map((x) => String(x.msg_id)));
+    if (!r.error) (r.data || []).forEach((x) => { (rx[x.msg_id] = rx[x.msg_id] || []).push({ emoji: x.emoji, by: x.user_id }); });
+  }
+  const byId = {}; rows.forEach((r) => { if (r.id != null) byId[r.id] = r; });
+  const shaped = rows.filter((r) => r.id == null || !hid.has(String(r.id))).reverse().map((m) => {
+    const rp = m.reply_to != null ? byId[m.reply_to] : null;
+    return { id: m.id != null ? String(m.id) : null, uid: m.user_id, user: m.username, text: m.text, time: utc(m.created_at), edited: !!m.edited_at,
+      reactions: rx[m.id] || [], reply: rp ? { id: String(rp.id), uid: rp.user_id, user: rp.username, text: rp.text } : null };
   });
+  res.json({ members: Object.values(names), messages: shaped });
+}));
+
+// Group message actions: react, hide for me, edit, delete for everyone
+async function groupMsg(id, uid) {
+  if (id == null || id === "") return null;
+  const { data: m } = await supabase.from("group_messages").select("*").eq("id", id).maybeSingle();
+  if (!m || !(await isMember(m.group_id, uid))) return null;
+  return m;
+}
+app.post("/api/groups/react", requireUser, limiter("grx", 120, 60000), safe(async (req, res) => {
+  const m = await groupMsg(req.body.id, req.user.id);
+  if (!m) return res.json({ error: "Message not found." });
+  const emoji = String(req.body.emoji || "").slice(0, 8);
+  const { data: ex } = await supabase.from("group_reactions").select("emoji").eq("msg_id", m.id).eq("user_id", req.user.id).maybeSingle();
+  if (ex && (ex.emoji === emoji || !emoji)) await supabase.from("group_reactions").delete().eq("msg_id", m.id).eq("user_id", req.user.id);
+  else if (emoji) await supabase.from("group_reactions").upsert({ msg_id: m.id, user_id: req.user.id, emoji });
+  const { data: all } = await supabase.from("group_reactions").select("user_id, emoji").eq("msg_id", m.id);
+  const reactions = (all || []).map((r) => ({ emoji: r.emoji, by: r.user_id }));
+  io.to("group:" + m.group_id).emit("group react", { groupId: m.group_id, id: String(m.id), reactions });
+  res.json({ ok: true, reactions });
+}));
+app.post("/api/groups/hide", requireUser, safe(async (req, res) => {
+  const m = await groupMsg(req.body.id, req.user.id);
+  if (!m) return res.json({ error: "Message not found." });
+  const { error } = await supabase.from("group_hidden").upsert({ msg_id: m.id, user_id: req.user.id });
+  res.json(error ? { error: "Could not hide. Run the v29 SQL first." } : { ok: true });
+}));
+app.post("/api/groups/edit", requireUser, limiter("ged", 60, 60000), safe(async (req, res) => {
+  const m = await groupMsg(req.body.id, req.user.id);
+  if (!m || m.user_id !== req.user.id) return res.json({ error: "You can only edit your own messages." });
+  if (Date.now() - new Date(utc(m.created_at)).getTime() > 15 * 60 * 1000) return res.json({ error: "You can only edit within 15 minutes." });
+  const text = String(req.body.text || "").slice(0, 4000);
+  if (!text.trim()) return res.json({ error: "Message can't be empty." });
+  const { error } = await supabase.from("group_messages").update({ text, edited_at: new Date().toISOString() }).eq("id", m.id);
+  if (error) return res.json({ error: "Could not edit. Run the v29 SQL first." });
+  io.to("group:" + m.group_id).emit("group edit", { groupId: m.group_id, id: String(m.id), text });
+  res.json({ ok: true });
+}));
+app.post("/api/groups/delete", requireUser, safe(async (req, res) => {
+  const m = await groupMsg(req.body.id, req.user.id);
+  if (!m) return res.json({ error: "Message not found." });
+  let ok = m.user_id === req.user.id;
+  if (!ok) { const { data: g } = await supabase.from("chat_groups").select("owner_id").eq("id", m.group_id).maybeSingle(); ok = !!g && g.owner_id === req.user.id; }
+  if (!ok) return res.json({ error: "Only the sender or the group owner can delete this for everyone." });
+  await supabase.from("group_reactions").delete().eq("msg_id", m.id);
+  await supabase.from("group_messages").delete().eq("id", m.id);
+  io.to("group:" + m.group_id).emit("group delete", { groupId: m.group_id, id: String(m.id) });
+  res.json({ ok: true });
 }));
 
 // ---------- Languages: translate the app's words (cached, so it is fast) ----------
@@ -2366,6 +2466,7 @@ app.get("/api/presence/:id", requireUser, safe(async (req, res) => {
   const id = String(req.params.id || "");
   if (!UUID_RE.test(id)) return res.json({ online: false });
   if (!(await canMessage(req.user.id, id)) && !(await canMessage(id, req.user.id))) return res.json({ online: false });
+  if (!(await getSettings(id)).show_activity) return res.json({ online: false, hidden: true });
   if (onlineCount.has(id)) return res.json({ online: true });
   let last = lastSeenMap.get(id) || null;
   if (!last) { const { data } = await supabase.from("profiles").select("last_seen").eq("id", id).maybeSingle(); last = data && data.last_seen ? new Date(data.last_seen).toISOString() : null; }
@@ -2388,6 +2489,8 @@ app.post("/api/reels/edit", requireUser, safe(async (req, res) => {
 
 // Live group chat
 io.on("connection", (socket) => {
+  // join every group I am in, so new messages arrive in the chat list too
+  supabase.from("group_members").select("group_id").eq("user_id", socket.data.userId).then((r) => { (r.data || []).forEach((x) => socket.join("group:" + x.group_id)); }, () => {});
   socket.on("group join", async (msg) => {
     const gid = Number(msg && msg.groupId);
     if (gid && (await isMember(gid, socket.data.userId))) socket.join("group:" + gid);
@@ -2399,20 +2502,33 @@ io.on("connection", (socket) => {
     if (!gid || !text.trim()) return;
     if (!(await isMember(gid, socket.data.userId))) return;
 
-    const { data: saved, error } = await supabase
-      .from("group_messages")
-      .insert({ group_id: gid, user_id: socket.data.userId, username: socket.data.username, text })
-      .select("created_at")
-      .single();
-    if (error) { console.error("Group message error:", error.message); return; }
+    const rto = msg && msg.replyTo != null && msg.replyTo !== "" ? msg.replyTo : null;
+    const base = { group_id: gid, user_id: socket.data.userId, username: socket.data.username, text };
+    let ins = await supabase.from("group_messages").insert(rto != null ? { ...base, reply_to: rto } : base).select("*").single();
+    if (ins.error && rto != null) ins = await supabase.from("group_messages").insert(base).select("*").single();
+    if (ins.error) { console.error("Group message error:", ins.error.message); return; }
+    const saved = ins.data;
+    let reply = null;
+    if (rto != null && saved.reply_to != null) {
+      const { data: rp } = await supabase.from("group_messages").select("id, user_id, username, text").eq("id", rto).maybeSingle();
+      if (rp) reply = { id: String(rp.id), uid: rp.user_id, user: rp.username, text: rp.text };
+    }
 
     io.to("group:" + gid).emit("group message", {
       groupId: gid,
+      id: saved.id != null ? String(saved.id) : null,
+      cid: String((msg && msg.cid) || "").slice(0, 40),
       uid: socket.data.userId,
       user: socket.data.username,
       text,
       time: utc(saved.created_at),
+      reply, reactions: [],
     });
+    try {
+      const { data: mem } = await supabase.from("group_members").select("user_id").eq("group_id", gid);
+      const { data: g } = await supabase.from("chat_groups").select("name").eq("id", gid).maybeSingle();
+      (mem || []).forEach((x) => { if (x.user_id !== socket.data.userId) pushIfAway(x.user_id, (g && g.name) || "Group", "@" + socket.data.username + ": " + text, { type: "group", group: gid }); });
+    } catch (e) {}
   });
 });
 

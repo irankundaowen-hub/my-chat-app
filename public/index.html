@@ -993,6 +993,55 @@
     .mpMenu button.danger { color: #ff5a6e; }
     .mpMenu button:last-child { border-bottom: none !important; }
     @keyframes mpIn { from { transform: scale(0.75); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* ===== v29 ===== */
+    .pbSp { flex: 1; }
+    .togRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 16px; background: var(--surface); border-radius: 20px 20px 20px 6px; margin-bottom: 8px; font-weight: 600; }
+    .tg { width: 50px; height: 30px; border-radius: 18px !important; background: #3a3a46 !important; border: none !important; padding: 0 !important; position: relative; margin: 0 !important; flex-shrink: 0; transition: background 0.2s; min-width: 0; }
+    .tg::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+    .tg.on { background: var(--grad) !important; }
+    .tg.on::after { transform: translateX(20px); }
+    .fbTa { width: 100%; min-height: 130px; background: var(--surface2); color: #fff; border: 1px solid var(--line); border-radius: 18px 18px 18px 6px; padding: 12px; font: inherit; resize: vertical; margin-bottom: 10px; }
+    /* chat screens fill the whole screen */
+    #chatsPanel.full, #groupsPanel.full { top: 0; bottom: 0; z-index: 28; padding: 0; display: block; overflow: hidden; height: 100vh; height: 100dvh; }
+    #chatsPanel.full .sheet, #groupsPanel.full .sheet { max-width: none; width: 100%; height: 100%; padding: 0; }
+    #chatsPanel.full #cThread, #groupsPanel.full #gChat { display: flex; flex-direction: column; height: 100%; padding: calc(8px + env(safe-area-inset-top)) 10px calc(8px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+    #chatsPanel.full #cThread[hidden], #groupsPanel.full #gChat[hidden] { display: none; }
+    #chatsPanel.full #cMessages, #groupsPanel.full #gMessages { flex: 1; height: auto; min-height: 0; margin: 6px 0; border-radius: 22px; }
+    #chatsPanel.full #cThread > *, #groupsPanel.full #gChat > * { flex-shrink: 0; }
+    #chatsPanel.full #cThread > #cMessages, #groupsPanel.full #gChat > #gMessages { flex-shrink: 1; }
+    #gBack { display: none !important; }
+    #gAdd:not([hidden]) { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; }
+    #gAdd input { margin: 0; flex: 1; padding: 9px 12px; }
+    #gAdd button { width: auto; margin: 0; padding: 9px 18px; }
+    #gAddMsg:empty { display: none; }
+    #gAddMsg { margin: 0 4px 4px; font-size: 13px; }
+    #gChat .gHead { gap: 6px; }
+    #gChat .gHead h2 { flex: 1; min-width: 0; margin: 0; font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #gChat .gHead .ico2 { background: transparent !important; border: none !important; width: 42px; }
+    #gChat .gHead .ico2 svg { width: 25px; height: 25px; }
+    #gChat .counts { font-size: 12px; margin: 0 4px 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .gReplyBar { display: flex; justify-content: space-between; align-items: center; background: var(--surface2); border-radius: 18px 18px 0 0; padding: 8px 14px; font-size: 13px; color: var(--muted); margin: 6px 0 -4px; }
+    .gReplyBar[hidden] { display: none; }
+    .gReplyBar button { background: none !important; border: none !important; color: #fff; padding: 0 6px !important; margin: 0 !important; }
+    form#gForm input { background: transparent !important; border: none !important; color: #fff; outline: none; padding: 8px 10px; }
+    .gSend { border-radius: 20px 20px 20px 6px !important; padding: 8px 16px !important; font-weight: 700; }
+    .msg.gm .gName { font-size: 12px; font-weight: 700; margin-bottom: 2px; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    /* wide videos never take over the screen */
+    .reel.wide video, #reelsPanel .reel.wide video { object-fit: contain !important; }
+    #rv .reel video { height: 100%; padding-top: 56px; box-sizing: border-box; object-fit: contain; }
+    /* Instagram-style posting banner */
+    #pbn { position: fixed; left: 10px; right: 10px; top: calc(env(safe-area-inset-top) + 8px); z-index: 300; display: flex; align-items: center; gap: 12px; background: #1d1e23; border: 1px solid var(--line); border-radius: 22px 22px 22px 6px; padding: 10px 12px; box-shadow: 0 8px 28px rgba(0,0,0,0.55); max-width: 520px; margin: 0 auto; }
+    #pbn[hidden] { display: none; }
+    .pbnTh { width: 46px; height: 46px; border-radius: 14px 14px 14px 5px; overflow: hidden; background: #000; flex-shrink: 0; }
+    .pbnTh img, .pbnTh video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pbnTx { flex: 1; min-width: 0; }
+    .pbnTx b { font-size: 14px; }
+    .pbnBar { height: 5px; border-radius: 3px; background: rgba(255,255,255,0.14); margin-top: 8px; overflow: hidden; }
+    .pbnBar i { display: block; height: 100%; width: 3%; background: var(--grad); border-radius: 3px; transition: width 0.25s ease; }
+    #pbn.err .pbnBar i { background: #ef4444; }
+    #pbnR { padding: 7px 14px; font-size: 13px; margin: 0; }
+    #pbnR[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -1094,11 +1143,22 @@
         <h3>Follow requests</h3>
         <ul id="pReqList"></ul>
         <button class="setRow" id="langOpen" type="button"><svg viewBox="0 0 24 24" class="srIco"><path d="M4 5h9a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2H9l-3 3v-3H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z"/><path d="M6.500 8.500h5M9 7v1.500M7 11c1.500-.5 3-1.500 3.500-2.500"/><path d="M15 10h3a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-1v3l-3-3h-1"/></svg><span class="srTxt">Language and translations</span><svg viewBox="0 0 24 24" class="srChev"><path d="M9 5l7 7-7 7"/></svg></button>
+        <h3>Notifications</h3>
+        <div class="togRow"><span>Push notifications</span><button class="tg" id="stPush" type="button" role="switch" aria-label="Push notifications"></button></div>
+        <h3>Privacy</h3>
+        <div class="togRow"><span>Show activity status</span><button class="tg" id="stAct" type="button" role="switch" aria-label="Show activity status"></button></div>
+        <div class="togRow"><span>Read receipts</span><button class="tg" id="stRead" type="button" role="switch" aria-label="Read receipts"></button></div>
+        <p class="hint">If you turn these off, you will not see other people's activity or read receipts either.</p>
         <h3>Security</h3>
         <button class="wide" id="pwOpen" type="button">Change password</button>
         <button class="wide" id="blkOpen" type="button">Blocked accounts</button>
         <button class="wide" id="logoutAll" type="button">Log out of all devices</button>
+        <h3>Help</h3>
+        <button class="wide" id="stReport" type="button">Report a problem</button>
+        <button class="wide" id="stTerms" type="button">Terms of Service</button>
+        <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
+        <p class="hint" data-notr>Twik Chat · Version 29</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1205,6 +1265,7 @@
 
       <div id="gChat" hidden>
         <div class="gHead">
+          <button id="gBackTop" class="arrowBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></button>
           <button id="gAvBtn" class="gAvBtn" type="button" aria-label="Group picture"><span id="gAv" data-notr></span></button>
           <h2 id="gTitle" data-notr></h2>
           <span class="thActs">
@@ -1221,9 +1282,10 @@
         </div>
         <p id="gAddMsg"></p>
         <div class="gmsgs" id="gMessages"></div>
-        <form id="gForm" style="display:flex;gap:8px;margin-top:8px">
-          <input id="gInput" type="text" placeholder="Type a message" autocomplete="off" style="margin:0" />
-          <button type="submit">Send</button>
+        <div id="gReplyBar" class="gReplyBar" hidden><span id="gReplyTxt" data-notr></span><button id="gReplyX" type="button" aria-label="Cancel">✕</button></div>
+        <form id="gForm" class="igBar">
+          <input id="gInput" type="text" placeholder="Message..." autocomplete="off" maxlength="4000" style="margin:0;flex:1" />
+          <button type="submit" class="gSend">Send</button>
         </form>
         <button class="wide close" id="gBack" type="button" style="margin-top:12px">← Back to groups</button>
       </div>
@@ -1325,7 +1387,7 @@
   <div id="postsPanel" hidden>
     <div class="pbBar">
       <button id="mkBtn" class="mkPlus" type="button" aria-label="Create"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg></button>
-      <strong>🏠 Home</strong>
+      <span class="pbSp"></span>
       <span>
         <button id="pbToggle" type="button" hidden>+ Post</button>
         <button id="pbClose" type="button">Close</button>
@@ -1391,6 +1453,7 @@
   </div>
 
   <!-- Create screen: Post / Story / Reel / Live -->
+  <div id="pbn" hidden><div class="pbnTh" id="pbnTh"></div><div class="pbnTx"><b id="pbnT">Posting…</b><div class="pbnBar"><i id="pbnI"></i></div></div><button id="pbnR" type="button" hidden>Retry</button></div>
   <div id="mk" hidden>
     <div class="mkStage">
       <video id="mkVid" playsinline muted autoplay></video>
@@ -2464,34 +2527,26 @@
         return [...document.querySelectorAll("#audList input:checked")].map((c) => c.value);
       }
       $("saCancel").addEventListener("click", () => { $("storyAdd").hidden = true; $("saPreview").innerHTML = ""; pendingStory = null; });
-      $("saShare").addEventListener("click", async () => {
+      $("saShare").addEventListener("click", () => {
         if (!pendingStory) return;
         const { file, kind } = pendingStory;
-        const audCheck = storyAudience();
-        if (audCheck !== null && !audCheck.length) { $("saMsg").textContent = "Pick at least one friend, or choose All my friends."; return; }
-        $("saShare").disabled = true;
-        $("saMsg").textContent = "Uploading... please wait.";
-        try {
+        const aud = storyAudience();
+        if (aud !== null && !aud.length) { $("saMsg").textContent = "Pick at least one friend, or choose All my friends."; return; }
+        const caption = $("saCaption").value;
+        $("storyAdd").hidden = true;
+        $("saPreview").innerHTML = "";
+        pendingStory = null;
+        bgPost(file, trW("Sharing to your story…"), async () => {
           const pre = kind === "image" ? await shrinkImage(file, 1280) : { blob: file, ext: (file.name.split(".").pop() || "mp4").toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5) };
-          const ext = pre.ext;
-          const up = await api("/api/stories/upload-url", "POST", { ext });
+          const up = await api("/api/stories/upload-url", "POST", { ext: pre.ext });
           if (up.error) throw new Error(up.error);
           const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || file.type });
           if (error) throw error;
-          const body = { path: up.path, kind, caption: $("saCaption").value };
-          const aud = storyAudience();
+          const body = { path: up.path, kind, caption };
           if (aud !== null) body.audience = aud;
           const made = await api("/api/stories", "POST", body);
           if (made.error) throw new Error(made.error);
-          $("storyAdd").hidden = true;
-          $("saPreview").innerHTML = "";
-          pendingStory = null;
-          loadStories(true);
-        } catch (e) {
-          $("saMsg").textContent = "Could not share: " + (e.message || "try again");
-        } finally {
-          $("saShare").disabled = false;
-        }
+        }, () => loadStories(true));
       });
 
       // Story viewer
@@ -2926,7 +2981,26 @@
       }
 
       $("pEditBtn").addEventListener("click", () => { $("pEditMsg").textContent = ""; showProfileView("edit"); });
-      $("pSettingsBtn").addEventListener("click", () => { $("pMsg").textContent = ""; showProfileView("settings"); });
+      $("pSettingsBtn").addEventListener("click", () => { $("pMsg").textContent = ""; showProfileView("settings"); loadSettings(); });
+      let ST = { show_activity: true, read_receipts: true, push_enabled: true };
+      const ST_ROWS = [["stPush", "push_enabled"], ["stAct", "show_activity"], ["stRead", "read_receipts"]];
+      function paintSettings() { ST_ROWS.forEach(([id, k]) => { $(id).classList.toggle("on", !!ST[k]); $(id).setAttribute("aria-checked", ST[k] ? "true" : "false"); }); }
+      async function loadSettings() { paintSettings(); const d = await api("/api/settings"); if (d && !d.error) { ST = d; paintSettings(); } }
+      ST_ROWS.forEach(([id, k]) => $(id).addEventListener("click", async () => {
+        ST[k] = !ST[k]; paintSettings();
+        const r = await api("/api/settings", "POST", { [k]: ST[k] });
+        if (r && r.error) { ST[k] = !ST[k]; paintSettings(); toast(r.error); }
+      }));
+      $("stTerms").addEventListener("click", () => window.open("/terms.html", "_blank"));
+      $("stPriv").addEventListener("click", () => window.open("/privacy.html", "_blank"));
+      $("stReport").addEventListener("click", () => openSheet(trW("Report a problem"), (b) => {
+        const ta = document.createElement("textarea"); ta.className = "fbTa"; ta.maxLength = 2000; ta.placeholder = trW("Tell us what went wrong");
+        b.appendChild(ta);
+        sheetBtn(b, trW("Send"), async () => {
+          const r = await api("/api/feedback", "POST", { text: ta.value });
+          if (r && r.error) toast(r.error); else { closeSheet(); toast(trW("Thanks! We got your message.")); }
+        });
+      }));
       $("sFollowers").addEventListener("click", () => {
         $("pFollowersBox").hidden = false; $("pFollowingBox").hidden = true; showProfileView("lists");
       });
@@ -3001,30 +3075,78 @@
       let currentGroup = null;
       let groupListening = false;
 
-      function addGroupMessage(m) {
+      let GREPLY = null, GEDIT = null, groupFromChats = false;
+      const GM = {};
+      const inGroup = () => !!currentGroup && !$("groupsPanel").hidden && !$("gChat").hidden;
+      function gBuild(m) {
+        m.from = m.uid;
+        if (m.reply) m.reply.from = m.reply.uid;
+        if (m.id) GM[m.id] = m;
+        const mine = !!(me && m.uid === me.id);
         const div = document.createElement("div");
-        div.className = "msg" + (me && m.uid === me.id ? " mine" : "");
-        const name = document.createElement("div");
-        name.className = "name";
-        name.textContent = m.user;
+        div.className = "msg gm" + (mine ? " mine" : "");
+        if (m.id) div.dataset.id = m.id;
+        if (m.cid) div.dataset.cid = m.cid;
+        div.dataset.t = m.time || "";
+        if (m.id) attachMsgMenu(div, m);
         const text = document.createElement("div");
-        text.textContent = m.text;
+        text.className = "mtxt";
+        text.appendChild(linkify(m.text || ""));
         const time = document.createElement("div");
         time.className = "time";
-        time.textContent = clock(m.time);
-        div.append(name, text, time);
+        time.textContent = clock(m.time) + (m.edited ? " · " + trW("Edited") : "");
+        div.append(text, time);
+        decorateBubble(div, m);
+        if (!mine) { const name = document.createElement("div"); name.className = "gName"; name.textContent = m.user; name.setAttribute("data-notr", ""); div.insertBefore(name, div.firstChild); }
+        return div;
+      }
+      function addGroupMessage(m) {
         const box = $("gMessages");
+        if (m.cid) {
+          const ex = box.querySelector('[data-cid="' + m.cid + '"]');
+          if (ex) { if (ex.classList.contains("pending")) ex.replaceWith(gBuild(m)); return; }
+        }
+        if (m.id && box.querySelector('[data-id="' + m.id + '"]')) return;
+        const div = gBuild(m);
         daySep(box, m.time);
         box.appendChild(div);
         box.scrollTop = box.scrollHeight;
       }
+      function setGReply(m) {
+        GREPLY = { id: m.id, uid: m.from, user: m.user, text: previewOf(m) };
+        const mine = me && m.from === me.id;
+        $("gReplyTxt").textContent = trW("Replying to") + " " + (mine ? trW("yourself") : "@" + m.user) + ": " + previewOf(m).slice(0, 60);
+        $("gReplyBar").hidden = false; $("gInput").focus();
+      }
+      function clearGReply() { GREPLY = null; if (GEDIT) { GEDIT = null; $("gInput").value = ""; } $("gReplyBar").hidden = true; }
+      $("gReplyX").addEventListener("click", clearGReply);
 
       function listenGroups() {
         if (groupListening || !socket) return;
         groupListening = true;
         socket.on("group message", (m) => {
-          if (currentGroup && m.groupId === currentGroup.id) addGroupMessage(m);
+          const g = GROUPS.find((x) => x.id === m.groupId);
+          const mineM = !!(me && m.uid === me.id);
+          if (g) g.last = { text: m.text, time: m.time, by: m.user, mine: mineM };
+          if (inGroup() && m.groupId === currentGroup.id) { addGroupMessage(m); markRead("g" + m.groupId); }
+          else {
+            if (!mineM) $("chatsBtn").classList.add("unread");
+            if (!$("chatsPanel").hidden && !peer) renderConvos();
+          }
         });
+        socket.on("group react", (d) => {
+          if (GM[d.id]) GM[d.id].reactions = d.reactions;
+          const el = document.querySelector('#gMessages .msg[data-id="' + d.id + '"]'); if (el) setReactions(el, d.reactions);
+        });
+        socket.on("group edit", (d) => {
+          if (GM[d.id]) { GM[d.id].text = d.text; GM[d.id].edited = true; }
+          const el = document.querySelector('#gMessages .msg[data-id="' + d.id + '"]');
+          if (el) {
+            const t = el.querySelector(".mtxt"); if (t) { t.textContent = ""; t.appendChild(linkify(d.text)); }
+            const tm = el.querySelector(".time"); if (tm) tm.textContent = clock(el.dataset.t) + " · " + trW("Edited");
+          }
+        });
+        socket.on("group delete", (d) => { delete GM[d.id]; const el = document.querySelector('#gMessages .msg[data-id="' + d.id + '"]'); if (el) el.remove(); });
         // After a reconnect, join the group room again
         socket.on("connect", () => {
           if (currentGroup) socket.emit("group join", { groupId: currentGroup.id });
@@ -3036,9 +3158,15 @@
         fill("gItems", (d.groups || []).map((g) => row(g.name, [["Open", () => openGroup(g)]], g.avatar, g.name)));
       }
 
-      async function openGroup(g) {
+      async function openGroup(g, fromChats) {
         listenGroups();
+        if (fromChats !== undefined) groupFromChats = !!fromChats;
         currentGroup = g;
+        Object.keys(GM).forEach((k) => delete GM[k]);
+        clearGReply();
+        markRead("g" + g.id);
+        $("groupsPanel").hidden = false;
+        $("groupsPanel").classList.add("full");
         $("gList").hidden = true;
         $("gChat").hidden = false;
         $("gTitle").textContent = g.name;
@@ -3057,6 +3185,8 @@
 
       $("groupsBtn").addEventListener("click", () => {
         currentGroup = null;
+        groupFromChats = false;
+        $("groupsPanel").classList.remove("full");
         $("groupsPanel").hidden = false;
         $("gList").hidden = false;
         $("gChat").hidden = true;
@@ -3069,10 +3199,20 @@
       });
       $("gBack").addEventListener("click", () => {
         currentGroup = null;
+        clearGReply();
         $("gChat").hidden = true;
+        $("groupsPanel").classList.remove("full");
+        if (groupFromChats) {
+          groupFromChats = false;
+          $("groupsPanel").hidden = true;
+          $("gList").hidden = false;
+          loadGroupsForChats();
+          return;
+        }
         $("gList").hidden = false;
         loadGroups();
       });
+      $("gBackTop").addEventListener("click", () => $("gBack").click());
       let newGroupPic = null;
       async function uploadGroupPic(file) {
         const pre = await shrinkImage(file, 512);
@@ -3116,12 +3256,30 @@
         await openGroup(currentGroup);
         $("gAddMsg").textContent = r.message || r.error || "";
       });
-      $("gForm").addEventListener("submit", (e) => {
+      $("gForm").addEventListener("submit", async (e) => {
         e.preventDefault();
         const t = $("gInput").value;
         if (!t.trim() || !currentGroup || !socket) return;
-        socket.emit("group message", { groupId: currentGroup.id, text: t });
+        if (GEDIT) {
+          const id = GEDIT.id; clearGReply();
+          const r = await api("/api/groups/edit", "POST", { id, text: t });
+          if (r && r.error) toast(r.error);
+          return;
+        }
+        const cid = "g" + Date.now().toString(36) + Math.floor(Math.random() * 1e6);
+        const rp = GREPLY;
+        const local = { cid, uid: me.id, user: (me.user_metadata && me.user_metadata.username) || "", text: t, time: nowISO(), reactions: [],
+          reply: rp ? { id: rp.id, uid: rp.uid, user: rp.user, text: rp.text } : null };
+        const div = gBuild(local);
+        div.classList.add("pending");
+        const box = $("gMessages");
+        daySep(box, local.time);
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+        socket.emit("group message", { groupId: currentGroup.id, text: t, cid, replyTo: rp ? rp.id : null });
         $("gInput").value = "";
+        clearGReply();
+        if (GROUPS.length) { const g = GROUPS.find((x) => x.id === currentGroup.id); if (g) g.last = { text: t, time: local.time, by: "", mine: true }; }
       });
 
       // ---------- Private chats (one to one) ----------
@@ -3164,15 +3322,20 @@
       const MORE_EMOJI = "😍 🔥 👏 🎉 😭 🤣 😡 🥺 😎 🙌 💯 ✨ 💔 🤔 😴 🤝 🙄 😅 😇 🥰 😘 🤗 😬 🤯".split(" ");
       function closePop() { const o = $("mp"); if (o) o.remove(); }
       document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePop(); });
-      function threadMsg(id, fallback) { return ((peer && threads[peer.id]) || []).find((x) => x.id === id) || fallback; }
+      function threadMsg(id, fallback) { if (inGroup()) return GM[id] || fallback; return ((peer && threads[peer.id]) || []).find((x) => x.id === id) || fallback; }
       async function hideMsg(id, div) {
-        const r = await api("/api/dms/hide", "POST", { id });
+        const r = await api(inGroup() ? "/api/groups/hide" : "/api/dms/hide", "POST", { id });
         if (r && r.error) { toast(r.error); return; }
         (div.closest(".mrow") || div).remove();
         Object.keys(threads).forEach((k) => { threads[k] = threads[k].filter((x) => x.id !== id); });
         updateSeen();
       }
       function startEdit(id, text) {
+        if (inGroup()) {
+          GEDIT = { id }; $("gInput").value = text;
+          $("gReplyTxt").textContent = trW("Editing message"); $("gReplyBar").hidden = false; $("gInput").focus();
+          return;
+        }
         EDIT = { id };
         $("cInput").value = text; toolsToggle();
         $("cReplyTxt").textContent = trW("Editing message");
@@ -3185,6 +3348,7 @@
         const rec = threadMsg(id, m);
         const myR = (rec.reactions || []).find((r) => me && r.by === me.id);
         const seen = div.dataset.read === "1";
+        const isG = inGroup();
         const isText = (!rec.kind || rec.kind === "text") && rec.text;
         const ov = document.createElement("div"); ov.id = "mp";
         const stack = document.createElement("div"); stack.className = "mpStack" + (mine ? " mine" : "");
@@ -3210,9 +3374,9 @@
         if (isText) item(trW("Forward"), () => forwardText(rec.text));
         if (isText) item(trW("Copy"), async () => { try { await navigator.clipboard.writeText(rec.text); toast(trW("Copied")); } catch (e) {} });
         if (mine && isText && nowMs() - T(rec.time).getTime() < 15 * 60 * 1000) item(trW("Edit"), () => startEdit(id, rec.text));
-        if (mine && !seen) item(trW("Delete for everyone"), async () => { const r = await api("/api/dms/delete", "POST", { id }); if (r && r.error) toast(r.error); }, true);
+        if (isG ? (mine || (currentGroup && currentGroup.mine)) : (mine && !seen)) item(trW("Delete for everyone"), async () => { const r = await api(isG ? "/api/groups/delete" : "/api/dms/delete", "POST", { id }); if (r && r.error) toast(r.error); }, true);
         item(trW("Delete for you"), () => hideMsg(id, div), true);
-        if (!mine) item(trW("Report"), () => reportFlow("message", id), true);
+        if (!mine && !isG) item(trW("Report"), () => reportFlow("message", id), true);
         stack.append(bar, more, cl, menu);
         ov.appendChild(stack);
         ov.addEventListener("click", (e) => { if (e.target === ov) closePop(); });
@@ -3220,7 +3384,7 @@
       }
       function attachMsgMenu(div, m) {
         let timer = null, sx = 0, sy = 0, dx = 0, drag = false, pid = null, lastTap = 0, blockClick = 0;
-        const mid = () => Number(div.dataset.id || m.id || 0);
+        const mid = () => (div.closest("#gMessages") ? String(div.dataset.id || m.id || "") : Number(div.dataset.id || m.id || 0));
         const busy = () => div.classList.contains("pending") || div.classList.contains("failed");
         const ic = document.createElement("span"); ic.className = "swIc";
         ic.innerHTML = '<svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 6 6v3"/></svg>';
@@ -3395,6 +3559,7 @@
         $("cTitle").hidden = true;
         $("cHeadName").textContent = "@" + ((me && me.user_metadata && me.user_metadata.username) || "you");
         $("cThread").hidden = true;
+        $("chatsPanel").classList.remove("full");
         $("cList").hidden = false;
         loadConvos();
       }
@@ -3414,10 +3579,16 @@
         $("cTabReq").textContent = reqCount ? "Requests (" + reqCount + ")" : "Requests";
         $("cTabMsgs").classList.toggle("on", cTab === "msgs");
         $("cTabReq").classList.toggle("on", cTab === "req");
+        const gl = cTab === "req" ? [] : GROUPS.filter((g) => !q || g.name.toLowerCase().indexOf(q) >= 0).map((g) => ({
+          isG: true, g, peer_id: "g" + g.id, username: g.name, avatar: g.avatar,
+          mine: !!(g.last && g.last.mine), time: g.last ? g.last.time : null,
+          text: g.last ? (g.last.mine ? "" : (g.last.by || "") + ": ") + g.last.text : trW("No messages yet"),
+        }));
         const list = convos
           .filter((c) => (cTab === "req") === !!c.request)
           .filter((c) => !q || c.username.toLowerCase().indexOf(q) >= 0)
-          .sort((a, b) => (isPinned(b.peer_id) - isPinned(a.peer_id)));
+          .concat(gl)
+          .sort((a, b) => (isPinned(b.peer_id) - isPinned(a.peer_id)) || ((b.time ? T(b.time).getTime() : 0) - (a.time ? T(a.time).getTime() : 0)));
         const ul = $("cConvos");
         ul.innerHTML = "";
         if (!list.length) {
@@ -3427,7 +3598,7 @@
           ul.appendChild(li);
         }
         list.forEach((c) => {
-          const unread = !c.mine && T(c.time) > new Date(rd[c.peer_id] || 0);
+          const unread = !c.mine && !!c.time && T(c.time) > new Date(rd[c.peer_id] || 0);
           const li = document.createElement("li");
           li.className = "convo" + (unread ? " unread" : "");
           const av = smallAvatar(c.avatar, c.username);
@@ -3436,18 +3607,18 @@
           mid.className = "cMid";
           const nm = document.createElement("div");
           nm.className = "cName";
-          nm.textContent = (isPinned(c.peer_id) ? "📌 " : "") + c.username + (isMuted(c.peer_id) ? " 🔕" : "");
+          nm.textContent = (isPinned(c.peer_id) ? "📌 " : "") + (c.isG ? "👥 " : "") + c.username + (isMuted(c.peer_id) ? " 🔕" : "");
           const pv = document.createElement("div");
           pv.className = "cPrev";
           const t = (c.mine ? "You: " : "") + c.text;
-          pv.textContent = (t.length > 30 ? t.slice(0, 30) + "…" : t) + " · " + convoTime(c.time);
+          pv.textContent = (t.length > 30 ? t.slice(0, 30) + "…" : t) + (c.time ? " · " + convoTime(c.time) : "");
           mid.append(nm, pv);
           li.append(av, mid);
           if (unread) { const d = document.createElement("span"); d.className = "cDot"; li.appendChild(d); }
-          li.onclick = () => openThread({ id: c.peer_id, username: c.username, avatar: c.avatar });
+          li.onclick = () => { if (c.isG) openGroup(c.g, true); else openThread({ id: c.peer_id, username: c.username, avatar: c.avatar }); };
           const menu = (e) => {
             if (e && e.preventDefault) e.preventDefault();
-            openSheet("@" + c.username, (b) => {
+            openSheet((c.isG ? "" : "@") + c.username, (b) => {
               sheetBtn(b, isPinned(c.peer_id) ? "Unpin chat" : "Pin chat", () => { togglePref("pin", c.peer_id); closeSheet(); renderConvos(); });
               sheetBtn(b, isMuted(c.peer_id) ? "Unmute notifications" : "Mute notifications", () => { togglePref("mute", c.peer_id); closeSheet(); renderConvos(); });
             });
@@ -3474,6 +3645,19 @@
         if (!rd) { rd = {}; convos.forEach((c) => { rd[c.peer_id] = c.time; }); setRead(rd); }
         renderConvos();
         loadNotes();
+        loadGroupsForChats();
+      }
+      var GROUPS = [];
+      async function loadGroupsForChats() {
+        const d = await api("/api/groups");
+        if (!d || d.error || !d.groups) return;
+        GROUPS = d.groups;
+        const rd = getRead() || {};
+        let ch = false;
+        GROUPS.forEach((g) => { if (rd["g" + g.id] === undefined) { rd["g" + g.id] = g.last ? g.last.time : nowISO(); ch = true; } });
+        if (ch) setRead(rd);
+        listenGroups();
+        if (!$("chatsPanel").hidden && !peer) renderConvos();
       }
 
       async function startChatWith(username) {
@@ -3709,6 +3893,7 @@
         $("cStk").hidden = true;
         $("cList").hidden = true;
         $("cThread").hidden = false;
+        $("chatsPanel").classList.add("full");
         $("cTyping").hidden = true;
         applyWall($("cMessages"), wallGet("dm:" + p.id));
         checkOnline(p.id);
@@ -4231,6 +4416,7 @@
         v.playsInline = true;
         v.preload = idx === 0 ? "auto" : "metadata";
         v.onloadeddata = () => box.classList.add("ready");
+        v.onloadedmetadata = () => { if (v.videoWidth > v.videoHeight * 1.05) box.classList.add("wide"); };
 
         const shade = document.createElement("div");
         shade.className = "rShade";
@@ -4546,7 +4732,7 @@
       const LANG_EN = {};
       LANG_LIST.forEach((l) => { LANG_EN[l.code] = l.en; });
       const RTL_LANGS = ["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"];
-      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story"];
+      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story", "Notifications", "Push notifications", "Privacy", "Show activity status", "Read receipts", "If you turn these off, you will not see other people's activity or read receipts either.", "Help", "Report a problem", "Terms of Service", "Privacy Policy", "Tell us what went wrong", "Send", "Thanks! We got your message.", "No messages yet", "Posting…", "Posting your reel…", "Sharing to your story…", "Shared ✓", "Couldn't post", "Retry"];
       const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."},"rn":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Jewe","Settings":"Amagenamiterere","Search":"Rondera","Search people":"Rondera abantu","Find people":"Shakira abantu","Explore":"Raba","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ivyatangajwe","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'umukoresha","Email":"Imeyili","Close":"Funga","Cancel":"Reka","Save":"Bika","Saved":"Vyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Tangaza","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ivyiyumviro","Add a comment...":"Tanga ivyiyumviro...","Like":"Kunda","More":"Vyinshi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ivyabanje","Notifications":"Amatangazo","Security":"Umutekano","Change password":"Hindura ijambo ry'ibanga","Blocked accounts":"Konti zifunzwe","Log out of all devices":"Sohoka kuri vyose","Delete my account":"Futa konti yanje","Loading...":"Biriko biraza...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshasha","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ivyasabwe","Bio":"Ivyerekeye jewe","Name":"Izina","Caption (optional)":"Amajambo asigura (si ngombwa)","Write a caption...":"Andika amajambo asigura...","Search by username":"Rondera ukoresheje izina","Follow requests":"Ivyasabwe vyo kukurikira","Welcome back! Enter your details.":"Karabaye! Andika amakuru yawe.","New here? Create an account":"Uri mushasha? Fungura konti","Already have an account? Log in":"Usanzwe ufise konti? Injira","Unblock":"Fungura","Delete":"Futa","Report account":"Tanga akarego kuri konti","Seen":"Vyarabonetse","Copy text":"Kopa amajambo","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamwo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Sobanura amajambo asigura","Everyone":"Bose","Friends":"Inshuti","POST":"IVYATANGAJWE","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshasha","New post":"Igitangazwa gishasha","Go live":"Tangura live","End live":"Rangiza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamwo muri galeri","Say something...":"Vuga ikintu...","Watching":"Barabona","Who can watch?":"Ni nde ashobora kubona?","Create a reel":"Kora reel","Refresh":"Subiramwo","Call":"Hamagara","Voice call":"Guhamagara mu majwi","Video call":"Guhamagara mu mashusho","Calling…":"Biriko biraraza…","Ringing…":"Biriko biraraba…","Connecting…":"Biriko biraraba…","Incoming voice call":"Hari akuhamagaye mu majwi","Incoming video call":"Hari akuhamagaye mu mashusho","Incoming group call":"Hari itsinda ribahamagaye","Accept":"Emera","Decline":"Anka","Mute":"Zimya","Unmute":"Vyura","Camera off":"Zimya kamera","Camera on":"Rahura kamera","Flip":"Hindura","End call":"Rangiza guhamagara","Call ended":"Guhamagara kurarangiye","No answer":"Nta wavyishuye","declined the call":"yanse guhamagara","This call is full.":"Uguhamagara kuzuye.","Could not use the microphone or camera.":"Ntivyashobotse gukoresha mikoro canke kamera.","Group call":"Guhamagara mu itsinda","Join":"Injira","Chat theme":"Ishusho y'ubutumwa","Choose a wallpaper":"Hitamwo ishusho","Default":"Isanzwe","Wallpaper saved ✓":"Ishusho yabitswe ✓","Midnight":"Ijoro","Aurora":"Umuco","Sunset":"Izuba rirenga","Ocean":"Inyanja","Forest":"Ishamba","Candy":"Bombo","Neon":"Neon","Ember":"Amakara","Lavender":"Lavande","Mint":"Mint","Rose":"Roza","Mono":"Umukara n'umweru","Add a group picture":"Shiramwo ifoto y'itsinda","Group picture":"Ifoto y'itsinda","Change group picture":"Hindura ifoto y'itsinda","Birthday":"Isabukuru","Your birthday":"Isabukuru yawe","Month":"Ukwezi","Day":"Umusi","Year":"Umwaka","You must be at least 13 to use Twik.":"Ugomba kuba ufise nibura imyaka 13 kugira ukoreshe Twik.","Please choose your birthday.":"Hitamwo isabukuru yawe.","Forgot password?":"Wibagiwe ijambo ry'ibanga?","Reset link sent. Check your email.":"Ihuza ryoherejwe. Raba imeyili yawe.","Hold to record":"Fata ukanze kugira ufate amajwi","Voice message":"Ubutumwa mu majwi","Active now":"Ariho ubu","Edit caption":"Hindura amajambo asigura","Today":"Uyu musi","Yesterday":"Ejo hashize","Terms":"Amategeko","About Twik":"Ivyerekeye Twik","Sound":"Ijwi","Time zone":"Isaha y'akarere"}};
       const I18N = { lang: "en", dict: {}, loading: false };
       const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -4892,6 +5078,34 @@
         mkStartStream();
       }
       $("mkDiscard").addEventListener("click", mkBackToCamera);
+      // Instagram-style: the composer closes at once, a small banner shows progress at the top
+      const BG = { timer: null, p: 0, busy: 0 };
+      function bgPost(file, label, work, done) {
+        const th = $("pbnTh"); th.innerHTML = "";
+        try {
+          const el = document.createElement(file.type && file.type.indexOf("video") === 0 ? "video" : "img");
+          el.src = URL.createObjectURL(file) + (el.tagName === "VIDEO" ? "#t=0.1" : "");
+          if (el.tagName === "VIDEO") { el.muted = true; el.playsInline = true; el.preload = "metadata"; }
+          th.appendChild(el);
+        } catch (e) {}
+        const ban = $("pbn"), bar = $("pbnI"), t = $("pbnT"), rt = $("pbnR");
+        const run = async () => {
+          clearInterval(BG.timer); BG.p = 0.04; ban.hidden = false; ban.classList.remove("err"); rt.hidden = true; t.textContent = label; bar.style.width = "4%";
+          BG.timer = setInterval(() => { BG.p += (0.92 - BG.p) * 0.045; bar.style.width = Math.round(BG.p * 100) + "%"; }, 250);
+          try {
+            await work();
+            clearInterval(BG.timer); bar.style.width = "100%"; t.textContent = trW("Shared ✓");
+            try { done && done(); } catch (e) {}
+            setTimeout(() => { if (t.textContent === trW("Shared ✓")) ban.hidden = true; }, 1600);
+          } catch (e) {
+            clearInterval(BG.timer); ban.classList.add("err");
+            t.textContent = trW("Couldn't post") + ((e && e.message) ? " · " + String(e.message).slice(0, 60) : "");
+            rt.hidden = false; rt.onclick = run;
+            setTimeout(() => { if (ban.classList.contains("err")) ban.hidden = true; }, 12000);
+          }
+        };
+        run();
+      }
       async function uploadPhotoPost(f, caption) {
         if (f.size > 40 * 1024 * 1024) throw new Error("Photo is too big (max 40 MB).");
         const pre = await shrinkImage(f, 1440);
@@ -4902,29 +5116,21 @@
         const made = await api("/api/posts", "POST", { path: up.path, caption });
         if (made.error) throw new Error(made.error);
       }
-      $("mkShare").addEventListener("click", async () => {
+      $("mkShare").addEventListener("click", () => {
         const f = mk.file;
         if (!f) return;
-        const msg = $("mkMsg");
-        $("mkShare").disabled = true;
-        try {
-          if (f.type.indexOf("video") === 0) {
-            await uploadReelFile(f, $("mkCap").value, (t) => { msg.textContent = t; });
-            reelsAt = 0;
-            if (typeof loadReels === "function" && !$("reelsPanel").hidden) loadReels(true);
-          } else {
-            msg.textContent = "Uploading... please wait.";
-            await uploadPhotoPost(f, $("mkCap").value);
-          }
+        const isV = f.type.indexOf("video") === 0;
+        if (isV && f.size > MAX_MB * 1024 * 1024) { $("mkMsg").textContent = "Video is too big (max " + MAX_MB + " MB)."; return; }
+        if (!isV && f.size > 40 * 1024 * 1024) { $("mkMsg").textContent = "Photo is too big (max 40 MB)."; return; }
+        const cap = $("mkCap").value;
+        mkClose();
+        bgPost(f, isV ? trW("Posting your reel…") : trW("Posting…"), async () => {
+          if (isV) await uploadReelFile(f, cap, () => {}); else await uploadPhotoPost(f, cap);
+        }, () => {
           postsAt = 0;
-          mkClose();
+          if (isV) { reelsAt = 0; if (typeof loadReels === "function" && !$("reelsPanel").hidden) loadReels(true); }
           if (!$("postsPanel").hidden) loadPosts(true);
-          toast("Shared ✓");
-        } catch (e) {
-          msg.textContent = (e && e.message) || "Upload failed, please try again.";
-        } finally {
-          $("mkShare").disabled = false;
-        }
+        });
       });
       $("mkBtn").addEventListener("click", () => openCreate("post"));
 
@@ -5409,6 +5615,7 @@
         return k === "image" ? "📷 Photo" : k === "video" ? "🎥 Video" : k === "audio" ? "🎤 Voice message" : k === "gif" ? "GIF" : k === "sticker" ? (m.text || "Sticker") : k === "reel" ? "🎬 Reel" : k === "post" ? "📷 Post" : (m.text || "");
       }
       function setReply(m) {
+        if (inGroup()) { setGReply(m); return; }
         REPLY = { id: m.id, from: m.from, kind: m.kind || "text", text: previewOf(m) };
         const mine = me && m.from === me.id;
         $("cReplyTxt").textContent = trW("Replying to") + " " + (mine ? trW("yourself") : "@" + (peer ? peer.username : "")) + ": " + previewOf(m).slice(0, 60);
@@ -5447,6 +5654,11 @@
       }
       async function reactTo(id, emoji) {
         if (!id) return;
+        if (inGroup()) {
+          const g = await api("/api/groups/react", "POST", { id, emoji });
+          if (g && g.reactions) { if (GM[id]) GM[id].reactions = g.reactions; const el = document.querySelector('#gMessages .msg[data-id="' + id + '"]'); if (el) setReactions(el, g.reactions); }
+          return;
+        }
         const d = await api("/api/dms/react", "POST", { id, emoji });
         if (d && d.reactions) applyReactions(id, d.reactions);
       }
