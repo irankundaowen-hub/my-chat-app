@@ -1042,6 +1042,42 @@
     #pbn.err .pbnBar i { background: #ef4444; }
     #pbnR { padding: 7px 14px; font-size: 13px; margin: 0; }
     #pbnR[hidden] { display: none; }
+
+    /* ===== v30: motion ===== */
+    button { transition: scale 0.18s cubic-bezier(0.3, 1.7, 0.5, 1); }
+    button:active:not(:disabled) { scale: 0.9; }
+    .popb { animation: popb 0.45s cubic-bezier(0.2, 1.8, 0.4, 1); }
+    @keyframes popb { 0% { scale: 1; } 35% { scale: 1.45; } 100% { scale: 1; } }
+    @keyframes scrIn { from { opacity: 0; translate: 38px 0; } to { opacity: 1; translate: 0 0; } }
+    @keyframes tabIn { from { opacity: 0; translate: 0 16px; } to { opacity: 1; translate: 0 0; } }
+    #cThread:not([hidden]), #gChat:not([hidden]), #userView:not([hidden]), #pSettings:not([hidden]), #pLists:not([hidden]), #pEdit:not([hidden]), #pLang:not([hidden]) { animation: scrIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    #chatsPanel:not([hidden]), #postsPanel:not([hidden]), #reelsPanel:not([hidden]), #groupsPanel:not([hidden]), #notifPanel:not([hidden]), #searchPanel:not([hidden]) { animation: tabIn 0.26s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    @keyframes msgInR { from { opacity: 0; scale: 0.7; translate: 26px 12px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+    @keyframes msgInL { from { opacity: 0; scale: 0.7; translate: -26px 12px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+    .msgIn-r { animation: msgInR 0.34s cubic-bezier(0.2, 1.25, 0.4, 1); transform-origin: 100% 100%; }
+    .msgIn-l { animation: msgInL 0.34s cubic-bezier(0.2, 1.25, 0.4, 1); transform-origin: 0 100%; }
+    .typing { padding: 2px 10px 8px; }
+    .tdots { display: inline-flex; gap: 5px; background: var(--surface2); padding: 10px 14px; border-radius: 18px 18px 18px 5px; }
+    .tdots i { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); animation: tdot 1.1s infinite ease-in-out; }
+    .tdots i:nth-child(2) { animation-delay: 0.15s; }
+    .tdots i:nth-child(3) { animation-delay: 0.3s; }
+    @keyframes tdot { 0%, 60%, 100% { translate: 0 0; opacity: 0.45; } 30% { translate: 0 -6px; opacity: 1; } }
+    .hshow { position: fixed; z-index: 400; pointer-events: none; line-height: 1; animation: hshow 1.05s ease-out forwards; }
+    @keyframes hshow { 0% { opacity: 0; scale: 0.3; translate: 0 0; } 15% { opacity: 1; } 100% { opacity: 0; scale: 1.15; translate: var(--dx) var(--dy); } }
+    .rxFloat { position: fixed; z-index: 400; pointer-events: none; font-size: 36px; line-height: 1; animation: rxfl 1.2s ease-out forwards; }
+    @keyframes rxfl { 0% { opacity: 0; scale: 0.4; translate: 0 0; } 20% { opacity: 1; scale: 1.35; } 100% { opacity: 0; scale: 1; translate: 0 -100px; } }
+    .rxRow span.new { animation: popb 0.5s cubic-bezier(0.2, 1.8, 0.4, 1); }
+    .stCard { transition: border-color 0.6s ease; }
+    .stCard.fresh { background-size: 100% 100%, 220% 220%; animation: ringFlow 3.2s ease-in-out infinite alternate; }
+    @keyframes ringFlow { 0% { background-position: 0 0, 0% 50%; } 100% { background-position: 0 0, 100% 50%; } }
+    .skConvo { display: flex; gap: 12px; align-items: center; padding: 10px 4px; list-style: none; }
+    .skConvo .skc { width: 54px; height: 54px; flex-shrink: 0; }
+    .skConvo .col { display: flex; flex-direction: column; gap: 9px; flex: 1; }
+    .skConvo .skl { width: 45%; }
+    .skConvo .skl.s { width: 70%; height: 10px; }
+    .skBub { height: 40px; width: 55%; border-radius: 20px 20px 20px 6px; margin: 8px 10px; }
+    .skBub.r { margin-left: auto; width: 42%; border-radius: 20px 20px 6px 20px; }
+    @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; } }
   </style>
 </head>
 <body>
@@ -1158,7 +1194,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 29</p>
+        <p class="hint" data-notr>Twik Chat · Version 30</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1335,7 +1371,7 @@
           </span>
         </div>
         <div id="cMessages"></div>
-        <div id="cTyping" class="typing" hidden>typing…</div>
+        <div id="cTyping" class="typing" hidden aria-label="typing"><span class="tdots"><i></i><i></i><i></i></span></div>
         <div id="vanishBanner" hidden>👻 Vanish mode is on. Seen messages disappear when you leave the chat.</div>
         <div id="cReplyBar" hidden><span id="cReplyTxt" data-notr></span><button id="cReplyX" type="button" aria-label="Cancel">✕</button></div>
         <div id="cStk" hidden>
@@ -3174,10 +3210,13 @@
         $("gAddMsg").textContent = "";
         $("gMessages").innerHTML = "";
         $("gMessages").dataset.lastDay = ""; $("gMessages").dataset.lastT = "";
+        skelBubbles($("gMessages"));
         setGroupHeader(g);
         applyWall($("gMessages"), wallGet("g:" + g.id));
         socket.emit("group join", { groupId: g.id });
         const d = await api("/api/groups/" + g.id + "/messages");
+        if (currentGroup !== g) return;
+        $("gMessages").innerHTML = ""; $("gMessages").dataset.lastDay = ""; $("gMessages").dataset.lastT = "";
         if (d.error) { $("gMembersLine").textContent = d.error; return; }
         $("gMembersLine").textContent = "Members: " + d.members.map((n) => "@" + n).join(", ");
         d.messages.forEach(addGroupMessage);
@@ -3631,8 +3670,17 @@
         });
       }
 
+      function skelConvos() {
+        const ul = $("cConvos"); if (!ul) return;
+        ul.innerHTML = "";
+        for (let i = 0; i < 6; i++) { const li = document.createElement("li"); li.className = "skConvo"; li.innerHTML = '<span class="skc"></span><span class="col"><span class="skl"></span><span class="skl s"></span></span>'; ul.appendChild(li); }
+      }
+      function skelBubbles(box) {
+        box.innerHTML = "";
+        [0, 1, 0, 1, 0].forEach((r) => { const d = document.createElement("div"); d.className = "skBub shim" + (r ? " r" : ""); box.appendChild(d); });
+      }
       async function loadConvos() {
-        if (!convos.length) { const c = cget("convos"); if (c) { convos = c; renderConvos(); } }
+        if (!convos.length) { const c = cget("convos"); if (c) { convos = c; renderConvos(); } else if (!GROUPS.length) skelConvos(); }
         const data = await api("/api/dms");
         if (data.error) return;
         convos = data.chats || [];
@@ -3899,8 +3947,10 @@
         checkOnline(p.id);
         const cached = threads[p.id];
         renderThread(cached || []);
+        if (!cached) skelBubbles($("cMessages"));
         const data = await api("/api/dms/" + p.id);
-        if (!peer || peer.id !== p.id || data.error) return;
+        if (!peer || peer.id !== p.id) return;
+        if (data.error) { if (!cached) renderThread([]); return; }
         const fresh = data.messages || [];
         const changed = !cached || threadSig(cached) !== threadSig(fresh);
         threads[p.id] = fresh;
@@ -5294,7 +5344,53 @@
 
       // ================= v22 =================
       // ---- the heart that breaks in two when you take a like back ----
+      ["cMessages", "gMessages"].forEach((id) => {
+        const box = $(id); if (!box) return;
+        new MutationObserver((ms) => {
+          const nodes = [];
+          ms.forEach((m) => m.addedNodes.forEach((n) => { if (n.nodeType === 1) nodes.push(n); }));
+          if (nodes.length > 3) return;
+          nodes.forEach((n) => {
+            if (!(n.classList.contains("msg") || n.classList.contains("mrow"))) return;
+            if (n.dataset && n.dataset.cid && !n.classList.contains("pending")) return;
+            const mine = n.classList.contains("mine") || !!n.querySelector(".mine");
+            const c = mine ? "msgIn-r" : "msgIn-l";
+            n.classList.add(c); setTimeout(() => n.classList.remove(c), 600);
+          });
+        }).observe(box, { childList: true });
+      });
+      function heartShower(x, y, n) {
+        try {
+          n = n || 9;
+          try { if (navigator.vibrate) navigator.vibrate(10); } catch (e) {}
+          for (let i = 0; i < n; i++) {
+            const h = document.createElement("div");
+            h.className = "hshow";
+            h.textContent = ["❤️", "💖", "💗", "🧡", "💜"][i % 5];
+            const sz = 16 + Math.random() * 20;
+            h.style.fontSize = sz + "px";
+            h.style.left = x - sz / 2 + (Math.random() * 30 - 15) + "px";
+            h.style.top = y - sz / 2 + "px";
+            h.style.setProperty("--dx", Math.round(Math.random() * 140 - 70) + "px");
+            h.style.setProperty("--dy", -Math.round(80 + Math.random() * 150) + "px");
+            h.style.animationDelay = Math.round(Math.random() * 160) + "ms";
+            document.body.appendChild(h);
+            setTimeout(() => h.remove(), 1400);
+          }
+        } catch (e) {}
+      }
+      new MutationObserver((ms) => ms.forEach((m) => {
+        const t = m.target;
+        if (t.classList && t.classList.contains("bigHeart") && t.classList.contains("go") && (m.oldValue || "").indexOf("go") < 0) {
+          const r = t.getBoundingClientRect(); heartShower(r.left + r.width / 2, r.top + r.height / 2, 12);
+        }
+      })).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["class"], attributeOldValue: true });
       function heartBreak(btn) {
+        try {
+          btn.classList.remove("popb"); void btn.offsetWidth; btn.classList.add("popb");
+          setTimeout(() => btn.classList.remove("popb"), 600);
+          const r0 = btn.getBoundingClientRect(); heartShower(r0.left + r0.width / 2, r0.top + r0.height / 2, 6);
+        } catch (e) {}
         try {
           const r = btn.getBoundingClientRect();
           const el = document.createElement("div");
@@ -5645,15 +5741,30 @@
         setReactions(div, m.reactions);
       }
       function setReactions(div, rs) {
-        const old = div.querySelector(".rxRow"); if (old) old.remove();
+        const old = div.querySelector(".rxRow");
+        const prev = old ? old.textContent : "";
+        const animate = div.dataset.rxInit === "1";
+        div.dataset.rxInit = "1";
+        if (old) old.remove();
         if (!rs || !rs.length) return;
         const row = document.createElement("div"); row.className = "rxRow";
         const seen = {}; rs.forEach((r) => { seen[r.emoji] = (seen[r.emoji] || 0) + 1; });
-        Object.keys(seen).forEach((em) => { const s = document.createElement("span"); s.textContent = em + (seen[em] > 1 ? " " + seen[em] : ""); row.appendChild(s); });
+        Object.keys(seen).forEach((em) => {
+          const s = document.createElement("span"); s.textContent = em + (seen[em] > 1 ? " " + seen[em] : "");
+          if (animate && prev.indexOf(em) < 0) {
+            s.className = "new";
+            try { const r = div.getBoundingClientRect(); const f = document.createElement("div"); f.className = "rxFloat"; f.textContent = em; f.style.left = r.left + r.width / 2 - 18 + "px"; f.style.top = r.top + r.height / 2 + "px"; document.body.appendChild(f); setTimeout(() => f.remove(), 1400); } catch (e) {}
+          }
+          row.appendChild(s);
+        });
         div.appendChild(row);
       }
       async function reactTo(id, emoji) {
         if (!id) return;
+        if (emoji === "❤️") {
+          const el0 = document.querySelector('#cMessages [data-id="' + id + '"], #gMessages [data-id="' + id + '"]');
+          if (el0) { const r = el0.getBoundingClientRect(); heartShower(r.left + r.width / 2, r.top + r.height / 2, 8); }
+        }
         if (inGroup()) {
           const g = await api("/api/groups/react", "POST", { id, emoji });
           if (g && g.reactions) { if (GM[id]) GM[id].reactions = g.reactions; const el = document.querySelector('#gMessages .msg[data-id="' + id + '"]'); if (el) setReactions(el, g.reactions); }
