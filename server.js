@@ -1451,6 +1451,7 @@ app.post("/api/dms/send", requireUser, limiter("ds", 120, 60000), safe(async (re
   payload.cid = String(req.body.cid || "").replace(/[^a-zA-Z0-9]/g, "").slice(0, 40);
   io.to("u:" + to).emit("dm", payload);
   io.to("u:" + me).emit("dm", payload);
+  bumpSpark(me, to);
   pushIfAway(to, "@" + (req.user.user_metadata && req.user.user_metadata.username || "new message"), kind === "audio" ? "🎤 Voice message" : kind === "image" ? "📷 Photo" : kind === "video" ? "🎥 Video" : kind === "gif" ? "GIF" : kind === "sticker" ? row.text : "Sent you something", { type: "dm", from: me });
   res.json({ ok: true });
 }));
@@ -1867,6 +1868,7 @@ io.on("connection", async (socket) => {
       const payload = { id: saved.id, from: socket.data.userId, to, text, time: utc(saved.created_at), cid, reply, reactions: [], vanish: !!ins.vanish };
       io.to("u:" + to).emit("dm", payload);
       io.to("u:" + socket.data.userId).emit("dm", payload);
+      bumpSpark(socket.data.userId, to);
       pushIfAway(to, "@" + (socket.data.username || "new message"), ins.vanish ? "Vanish message" : text, { type: "dm", from: socket.data.userId });
     } catch (e) {
       console.error(e);
@@ -1884,6 +1886,46 @@ try {
     console.log("Push notifications: ON");
   }
 } catch (e) { console.error("Push setup failed:", e.message); }
+
+// ---------- Sparks: both friends message each other, every day ----------
+const dayStr = (t) => new Date(t).toISOString().slice(0, 10);
+async function bumpSpark(sender, other) {
+  try {
+    const [a, b] = sender < other ? [sender, other] : [other, sender];
+    const today = dayStr(Date.now()), yest = dayStr(Date.now() - 86400000);
+    const { data, error } = await supabase.from("sparks").select("*").eq("a", a).eq("b", b).maybeSingle();
+    if (error) return;
+    const r = data || { a, b, count: 0, last_day: null, a_day: null, b_day: null };
+    if (sender === a) r.a_day = today; else r.b_day = today;
+    let up = false;
+    if (r.a_day === today && r.b_day === today && r.last_day !== today) {
+      r.count = (r.last_day === yest && r.count > 0) ? r.count + 1 : 1;
+      r.last_day = today;
+      up = true;
+    }
+    await supabase.from("sparks").upsert(r);
+    if (up) {
+      io.to("u:" + a).emit("spark", { peer: b, count: r.count });
+      io.to("u:" + b).emit("spark", { peer: a, count: r.count });
+    }
+  } catch (e) {}
+}
+app.get("/api/sparks", requireUser, safe(async (req, res) => {
+  const me = req.user.id;
+  const today = dayStr(Date.now()), yest = dayStr(Date.now() - 86400000);
+  const n = new Date();
+  const endsAt = Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate() + 1);
+  const { data, error } = await supabase.from("sparks").select("*").or("a.eq." + me + ",b.eq." + me);
+  if (error) return res.json({ sparks: {} });
+  const out = {};
+  (data || []).forEach((r) => {
+    if (!(r.last_day && r.last_day >= yest && r.count > 0)) return;
+    const other = r.a === me ? r.b : r.a;
+    const meDay = r.a === me ? r.a_day : r.b_day, themDay = r.a === me ? r.b_day : r.a_day;
+    out[other] = { count: r.count, done: r.last_day === today, meDone: meDay === today, themDone: themDay === today, endsAt };
+  });
+  res.json({ sparks: out });
+}));
 
 const settingsCache = new Map();
 async function getSettings(uid) {
