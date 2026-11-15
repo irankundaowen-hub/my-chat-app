@@ -1927,6 +1927,93 @@ app.get("/api/sparks", requireUser, safe(async (req, res) => {
   res.json({ sparks: out });
 }));
 
+// ---------- Pebble jar: two friends drop one memory a day, sealed until a date ----------
+const JAR_PAIR = (x, y) => (x < y ? [x, y] : [y, x]);
+async function activeJar(me, peer) {
+  const [a, b] = JAR_PAIR(me, peer);
+  const { data, error } = await supabase.from("jars").select("*").eq("a", a).eq("b", b).order("id", { ascending: false }).limit(1);
+  if (error) return { error };
+  return { jar: (data && data[0]) || null };
+}
+async function jarSummary(jar, me) {
+  const today = dayStr(Date.now());
+  const { data } = await supabase.from("jar_pebbles").select("id, user_id, day").eq("jar_id", jar.id);
+  const rows = data || [];
+  const open = jar.opens_on <= today;
+  return {
+    id: jar.id, opens_on: jar.opens_on, created_at: jar.created_at, open,
+    daysLeft: Math.max(0, Math.ceil((new Date(jar.opens_on + "T00:00:00Z").getTime() - new Date(today + "T00:00:00Z").getTime()) / 86400000)),
+    total: rows.length,
+    mine: rows.filter((r) => r.user_id === me).length,
+    theirs: rows.filter((r) => r.user_id !== me).length,
+    todayMine: rows.some((r) => r.user_id === me && r.day === today),
+    todayTheirs: rows.some((r) => r.user_id !== me && r.day === today),
+  };
+}
+app.get("/api/jar/:peer", requireUser, safe(async (req, res) => {
+  const me = req.user.id, peer = req.params.peer;
+  if (!UUID_RE.test(peer)) return res.json({ jar: null });
+  const r = await activeJar(me, peer);
+  if (r.error) return res.json({ error: "Jar isn't set up yet. Run the v32 SQL first." });
+  if (!r.jar) return res.json({ jar: null });
+  const sum = await jarSummary(r.jar, me);
+  let pebbles = [];
+  if (sum.open) {
+    const { data } = await supabase.from("jar_pebbles").select("*").eq("jar_id", r.jar.id).order("created_at", { ascending: true });
+    const rows = data || [];
+    const { data: signed } = await signMany(rows.map((x) => x.path));
+    const urls = {}; (signed || []).forEach((x) => { urls[x.path] = x.signedUrl; });
+    pebbles = rows.map((x) => ({ id: x.id, mine: x.user_id === me, text: x.text || "", photo: x.path ? urls[x.path] || null : null, day: x.day, time: utc(x.created_at) }));
+  }
+  res.json({ jar: sum, pebbles });
+}));
+app.post("/api/jar/start", requireUser, limiter("jst", 10, 3600000), safe(async (req, res) => {
+  const me = req.user.id, peer = String(req.body.peer || "");
+  if (!UUID_RE.test(peer) || peer === me) return res.json({ error: "Bad request." });
+  if (!(await canMessage(me, peer))) return res.json({ error: "You can't start a jar with this person." });
+  const cur = await activeJar(me, peer);
+  if (cur.error) return res.json({ error: "Jar isn't set up yet. Run the v32 SQL first." });
+  const today = dayStr(Date.now());
+  if (cur.jar && cur.jar.opens_on > today) return res.json({ error: "You already have a jar that is still sealed." });
+  const opens = String(req.body.opens_on || "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(opens)) return res.json({ error: "Pick an opening date." });
+  const diff = (new Date(opens + "T00:00:00Z").getTime() - new Date(today + "T00:00:00Z").getTime()) / 86400000;
+  if (!(diff >= 7 && diff <= 400)) return res.json({ error: "Pick a date between 1 week and about 1 year from now." });
+  const [a, b] = JAR_PAIR(me, peer);
+  const { data, error } = await supabase.from("jars").insert({ a, b, opens_on: opens, created_by: me }).select("*").single();
+  if (error) return res.json({ error: "Could not start the jar." });
+  const sum = await jarSummary(data, me);
+  io.to("u:" + peer).emit("jar", { peer: me, kind: "start" });
+  pushIfAway(peer, "@" + ((req.user.user_metadata && req.user.user_metadata.username) || "A friend"), "🫙 started a pebble jar with you. It opens " + opens, { type: "dm", from: me });
+  res.json({ ok: true, jar: sum });
+}));
+app.post("/api/jar/upload-url", requireUser, limiter("up", 80, 60000), safe(async (req, res) => {
+  const wanted = String(req.body.ext || "").toLowerCase();
+  const ext = ["jpg", "jpeg", "png", "webp"].includes(wanted) ? wanted : "jpg";
+  const path = req.user.id + "/jar-" + Date.now() + "-" + Math.floor(Math.random() * 1e6) + "." + ext;
+  const { data, error } = await supabase.storage.from(REELS_BUCKET).createSignedUploadUrl(path);
+  if (error) return res.status(500).json({ error: "Could not start the upload." });
+  res.json({ path, token: data.token });
+}));
+app.post("/api/jar/drop", requireUser, limiter("jdr", 20, 60000), safe(async (req, res) => {
+  const me = req.user.id, peer = String(req.body.peer || "");
+  if (!UUID_RE.test(peer)) return res.json({ error: "Bad request." });
+  const cur = await activeJar(me, peer);
+  if (cur.error || !cur.jar) return res.json({ error: "No jar yet." });
+  const today = dayStr(Date.now());
+  if (cur.jar.opens_on <= today) return res.json({ error: "This jar is already open. Start a new one." });
+  const text = String(req.body.text || "").trim().slice(0, 280);
+  const path = String(req.body.path || "");
+  if (path && !path.startsWith(me + "/jar-")) return res.json({ error: "Bad photo." });
+  if (!text && !path) return res.json({ error: "Write something or add a photo." });
+  const { error } = await supabase.from("jar_pebbles").insert({ jar_id: cur.jar.id, user_id: me, text: text || null, path: path || null, day: today });
+  if (error) return res.json({ error: error.code === "23505" ? "You already dropped a pebble today. Come back tomorrow!" : "Could not drop it." });
+  const sum = await jarSummary(cur.jar, me);
+  io.to("u:" + peer).emit("jar", { peer: me, kind: "drop" });
+  pushIfAway(peer, "@" + ((req.user.user_metadata && req.user.user_metadata.username) || "A friend"), "🫙 dropped a pebble in your jar", { type: "dm", from: me });
+  res.json({ ok: true, jar: sum });
+}));
+
 const settingsCache = new Map();
 async function getSettings(uid) {
   const c = settingsCache.get(uid);

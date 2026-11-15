@@ -1096,6 +1096,43 @@
     #sparkPop .cap { margin-top: 6px; font-weight: 700; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.7); animation: sparkBig 2.2s ease forwards; }
     @keyframes sparkPopBg { 0% { opacity: 0; } 12% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
     @keyframes sparkBig { 0% { opacity: 0; scale: 0.2; } 22% { opacity: 1; scale: 1.2; } 35% { scale: 1; } 80% { opacity: 1; scale: 1; } 100% { opacity: 0; scale: 1.15; } }
+
+    /* ===== v32: Pebble jar ===== */
+    #cJar { background: transparent !important; border: none !important; width: 40px; font-size: 21px; padding: 0 !important; }
+    #cJar[hidden] { display: none; }
+    #jarView { position: fixed; inset: 0; z-index: 33; background: var(--bg, #0b0b0f); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top); animation: scrIn 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    #jarView[hidden] { display: none; }
+    .jvTop { display: flex; align-items: center; gap: 8px; padding: 10px 12px; }
+    .jvTop b { font-size: 18px; flex: 1; }
+    .jvBody { flex: 1; overflow-y: auto; padding: 4px 16px calc(24px + env(safe-area-inset-bottom)); max-width: 520px; width: 100%; margin: 0 auto; box-sizing: border-box; }
+    .jvBody h3 { margin: 14px 0 4px; text-align: center; font-size: 20px; }
+    .jvBody p.sub { text-align: center; color: var(--muted); margin: 4px 0 12px; font-size: 14px; }
+    .jarWrap { position: relative; width: 210px; height: 250px; margin: 6px auto 0; }
+    .jarLid { position: absolute; top: 0; left: 28px; right: 28px; height: 30px; background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b); border-radius: 12px 12px 6px 6px; z-index: 3; transition: translate 0.6s cubic-bezier(0.3, 1.5, 0.5, 1), rotate 0.6s; transform-origin: 0 100%; }
+    .jarWrap.ajar .jarLid { translate: 40px -34px; rotate: 24deg; }
+    .jarBody { position: absolute; top: 26px; left: 10px; right: 10px; bottom: 0; border: 3px solid rgba(255,255,255,0.28); border-radius: 36px 36px 46px 46px; background: linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02)); overflow: hidden; box-shadow: inset 0 0 30px rgba(168,85,247,0.18), 0 0 40px rgba(236,72,153,0.12); }
+    .jarWrap.glow .jarBody { box-shadow: inset 0 0 34px rgba(251,191,36,0.4), 0 0 46px rgba(236,72,153,0.5); animation: sparkGlow 1.6s ease-in-out infinite alternate; }
+    .pebble { position: absolute; border-radius: 52% 48% 50% 14%; box-shadow: inset -3px -4px 6px rgba(0,0,0,0.25), inset 3px 3px 5px rgba(255,255,255,0.25); }
+    .pebble.fall { animation: pebFall 0.9s cubic-bezier(0.5, 0, 0.8, 0.6) both; }
+    @keyframes pebFall { from { translate: 0 -260px; opacity: 0; } 15% { opacity: 1; } to { translate: 0 0; opacity: 1; } }
+    .jvStat { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 6px 0 12px; }
+    .jvStat span { background: var(--surface); padding: 6px 14px; border-radius: 16px 16px 16px 5px; font-size: 13.5px; font-weight: 600; }
+    .jvChips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 8px 0 14px; }
+    .jvChips button { background: var(--surface2) !important; border: 1px solid var(--line) !important; border-radius: 16px 16px 16px 5px !important; padding: 8px 14px !important; margin: 0 !important; font-size: 13.5px; width: auto; }
+    .jvChips button.on { background: var(--grad) !important; border-color: transparent !important; color: #fff; }
+    .jvBody textarea { width: 100%; min-height: 84px; background: var(--surface2); color: #fff; border: 1px solid var(--line); border-radius: 20px 20px 20px 6px; padding: 12px; font: inherit; resize: none; box-sizing: border-box; }
+    .jvRow { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .jvRow button { margin: 0; width: auto; }
+    .jvRow .grow { flex: 1; }
+    .jvPrev { width: 54px; height: 54px; border-radius: 14px 14px 14px 5px; object-fit: cover; }
+    .jvDone { text-align: center; padding: 14px; background: var(--surface); border-radius: 22px 22px 22px 6px; margin-top: 8px; font-weight: 600; }
+    .jvDay { text-align: center; color: var(--muted); font-size: 12.5px; margin: 18px 0 6px; font-weight: 700; letter-spacing: 0.4px; }
+    .jpb { max-width: 82%; margin: 8px 0; padding: 10px 14px; border-radius: 20px 20px 20px 6px; background: var(--surface2); animation: jpbIn 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) both; }
+    .jpb.mine { margin-left: auto; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 20px 20px 6px 20px; }
+    .jpb .who { font-size: 11.5px; font-weight: 700; opacity: 0.75; margin-bottom: 3px; }
+    .jpb img { width: 100%; border-radius: 14px; margin-top: 6px; display: block; }
+    @keyframes jpbIn { from { opacity: 0; scale: 0.8; translate: 0 18px; } to { opacity: 1; scale: 1; translate: 0 0; } }
+    .jvBig { width: 100%; margin-top: 8px; }
   </style>
 </head>
 <body>
@@ -1212,7 +1249,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 31</p>
+        <p class="hint" data-notr>Twik Chat · Version 33</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1383,6 +1420,7 @@
           <button id="cBack" class="arrowBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></button>
           <button id="cPeer" class="cPeer" type="button"><span id="cpAv" data-notr></span><span class="cpTxt"><b id="cpName" data-notr></b><span id="cOnline" class="cpStat" data-notr></span></span></button>
           <span class="thActs">
+            <button id="cJar" class="ico2" type="button" aria-label="Pebble jar" hidden>🫙</button>
             <button id="cSpark" class="spark none" type="button" aria-label="Spark" hidden>⚡</button>
             <button id="cTheme" class="ico2" type="button" aria-label="Chat theme"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c1.400 0 2-1 1.500-2.100-.5-1.200.2-2.400 1.500-2.400H17a4 4 0 0 0 4-4C21 6.500 17 3 12 3z"/><circle cx="7.500" cy="11" r="1.100"/><circle cx="10" cy="7.200" r="1.100"/><circle cx="14.500" cy="7.200" r="1.100"/></svg></button>
             <button id="cCallA" class="ico2" type="button" aria-label="Voice call"><svg viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.500 1.500a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg></button>
@@ -1508,6 +1546,7 @@
   </div>
 
   <!-- Create screen: Post / Story / Reel / Live -->
+  <div id="jarView" hidden><div class="jvTop"><button id="jvBack" class="arrowBtn" type="button" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M20 12H5M11 5l-7 7 7 7"/></svg></button><b id="jvTitle">Pebble jar</b></div><div class="jvBody" id="jvBody"></div><input id="jvFile" type="file" accept="image/*" hidden></div>
   <div id="pbn" hidden><div class="pbnTh" id="pbnTh"></div><div class="pbnTx"><b id="pbnT">Posting…</b><div class="pbnBar"><i id="pbnI"></i></div></div><button id="pbnR" type="button" hidden>Retry</button></div>
   <div id="mk" hidden>
     <div class="mkStage">
@@ -3190,6 +3229,7 @@
           }
         });
         socket.on("spark", onSpark);
+        socket.on("jar", onJar);
         socket.on("group react", (d) => {
           if (GM[d.id]) GM[d.id].reactions = d.reactions;
           const el = document.querySelector('#gMessages .msg[data-id="' + d.id + '"]'); if (el) setReactions(el, d.reactions);
@@ -3619,6 +3659,8 @@
         $("cHeadName").textContent = "@" + ((me && me.user_metadata && me.user_metadata.username) || "you");
         $("cThread").hidden = true;
         $("cSpark").hidden = true;
+        $("cJar").hidden = true;
+        $("jarView").hidden = true;
         $("chatsPanel").classList.remove("full");
         $("cList").hidden = false;
         loadConvos();
@@ -3749,6 +3791,176 @@
         if (peer && peer.id === d.peer) paintSparkHead();
         else if (!$("chatsPanel").hidden && !peer) renderConvos();
         sparkPop(d.count, uname);
+      }
+
+      // ---- Pebble jar ----
+      var JAR = { peer: null, d: null, photo: null, opens: null };
+      const PEB = ["#ec4899", "#a855f7", "#f59e0b", "#f472b6", "#c084fc", "#fbbf24"];
+      function jarDate(str) { try { return new Date(str + "T00:00:00Z").toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }); } catch (e) { return str; } }
+      function jarGraphic(count, opts) {
+        opts = opts || {};
+        const w = document.createElement("div");
+        w.className = "jarWrap" + (opts.ajar ? " ajar" : "") + (opts.glow ? " glow" : "");
+        const body = document.createElement("div"); body.className = "jarBody";
+        const n = Math.min(count, 54);
+        for (let i = 0; i < n; i++) {
+          const p = document.createElement("div"); p.className = "pebble";
+          const sz = 24 + ((i * 7) % 11);
+          const row = Math.floor(i / 5), col = i % 5;
+          p.style.width = sz + "px"; p.style.height = sz - 3 + "px";
+          p.style.left = 8 + col * 33 + (row % 2) * 12 + ((i * 13) % 7) + "px";
+          p.style.bottom = 6 + row * 25 + ((i * 5) % 6) + "px";
+          p.style.background = PEB[(i * 5 + row) % PEB.length];
+          p.style.rotate = ((i * 37) % 70) - 35 + "deg";
+          if (opts.fallLast && i === n - 1) p.classList.add("fall");
+          body.appendChild(p);
+        }
+        const lid = document.createElement("div"); lid.className = "jarLid";
+        w.append(body, lid);
+        return w;
+      }
+      function jarNewYear() {
+        const n = new Date(); let y = n.getUTCFullYear() + 1;
+        let d = new Date(Date.UTC(y, 0, 1));
+        return d.toISOString().slice(0, 10);
+      }
+      function jarPlus(days) { return new Date(Date.now() + days * 86400000).toISOString().slice(0, 10); }
+      function jarRenderStart(body, uname, afterOpen) {
+        body.appendChild(jarGraphic(0));
+        const h = document.createElement("h3"); h.textContent = afterOpen ? trW("Start a new jar") : trW("Pebble jar");
+        const sub = document.createElement("p"); sub.className = "sub";
+        sub.textContent = trW("You and @") .replace("@", "") + "@" + uname + " " + trW("drop one memory each day. The jar stays sealed until the day you pick, then you open it together.");
+        body.append(h, sub);
+        const opts = [[trW("In 1 month"), jarPlus(30)], [trW("In 3 months"), jarPlus(90)], [trW("Next New Year"), jarNewYear()], [trW("In 1 year"), jarPlus(365)]];
+        JAR.opens = opts[1][1];
+        const chips = document.createElement("div"); chips.className = "jvChips";
+        opts.forEach(([lbl, val], i) => {
+          const b = document.createElement("button"); b.type = "button"; b.textContent = lbl + " · " + jarDate(val);
+          if (i === 1) b.classList.add("on");
+          b.onclick = () => { JAR.opens = val; chips.querySelectorAll("button").forEach((x) => x.classList.remove("on")); b.classList.add("on"); };
+          chips.appendChild(b);
+        });
+        const go = document.createElement("button"); go.type = "button"; go.className = "jvBig"; go.textContent = trW("Start our jar");
+        go.onclick = async () => {
+          go.disabled = true;
+          const r = await api("/api/jar/start", "POST", { peer: JAR.peer, opens_on: JAR.opens });
+          go.disabled = false;
+          if (r && r.error) { toast(r.error); return; }
+          heartShower(innerWidth / 2, innerHeight / 2, 12, ["🫙", "✨", "💜", "🧡"]);
+          loadJar();
+        };
+        body.append(chips, go);
+      }
+      async function loadJar() {
+        const body = $("jvBody"); const peerId = JAR.peer;
+        const d = await api("/api/jar/" + peerId);
+        if (JAR.peer !== peerId) return;
+        body.innerHTML = "";
+        if (d && d.error) { const p = document.createElement("p"); p.className = "sub"; p.textContent = d.error; body.appendChild(p); return; }
+        const uname = (peer && peer.id === peerId) ? peer.username : "friend";
+        JAR.d = d;
+        if (!d.jar) { jarRenderStart(body, uname, false); return; }
+        const j = d.jar;
+        if (!j.open) {
+          body.appendChild(jarGraphic(j.total));
+          const h = document.createElement("h3"); h.textContent = trW("Sealed until") + " " + jarDate(j.opens_on);
+          const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = j.daysLeft + " " + trW("days to go");
+          const st = document.createElement("div"); st.className = "jvStat";
+          [["🫙 " + j.total + " " + trW("pebbles")], [trW("You") + " " + j.mine], ["@" + uname + " " + j.theirs]].forEach(([t]) => { const x = document.createElement("span"); x.textContent = t; x.setAttribute("data-notr", ""); st.appendChild(x); });
+          body.append(h, sub, st);
+          if (j.todayMine) {
+            const dn = document.createElement("div"); dn.className = "jvDone";
+            dn.textContent = "✅ " + trW("You dropped a pebble today. Come back tomorrow!") + (j.todayTheirs ? "" : " " + trW("@") .replace("@", "") + "@" + uname + " " + trW("has not dropped today yet."));
+            body.appendChild(dn);
+          } else {
+            const ta = document.createElement("textarea"); ta.maxLength = 280; ta.placeholder = trW("Write a memory, a wish, a joke... only you two will read it when the jar opens.");
+            const row = document.createElement("div"); row.className = "jvRow";
+            const cam = document.createElement("button"); cam.type = "button"; cam.textContent = "📷"; cam.style.padding = "10px 14px";
+            const prev = document.createElement("img"); prev.className = "jvPrev"; prev.hidden = true;
+            const sp = document.createElement("span"); sp.className = "grow";
+            const drop = document.createElement("button"); drop.type = "button"; drop.textContent = trW("Drop a pebble");
+            JAR.photo = null;
+            cam.onclick = () => $("jvFile").click();
+            $("jvFile").onchange = () => { const f = $("jvFile").files[0]; $("jvFile").value = ""; if (!f) return; JAR.photo = f; prev.src = URL.createObjectURL(f); prev.hidden = false; };
+            drop.onclick = async () => {
+              if (!ta.value.trim() && !JAR.photo) { toast(trW("Write something or add a photo.")); return; }
+              drop.disabled = true; drop.textContent = "…";
+              let path = null;
+              try {
+                if (JAR.photo) {
+                  const pre = await shrinkImage(JAR.photo, 1280);
+                  const up = await api("/api/jar/upload-url", "POST", { ext: pre.ext });
+                  if (up.error) throw new Error(up.error);
+                  const { error } = await sb.storage.from("reels").uploadToSignedUrl(up.path, up.token, pre.blob, { contentType: pre.blob.type || "image/jpeg" });
+                  if (error) throw error;
+                  path = up.path;
+                }
+              } catch (e) { toast((e && e.message) || "Upload failed"); drop.disabled = false; drop.textContent = trW("Drop a pebble"); return; }
+              const r = await api("/api/jar/drop", "POST", { peer: JAR.peer, text: ta.value, path });
+              if (r && r.error) { toast(r.error); drop.disabled = false; drop.textContent = trW("Drop a pebble"); return; }
+              JAR.photo = null;
+              body.innerHTML = "";
+              const w = jarGraphic(r.jar.total, { fallLast: true }); body.appendChild(w);
+              const ok = document.createElement("h3"); ok.textContent = "🫙 " + trW("Pebble dropped!");
+              const s2 = document.createElement("p"); s2.className = "sub"; s2.textContent = r.jar.daysLeft + " " + trW("days to go") + " · " + r.jar.total + " " + trW("pebbles");
+              body.append(ok, s2);
+              try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) {}
+              setTimeout(loadJar, 2200);
+            };
+            row.append(cam, prev, sp, drop);
+            body.append(ta, row);
+          }
+        } else {
+          const w = jarGraphic(j.total, { ajar: false, glow: true }); body.appendChild(w);
+          const h = document.createElement("h3"); h.textContent = j.total ? "🎉 " + trW("Your jar is ready!") : trW("This jar was empty");
+          const sub = document.createElement("p"); sub.className = "sub"; sub.textContent = j.total + " " + trW("pebbles") + " · " + jarDate(j.opens_on);
+          body.append(h, sub);
+          const tl = document.createElement("div");
+          const showTimeline = () => {
+            let last = "";
+            d.pebbles.forEach((p, i) => {
+              if (p.day !== last) { last = p.day; const dd = document.createElement("div"); dd.className = "jvDay"; dd.textContent = jarDate(p.day); tl.appendChild(dd); }
+              const c = document.createElement("div"); c.className = "jpb" + (p.mine ? " mine" : ""); c.style.animationDelay = Math.min(i, 30) * 90 + "ms";
+              const who = document.createElement("div"); who.className = "who"; who.textContent = p.mine ? trW("You") : "@" + uname; who.setAttribute("data-notr", "");
+              c.appendChild(who);
+              if (p.text) { const t = document.createElement("div"); t.textContent = p.text; c.appendChild(t); }
+              if (p.photo) { const im = document.createElement("img"); im.src = p.photo; im.loading = "lazy"; c.appendChild(im); }
+              tl.appendChild(c);
+            });
+            const nb = document.createElement("button"); nb.type = "button"; nb.className = "jvBig"; nb.textContent = trW("Start a new jar");
+            nb.onclick = () => { body.innerHTML = ""; jarRenderStart(body, uname, true); };
+            tl.appendChild(nb);
+          };
+          if (j.total) {
+            const ob = document.createElement("button"); ob.type = "button"; ob.className = "jvBig"; ob.textContent = trW("Open the jar");
+            ob.onclick = () => {
+              ob.remove(); w.classList.add("ajar");
+              heartShower(innerWidth / 2, 240, 18, ["✨", "💜", "🧡", "💖", "⭐", "🫙"]);
+              try { if (navigator.vibrate) navigator.vibrate([20, 40, 20]); } catch (e) {}
+              setTimeout(showTimeline, 700);
+            };
+            body.append(ob);
+          } else {
+            const nb = document.createElement("button"); nb.type = "button"; nb.className = "jvBig"; nb.textContent = trW("Start a new jar");
+            nb.onclick = () => { body.innerHTML = ""; jarRenderStart(body, uname, true); };
+            body.appendChild(nb);
+          }
+          body.appendChild(tl);
+        }
+      }
+      $("cJar").addEventListener("click", () => {
+        if (!peer) return;
+        JAR.peer = peer.id;
+        $("jvTitle").textContent = "🫙 " + trW("Pebble jar") + " · @" + peer.username;
+        $("jvBody").innerHTML = "";
+        $("jarView").hidden = false;
+        loadJar();
+      });
+      $("jvBack").addEventListener("click", () => { $("jarView").hidden = true; JAR.peer = null; });
+      function onJar(d) {
+        if (!$("jarView").hidden && JAR.peer === d.peer) { loadJar(); return; }
+        const c = convos.find((x) => x.peer_id === d.peer);
+        toast("🫙 @" + (c ? c.username : (peer && peer.id === d.peer ? peer.username : "your friend")) + " " + (d.kind === "start" ? trW("started a pebble jar with you") : trW("dropped a pebble in your jar")));
       }
       function skelConvos() {
         const ul = $("cConvos"); if (!ul) return;
@@ -4018,6 +4230,7 @@
         $("cTitle").textContent = "@" + p.username;
         setPeerHeader(p);
         paintSparkHead();
+        $("cJar").hidden = false;
         loadSparks();
         setVanish(false);
         clearReply();
@@ -4865,7 +5078,7 @@
       const LANG_EN = {};
       LANG_LIST.forEach((l) => { LANG_EN[l.code] = l.en; });
       const RTL_LANGS = ["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"];
-      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story", "Notifications", "Push notifications", "Privacy", "Show activity status", "Read receipts", "If you turn these off, you will not see other people's activity or read receipts either.", "Help", "Report a problem", "Terms of Service", "Privacy Policy", "Tell us what went wrong", "Send", "Thanks! We got your message.", "No messages yet", "Posting…", "Posting your reel…", "Sharing to your story…", "Shared ✓", "Couldn't post", "Retry", "Spark", "No spark yet. Both of you message each other today to start one.", "days in a row with", "Message each other every day to keep it going.", "You today", "today", "Ends in", "send a message!", "Spark with"];
+      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story", "Notifications", "Push notifications", "Privacy", "Show activity status", "Read receipts", "If you turn these off, you will not see other people's activity or read receipts either.", "Help", "Report a problem", "Terms of Service", "Privacy Policy", "Tell us what went wrong", "Send", "Thanks! We got your message.", "No messages yet", "Posting…", "Posting your reel…", "Sharing to your story…", "Shared ✓", "Couldn't post", "Retry", "Spark", "No spark yet. Both of you message each other today to start one.", "days in a row with", "Message each other every day to keep it going.", "You today", "today", "Ends in", "send a message!", "Spark with", "Start a new jar", "Pebble jar", "You and @", "drop one memory each day. The jar stays sealed until the day you pick, then you open it together.", "In 1 month", "In 3 months", "Next New Year", "In 1 year", "Start our jar", "Sealed until", "days to go", "pebbles", "You", "You dropped a pebble today. Come back tomorrow!", "has not dropped today yet.", "Write a memory, a wish, a joke... only you two will read it when the jar opens.", "Drop a pebble", "Write something or add a photo.", "Pebble dropped!", "Your jar is ready!", "This jar was empty", "Open the jar", "started a pebble jar with you", "dropped a pebble in your jar"];
       const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."},"rn":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Jewe","Settings":"Amagenamiterere","Search":"Rondera","Search people":"Rondera abantu","Find people":"Shakira abantu","Explore":"Raba","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ivyatangajwe","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'umukoresha","Email":"Imeyili","Close":"Funga","Cancel":"Reka","Save":"Bika","Saved":"Vyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Tangaza","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ivyiyumviro","Add a comment...":"Tanga ivyiyumviro...","Like":"Kunda","More":"Vyinshi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ivyabanje","Notifications":"Amatangazo","Security":"Umutekano","Change password":"Hindura ijambo ry'ibanga","Blocked accounts":"Konti zifunzwe","Log out of all devices":"Sohoka kuri vyose","Delete my account":"Futa konti yanje","Loading...":"Biriko biraza...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshasha","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ivyasabwe","Bio":"Ivyerekeye jewe","Name":"Izina","Caption (optional)":"Amajambo asigura (si ngombwa)","Write a caption...":"Andika amajambo asigura...","Search by username":"Rondera ukoresheje izina","Follow requests":"Ivyasabwe vyo kukurikira","Welcome back! Enter your details.":"Karabaye! Andika amakuru yawe.","New here? Create an account":"Uri mushasha? Fungura konti","Already have an account? Log in":"Usanzwe ufise konti? Injira","Unblock":"Fungura","Delete":"Futa","Report account":"Tanga akarego kuri konti","Seen":"Vyarabonetse","Copy text":"Kopa amajambo","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamwo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Sobanura amajambo asigura","Everyone":"Bose","Friends":"Inshuti","POST":"IVYATANGAJWE","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshasha","New post":"Igitangazwa gishasha","Go live":"Tangura live","End live":"Rangiza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamwo muri galeri","Say something...":"Vuga ikintu...","Watching":"Barabona","Who can watch?":"Ni nde ashobora kubona?","Create a reel":"Kora reel","Refresh":"Subiramwo","Call":"Hamagara","Voice call":"Guhamagara mu majwi","Video call":"Guhamagara mu mashusho","Calling…":"Biriko biraraza…","Ringing…":"Biriko biraraba…","Connecting…":"Biriko biraraba…","Incoming voice call":"Hari akuhamagaye mu majwi","Incoming video call":"Hari akuhamagaye mu mashusho","Incoming group call":"Hari itsinda ribahamagaye","Accept":"Emera","Decline":"Anka","Mute":"Zimya","Unmute":"Vyura","Camera off":"Zimya kamera","Camera on":"Rahura kamera","Flip":"Hindura","End call":"Rangiza guhamagara","Call ended":"Guhamagara kurarangiye","No answer":"Nta wavyishuye","declined the call":"yanse guhamagara","This call is full.":"Uguhamagara kuzuye.","Could not use the microphone or camera.":"Ntivyashobotse gukoresha mikoro canke kamera.","Group call":"Guhamagara mu itsinda","Join":"Injira","Chat theme":"Ishusho y'ubutumwa","Choose a wallpaper":"Hitamwo ishusho","Default":"Isanzwe","Wallpaper saved ✓":"Ishusho yabitswe ✓","Midnight":"Ijoro","Aurora":"Umuco","Sunset":"Izuba rirenga","Ocean":"Inyanja","Forest":"Ishamba","Candy":"Bombo","Neon":"Neon","Ember":"Amakara","Lavender":"Lavande","Mint":"Mint","Rose":"Roza","Mono":"Umukara n'umweru","Add a group picture":"Shiramwo ifoto y'itsinda","Group picture":"Ifoto y'itsinda","Change group picture":"Hindura ifoto y'itsinda","Birthday":"Isabukuru","Your birthday":"Isabukuru yawe","Month":"Ukwezi","Day":"Umusi","Year":"Umwaka","You must be at least 13 to use Twik.":"Ugomba kuba ufise nibura imyaka 13 kugira ukoreshe Twik.","Please choose your birthday.":"Hitamwo isabukuru yawe.","Forgot password?":"Wibagiwe ijambo ry'ibanga?","Reset link sent. Check your email.":"Ihuza ryoherejwe. Raba imeyili yawe.","Hold to record":"Fata ukanze kugira ufate amajwi","Voice message":"Ubutumwa mu majwi","Active now":"Ariho ubu","Edit caption":"Hindura amajambo asigura","Today":"Uyu musi","Yesterday":"Ejo hashize","Terms":"Amategeko","About Twik":"Ivyerekeye Twik","Sound":"Ijwi","Time zone":"Isaha y'akarere"}};
       const I18N = { lang: "en", dict: {}, loading: false };
       const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
