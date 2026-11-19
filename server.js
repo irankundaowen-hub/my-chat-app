@@ -239,8 +239,16 @@ app.get("/api/me", requireUser, safe(async (req, res) => {
 
   const { count: postCount } = await supabase.from("photo_posts").select("id", { count: "exact", head: true }).eq("user_id", me.id);
   const { count: reelCount } = await supabase.from("reels").select("id", { count: "exact", head: true }).eq("user_id", me.id);
+  let jarsN = 0, pebN = 0;
+  try {
+    const j = await supabase.from("jars").select("id", { count: "exact", head: true }).or("a.eq." + me.id + ",b.eq." + me.id);
+    const p = await supabase.from("jar_pebbles").select("id", { count: "exact", head: true }).eq("user_id", me.id);
+    jarsN = j.count || 0; pebN = p.count || 0;
+  } catch (e) {}
+  const mySet = await getSettings(me.id);
 
   res.json({
+    accent: mySet.accent || "", jars: jarsN, pebbles: pebN, since: req.user.created_at || null,
     username: me.username,
     display_name: me.display_name || "",
     birthday: me.birthday || "",
@@ -832,6 +840,7 @@ app.get("/api/users/:username", requireUser, safe(async (req, res) => {
   const canSee = await canSeeUser(meId, u.id);
   const media = canSee ? await mediaFor(u.id, meId) : { posts: [], reels: [] };
   res.json({
+    accent: (await getSettings(u.id)).accent || "",
     id: u.id, username: u.username, display_name: u.display_name || "", bio: u.bio || "", avatar: pics[u.id] || null,
     is_private: !!u.is_private, relation: rel ? (rel.status === "pending" ? "pending" : "following") : "none",
     can_see: canSee, followers: followers || 0, following: following || 0, posts_count: (pc || 0) + (rc || 0),
@@ -1887,6 +1896,31 @@ try {
   }
 } catch (e) { console.error("Push setup failed:", e.message); }
 
+// ---------- Log in with username + password (the email is never shown to the browser) ----------
+app.post("/api/auth/username-login", safe(async (req, res) => {
+  if (!allow("ulip:" + req.ip, 12, 60000)) return res.status(429).json(TOO_MANY);
+  const username = String(req.body.username || "").toLowerCase().replace(/[^a-z0-9_]/g, "").slice(0, 30);
+  const password = String(req.body.password || "");
+  const bad = { error: "Wrong username or password." };
+  if (!username || !password || password.length > 200) return res.json(bad);
+  if (!allow("ulu:" + username, 8, 300000)) return res.status(429).json({ error: "Too many tries for this account. Wait a few minutes." });
+  const { data: prof } = await supabase.from("profiles").select("id").eq("username", username).maybeSingle();
+  if (!prof) return res.json(bad);
+  const { data: au, error: ue } = await supabase.auth.admin.getUserById(prof.id);
+  const email = au && au.user && au.user.email;
+  if (ue || !email) return res.json(bad);
+  const anon = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await anon.auth.signInWithPassword({ email, password });
+  if (error || !data || !data.session) {
+    if (error && /not confirmed/i.test(error.message || "")) {
+      await anon.auth.resend({ type: "signup", email }).catch(() => {});
+      return res.json({ needs_code: true, email });
+    }
+    return res.json(bad);
+  }
+  res.json({ access_token: data.session.access_token, refresh_token: data.session.refresh_token });
+}));
+
 // ---------- Sparks: both friends message each other, every day ----------
 const dayStr = (t) => new Date(t).toISOString().slice(0, 10);
 async function bumpSpark(sender, other) {
@@ -2014,15 +2048,16 @@ app.post("/api/jar/drop", requireUser, limiter("jdr", 20, 60000), safe(async (re
   res.json({ ok: true, jar: sum });
 }));
 
+const ACCENTS = ["#ec4899", "#a855f7", "#f59e0b", "#14b8a6", "#3b82f6", "#22c55e", "#ef4444", "#38bdf8"];
 const settingsCache = new Map();
 async function getSettings(uid) {
   const c = settingsCache.get(uid);
   if (c && Date.now() - c.at < 60000) return c.v;
-  const def = { show_activity: true, read_receipts: true, push_enabled: true, sounds: true };
+  const def = { show_activity: true, read_receipts: true, push_enabled: true, sounds: true, accent: "" };
   let v = def;
   try {
     const { data, error } = await supabase.from("user_settings").select("*").eq("user_id", uid).maybeSingle();
-    if (!error && data) v = { show_activity: data.show_activity !== false, read_receipts: data.read_receipts !== false, push_enabled: data.push_enabled !== false, sounds: data.sounds !== false };
+    if (!error && data) v = { show_activity: data.show_activity !== false, read_receipts: data.read_receipts !== false, push_enabled: data.push_enabled !== false, sounds: data.sounds !== false, accent: ACCENTS.includes(data.accent) ? data.accent : "" };
   } catch (e) {}
   settingsCache.set(uid, { at: Date.now(), v });
   return v;
@@ -2032,7 +2067,14 @@ app.post("/api/settings", requireUser, safe(async (req, res) => {
   const cur = await getSettings(req.user.id);
   const next = { ...cur };
   ["show_activity", "read_receipts", "push_enabled", "sounds"].forEach((k) => { if (typeof req.body[k] === "boolean") next[k] = req.body[k]; });
-  const { error } = await supabase.from("user_settings").upsert({ user_id: req.user.id, ...next, updated_at: new Date().toISOString() });
+  const wantsAccent = typeof req.body.accent === "string" && (req.body.accent === "" || ACCENTS.includes(req.body.accent));
+  if (wantsAccent) next.accent = req.body.accent;
+  let { error } = await supabase.from("user_settings").upsert({ user_id: req.user.id, ...next, updated_at: new Date().toISOString() });
+  if (error && "accent" in next) {
+    const { accent, ...rest } = next;
+    ({ error } = await supabase.from("user_settings").upsert({ user_id: req.user.id, ...rest, updated_at: new Date().toISOString() }));
+    if (!error && wantsAccent) return res.json({ error: "Could not save the colour. Run the v35 SQL first." });
+  }
   if (error) return res.json({ error: "Could not save. Run the v29 SQL first." });
   settingsCache.set(req.user.id, { at: Date.now(), v: next });
   res.json(next);

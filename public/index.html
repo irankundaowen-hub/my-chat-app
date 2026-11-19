@@ -1140,8 +1140,41 @@
     #cJar { width: 44px !important; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
     #cJar svg { width: 28px; height: 28px; fill: none; stroke: none; filter: drop-shadow(0 0 6px rgba(236,72,153,0.45)); }
     #codeForm[hidden] { display: none; }
+    #byToggle[hidden] { display: none; }
     #codeIn { text-align: center; font-size: 30px; letter-spacing: 10px; font-weight: 800; padding: 14px 8px; }
     #codeMail { color: #fff; word-break: break-all; }
+
+    /* ===== v35: Me page ===== */
+    .pHero { --acc: #a855f7; position: relative; text-align: center; padding: 26px 16px 18px; margin: 4px 0 14px; border: 1px solid var(--line); border-radius: 38px 38px 38px 8px;
+      background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--acc) 34%, transparent), transparent 72%), var(--surface); }
+    .pebAv { display: flex; justify-content: center; margin-bottom: 10px; }
+    .pHero .avatar, .pHero img.avatar { width: 116px !important; height: 116px !important; border: none; border-radius: 52% 48% 50% 14% / 50% 50% 50% 14%; font-size: 48px;
+      box-shadow: 0 0 0 4px var(--acc), 0 0 0 7px rgba(0,0,0,0.6), 0 10px 38px color-mix(in srgb, var(--acc) 60%, transparent); background: linear-gradient(var(--surface2), var(--surface2)); }
+    .pHero img.avatar { object-fit: cover; }
+    .pHero h2 { margin: 6px 0 0; font-size: 24px; letter-spacing: 0.2px; }
+    .pHero .pDisplay { margin: 2px 0 12px; font-weight: 600; color: var(--muted); }
+    .pHero .pDisplay:empty, .pHero .pDisplay[hidden] { display: none; }
+    .pChips { display: flex; gap: 8px; margin: 10px 0 10px; }
+    .chip { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid var(--line); border-top: 3px solid var(--acc); color: var(--text); border-radius: 22px 22px 22px 6px; padding: 9px 4px 8px; display: flex; flex-direction: column; align-items: center; gap: 1px; font-weight: 400; }
+    .chip:nth-child(2) { border-radius: 22px 22px 6px 22px; }
+    .chip b { font-size: 21px; font-family: "Outfit", sans-serif; font-weight: 800; }
+    .chip span { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+    .pBadges { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 4px; }
+    .pBadges:empty { display: none; }
+    .pBadges .pbadge { position: static !important; font-size: 12.5px; font-weight: 700; padding: 5px 11px; border-radius: 14px 14px 14px 4px; background: color-mix(in srgb, var(--acc) 20%, transparent); color: #fff; border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent); }
+    .pHero .pBioText { position: relative; text-align: left; margin: 16px 0 0; padding: 13px 15px; background: rgba(255,255,255,0.07); border-radius: 24px 24px 24px 6px; }
+    .pHero .pBioText::before { content: ""; position: absolute; top: -7px; left: 30px; width: 14px; height: 14px; background: inherit; transform: rotate(45deg); border-radius: 3px; }
+    .pHero .pBioText[hidden] { display: none; }
+    .pBtns .primary, #pEditBtn { background: var(--grad); border-color: transparent; color: #fff; font-weight: 700; }
+    .pTabs button { gap: 6px; font-size: 13px; font-weight: 700; }
+    .pTabs button.on { box-shadow: 0 6px 20px rgba(236,72,153,0.38); }
+    .pGrid { grid-template-columns: repeat(2, 1fr); gap: 10px; align-items: start; padding-bottom: 10px; }
+    .pGrid .cell { aspect-ratio: 4 / 5; border-radius: 28px 28px 28px 7px; }
+    .pGrid .cell:nth-child(even) { margin-top: 26px; border-radius: 28px 28px 7px 28px; }
+    .pGrid.tall .cell { aspect-ratio: 9 / 14; }
+    .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 10px; }
+    .swatches button { width: 42px; height: 38px; padding: 0; margin: 0; border: 3px solid transparent !important; border-radius: 52% 48% 50% 14% / 50% 50% 50% 14% !important; min-width: 0; }
+    .swatches button.on { border-color: #fff !important; box-shadow: 0 0 16px rgba(255,255,255,0.35); }
   </style>
 </head>
 <body>
@@ -1174,6 +1207,7 @@
         <button type="button" id="pwToggle" class="pwEye" aria-label="Show password" title="Show password"></button>
       </div>
       <button type="button" id="forgotBtn" class="linkBtn">Forgot password?</button>
+      <button type="button" id="byToggle" class="linkBtn">Log in with email instead</button>
       <p id="authMsg"></p>
       <button type="button" id="resendBtn" class="linkBtn" hidden>Send the confirmation email again</button>
       <button class="main" id="authBtn" type="submit">Log in</button>
@@ -1197,28 +1231,27 @@
 
       <!-- Main profile page -->
       <div id="pMain">
-        <div class="pHead">
-          <div class="avatarWrap"><img id="pAvatar" class="avatar big" alt="" hidden /><span id="pAvatarLetter" class="avatar big letter">?</span></div>
-          <div class="pRight">
-            <h2 id="pName">@you</h2>
-            <div class="pStats">
-              <div class="stat"><b id="sPosts">0</b><span>posts</span></div>
-              <button class="stat" id="sFollowers" type="button"><b id="sFollowersN">0</b><span>followers</span></button>
-              <button class="stat" id="sFollowing" type="button"><b id="sFollowingN">0</b><span>following</span></button>
-            </div>
+        <div class="pHero" id="pHero">
+          <div class="pebAv"><div class="avatarWrap"><img id="pAvatar" class="avatar big" alt="" hidden /><span id="pAvatarLetter" class="avatar big letter">?</span></div></div>
+          <h2 id="pName">@you</h2>
+          <div class="pDisplay" id="pDisplay"></div>
+          <div class="pChips">
+            <div class="chip"><b id="sPosts">0</b><span>Moments</span></div>
+            <button class="chip" id="sFollowers" type="button"><b id="sFollowersN">0</b><span>Circle</span></button>
+            <button class="chip" id="sFollowing" type="button"><b id="sFollowingN">0</b><span>Orbit</span></button>
           </div>
+          <div class="pBadges" id="pBadges"></div>
+          <div class="pBioText" id="pBioText"></div>
         </div>
-        <div class="pDisplay" id="pDisplay"></div>
-        <div class="pBioText" id="pBioText"></div>
         <div class="hlRow" id="pHl" hidden></div>
         <div class="pBtns">
-          <button type="button" id="pEditBtn">Edit profile</button>
+          <button type="button" id="pEditBtn" class="primary">Edit profile</button>
           <button type="button" id="pSettingsBtn">Settings</button>
         </div>
         <div class="pTabs">
-          <button type="button" id="tabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
-          <button type="button" id="tabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg></button>
-          <button type="button" id="tabSaved" aria-label="Saved"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg></button>
+          <button type="button" id="tabPosts" class="on" aria-label="Moments"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Moments</span></button>
+          <button type="button" id="tabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg><span>Reels</span></button>
+          <button type="button" id="tabSaved" aria-label="Saved"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4.5L6 21z"/></svg><span>Saved</span></button>
         </div>
         <div class="pGrid" id="pGrid"></div>
       </div>
@@ -1235,6 +1268,8 @@
         <p class="hint">Tap the picture to change it</p>
         <h3>Name</h3>
         <input id="pNameInput" type="text" maxlength="30" placeholder="Your name (like Owen)" autocomplete="off" />
+        <h3>Your pebble colour</h3>
+        <div class="swatches" id="pSw"></div>
         <h3>Bio</h3>
         <input id="pBio" type="text" maxlength="500" placeholder="Write your bio" autocomplete="off" />
         <h3>Birthday 🎂</h3>
@@ -1268,7 +1303,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 34</p>
+        <p class="hint" data-notr>Twik Chat · Version 35</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1320,19 +1355,18 @@
   <div id="userView" hidden>
     <div class="sheet">
       <button class="mini back" type="button" id="uvBack">← Back</button>
-      <div class="pHead">
-        <div class="avatarWrap"><img id="uvAvatar" class="avatar big" alt="" hidden /><span id="uvLetter" class="avatar big letter">?</span></div>
-        <div class="pRight">
-          <h2 id="uvName">@user</h2>
-          <div class="pStats">
-            <div class="stat"><b id="uvPosts">0</b><span>posts</span></div>
-            <div class="stat"><b id="uvFollowers">0</b><span>followers</span></div>
-            <div class="stat"><b id="uvFollowing">0</b><span>following</span></div>
-          </div>
+      <div class="pHero" id="uvHero">
+        <div class="pebAv"><div class="avatarWrap"><img id="uvAvatar" class="avatar big" alt="" hidden /><span id="uvLetter" class="avatar big letter">?</span></div></div>
+        <h2 id="uvName">@user</h2>
+        <div class="pDisplay" id="uvDisplay"></div>
+        <div class="pChips">
+          <div class="chip"><b id="uvPosts">0</b><span>Moments</span></div>
+          <div class="chip"><b id="uvFollowers">0</b><span>Circle</span></div>
+          <div class="chip"><b id="uvFollowing">0</b><span>Orbit</span></div>
         </div>
+        <div class="pBadges" id="uvBadges"></div>
+        <div class="pBioText" id="uvBio"></div>
       </div>
-      <div class="pDisplay" id="uvDisplay"></div>
-      <div class="pBioText" id="uvBio"></div>
       <div class="hlRow" id="uvHl" hidden></div>
       <div class="pBtns">
         <button type="button" id="uvFollowBtn" class="primary">Follow</button>
@@ -1342,8 +1376,8 @@
       <div id="uvLocked" class="gridEmpty" hidden>🔒 This account is private. Follow to see their photos and reels.</div>
       <div id="uvContent">
         <div class="pTabs">
-          <button type="button" id="uvTabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg></button>
-          <button type="button" id="uvTabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg></button>
+          <button type="button" id="uvTabPosts" class="on" aria-label="Photos"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Moments</span></button>
+          <button type="button" id="uvTabReels" aria-label="Reels"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><path d="M3 9h18M9 3l3 6M15 3l3 6"/><path d="M10 13l5 3-5 3z"/></svg><span>Reels</span></button>
         </div>
         <div class="pGrid" id="uvGrid"></div>
       </div>
@@ -2012,6 +2046,19 @@
       }
 
       // ---------- Login / sign-up screen ----------
+      let loginByUser = true;
+      function applyLoginBy() {
+        const u = !signingUp && loginByUser;
+        $("username").hidden = !(signingUp || u);
+        $("username").required = signingUp || u;
+        $("username").autocomplete = u ? "username" : "nickname";
+        $("email").hidden = u;
+        $("email").required = !u;
+        $("byToggle").hidden = signingUp;
+        $("byToggle").textContent = loginByUser ? "Log in with email instead" : "Log in with username instead";
+        if (!signingUp) $("authSub").textContent = u ? "Welcome back! Enter your username and password." : "Welcome back! Enter your email and password.";
+      }
+      $("byToggle").addEventListener("click", () => { loginByUser = !loginByUser; applyLoginBy(); showMsg(""); });
       function setMode(isSignUp) {
         signingUp = isSignUp;
         $("authTitle").textContent = isSignUp ? "Create account" : "Log in";
@@ -2025,8 +2072,7 @@
         $("bdBox").hidden = !isSignUp;
         $("forgotBtn").hidden = isSignUp;
         if (isSignUp) fillBirthdayPickers();
-        $("username").hidden = !isSignUp;
-        $("username").required = isSignUp;
+        applyLoginBy();
         $("password").autocomplete = isSignUp ? "new-password" : "current-password";
         showMsg("");
       }
@@ -2113,7 +2159,7 @@
         $("resendBtn").hidden = true;
 
         try {
-          if (!EMAIL_OK.test(email)) {
+          if ((signingUp || !loginByUser) && !EMAIL_OK.test(email)) {
             showMsg("That doesn't look like a real email. Check it and try again.");
             return;
           }
@@ -2148,6 +2194,24 @@
             }
           } else {
             if (Date.now() < lockUntil) { showMsg("Too many tries. Wait " + Math.ceil((lockUntil - Date.now()) / 1000) + " seconds, then try again."); return; }
+            if (loginByUser) {
+              const uname = $("username").value.trim().replace(/^@/, "");
+              if (!uname) { showMsg(trW("Type your username.")); return; }
+              let r = null;
+              try { r = await (await fetch("/api/auth/username-login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username: uname, password }) })).json(); } catch (e) {}
+              if (!r) { showMsg(trW("Something went wrong. Please try again.")); return; }
+              if (r.needs_code) { showCode(r.email); return; }
+              if (r.error || !r.access_token) {
+                if (++loginFails >= 5) { lockUntil = Date.now() + 30000; loginFails = 0; }
+                showMsg(r.error || trW("Wrong username or password."));
+                return;
+              }
+              const ss = await sb.auth.setSession({ access_token: r.access_token, refresh_token: r.refresh_token });
+              if (ss.error || !ss.data || !ss.data.session) { showMsg(trW("Something went wrong. Please try again.")); return; }
+              loginFails = 0;
+              startChat(ss.data.session.user);
+              return;
+            }
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
             if (error) {
               if (++loginFails >= 5) { lockUntil = Date.now() + 30000; loginFails = 0; }
@@ -2487,6 +2551,8 @@
         else { $("uvAvatar").hidden = true; $("uvLetter").hidden = false; }
         $("uvDisplay").textContent = d.display_name; $("uvDisplay").hidden = !d.display_name;
         $("uvBio").textContent = d.bio; $("uvBio").hidden = !d.bio;
+        setAccent($("uvHero"), d.accent);
+        const ub = $("uvBadges"); ub.innerHTML = ""; if (d.is_private) ub.appendChild(badge("🔒 " + trW("Private")));
         if (d.can_see) loadHighlights(d.id, $("uvHl"), { username: d.username, avatar: d.avatar }); else $("uvHl").hidden = true;
         $("uvPosts").textContent = d.posts_count;
         $("uvFollowers").textContent = d.followers;
@@ -3095,9 +3161,35 @@
         paintGrid();
       }
 
+      const ACC_LIST = ["#ec4899", "#a855f7", "#f59e0b", "#14b8a6", "#3b82f6", "#22c55e", "#ef4444", "#38bdf8"];
+      var MYACC = "";
+      function setAccent(el, col) { el.style.setProperty("--acc", ACC_LIST.indexOf(col) >= 0 ? col : "#a855f7"); }
+      function paintSwatches() {
+        const box = $("pSw"); if (!box) return;
+        if (!box.children.length) {
+          ACC_LIST.forEach((c) => {
+            const b = document.createElement("button"); b.type = "button"; b.style.background = c; b.setAttribute("aria-label", c);
+            b.onclick = async () => {
+              const prev = MYACC; MYACC = c; setAccent($("pHero"), c); paintSwatches();
+              const r = await api("/api/settings", "POST", { accent: c });
+              if (r && r.error) { MYACC = prev; setAccent($("pHero"), prev); paintSwatches(); toast(r.error); }
+            };
+            box.appendChild(b);
+          });
+        }
+        Array.prototype.forEach.call(box.children, (b, i) => b.classList.toggle("on", ACC_LIST[i] === (MYACC || "#a855f7")));
+      }
+      function badge(txt) { const x = document.createElement("span"); x.className = "pbadge"; x.textContent = txt; x.setAttribute("data-notr", ""); return x; }
       async function loadProfile() {
         const p = await api("/api/me");
         if (p.error) { $("pName").textContent = p.error; return; }
+        MYACC = p.accent || ""; setAccent($("pHero"), MYACC); paintSwatches();
+        const bd = $("pBadges"); bd.innerHTML = "";
+        const best = Math.max(0, ...Object.keys(SPARKS || {}).map((k) => SPARKS[k].count || 0));
+        if (best > 0) bd.appendChild(badge("⚡ " + best + " " + trW("best spark")));
+        if (p.jars > 0) bd.appendChild(badge("🫙 " + p.jars + " " + (p.jars === 1 ? trW("jar") : trW("jars"))));
+        if (p.pebbles > 0) bd.appendChild(badge("🪨 " + p.pebbles + " " + trW("pebbles")));
+        if (p.since) { try { bd.appendChild(badge(trW("Twik since") + " " + new Date(p.since).toLocaleDateString(undefined, { month: "short", year: "numeric" }))); } catch (e) {} }
         currentPrivate = p.is_private;
         $("pName").textContent = "@" + p.username + (p.is_private ? " 🔒" : "");
         paintAvatar(p);
@@ -5135,7 +5227,7 @@
       const LANG_EN = {};
       LANG_LIST.forEach((l) => { LANG_EN[l.code] = l.en; });
       const RTL_LANGS = ["ar", "he", "fa", "ur", "ps", "sd", "ug", "yi"];
-      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story", "Notifications", "Push notifications", "Privacy", "Show activity status", "Read receipts", "If you turn these off, you will not see other people's activity or read receipts either.", "Help", "Report a problem", "Terms of Service", "Privacy Policy", "Tell us what went wrong", "Send", "Thanks! We got your message.", "No messages yet", "Posting…", "Posting your reel…", "Sharing to your story…", "Shared ✓", "Couldn't post", "Retry", "Spark", "No spark yet. Both of you message each other today to start one.", "days in a row with", "Message each other every day to keep it going.", "You today", "today", "Ends in", "send a message!", "Spark with", "Start a new jar", "Pebble jar", "You and @", "drop one memory each day. The jar stays sealed until the day you pick, then you open it together.", "In 1 month", "In 3 months", "Next New Year", "In 1 year", "Start our jar", "Sealed until", "days to go", "pebbles", "You", "You dropped a pebble today. Come back tomorrow!", "has not dropped today yet.", "Write a memory, a wish, a joke... only you two will read it when the jar opens.", "Drop a pebble", "Write something or add a photo.", "Pebble dropped!", "Your jar is ready!", "This jar was empty", "Open the jar", "started a pebble jar with you", "dropped a pebble in your jar", "Check your email", "Send the code again", "Use a different email", "Verify", "Type the whole code from your email.", "That code is wrong or has expired. Try again or ask for a new one.", "Something went wrong. Please try again.", "Sent! Check your inbox (and your spam folder)."];
+      const I18N_KEYS = ["+ Post", "About Twik", "Accept", "Accepted ✓", "Active now", "Add", "Add a comment...", "Add a group picture", "Add a member by username", "All my friends", "Already have an account? Log in", "At least 8 characters, with letters and a number.", "Audience", "Aurora", "Back", "Back online", "Bio", "Birthday", "Birthday 🎂", "Blocked accounts", "Call", "Call ended", "Calling…", "Camera not available", "Camera not available. You can choose from your gallery.", "Camera off", "Camera on", "Cancel", "Candy", "Caption (optional)", "Change group picture", "Change password", "Change picture", "Chat", "Chat theme", "Chats", "Checking...", "Choose a photo or a video first.", "Choose a video first.", "Choose a wallpaper", "Choose from gallery", "Close", "Comments", "Connecting…", "Copy text", "Could not use the microphone or camera.", "Create a group", "Create a reel", "Create account", "Create group", "Current password", "Day", "Decline", "Default", "Delete", "Delete comment", "Delete everything", "Delete my account", "Delete note", "Delete this post?", "Delete this reel?", "Delete this story?", "Delete your account", "Deleting...", "Discard", "Edit caption", "Edit profile", "Edit your note", "Email", "Ember", "End call", "End live", "Everyone", "Explore", "False information", "Find people", "Flip", "Follow", "Follow back", "Follow requests", "Follow someone", "Followers", "Following", "Following ✓", "Forest", "Forgot password?", "Friends", "Friends can tag you in a note on your birthday and see how old you turn.", "Friends who follow you back see it for 24 hours.", "Go live", "Group call", "Group name", "Group picture", "Groups", "Happy birthday! 🎂", "Hate or harassment", "Hide password", "Hold to record", "Home", "Incoming group call", "Incoming video call", "Incoming voice call", "Join", "LIVE", "Language and translations", "Lavender", "Like", "Live ended", "Live now", "Loading more...", "Loading...", "Log in", "Log out", "Log out of Twik on every phone and computer?", "Log out of all devices", "Me", "Message", "Messages", "Midnight", "Mint", "Mono", "Month", "More", "Mute", "Name", "Neon", "New chat", "New here? Create an account", "New password", "New password again", "New post", "New reel", "New story", "Next", "No answer", "No chats match.", "No chats yet. Tap the pencil to start one.", "No friends yet. Friends are people who follow you and you follow back.", "No friends yet. Friends are people you follow who follow you back.", "No message requests.", "No one found.", "No one has seen this story yet.", "No one matches.", "No photos yet.", "No photos yet. Share your first one on Home!", "No reels yet.", "No reels yet. Post your first one in Reels!", "Nobody yet", "Not logged in", "Not sent", "Nothing saved yet. Tap the bookmark on any post or reel.", "Nothing yet. New followers, likes and comments show up here.", "Notifications", "Nudity or sexual content", "Ocean", "Only people I choose", "POST", "Password (at least 6 characters)", "Password changed ✓", "People", "Photo", "Photo is too big (max 10 MB).", "Photos", "Pick a photo or a video.", "Pick a username, then your email and a password.", "Pick at least one friend, or choose All my friends.", "Pick both the month and the day for your birthday.", "Picture is too big (max 5 MB).", "Picture saved ✓", "Please choose a photo.", "Please choose your birthday.", "Please confirm your email first. Open the link we sent you, then log in.", "Post", "Post reel", "Preferred languages", "Preview", "Previous", "REEL", "Recording is not supported on this phone. Choose from your gallery.", "Reels", "Reels translations", "Refresh", "Removed from saved", "Reply to this note...", "Report account", "Report message", "Request sent", "Requests", "Requests (", "Requests ({n})", "Reset link sent. Check your email.", "Ringing…", "Rose", "STORY", "Save", "Save new password", "Saved", "Saved ✓", "Say something (optional)", "Say something about this...", "Say something...", "Search", "Search by username", "Search friends", "Search people", "Security", "See translation", "Seen", "Seen by {n}", "Send", "Send a photo", "Send message", "Send the confirmation email again", "Send to", "Sending photo...", "Sent ✓", "Sent! Check your inbox (and your spam folder).", "Set language", "Settings", "Settings (", "Settings ({n})", "Share", "Share a thought...", "Share note", "Share to", "Share to story", "Shared ✓", "Sharing...", "Show password", "Sign up", "Something else", "Something went wrong. Please try again.", "Sound", "Spam or scam", "Start a chat: their username", "Start chat", "Sunset", "Tap the picture to change it", "Tap to message", "Tap to start or stop recording", "Tap to take a photo, hold to record", "Tap to unmute", "Terms", "Thanks. We got your report.", "That doesn't look like a real email. Check it and try again.", "That email already has an account. Tap below to log in.", "That file is not a photo or a video.", "That file is not a video.", "That password is too easy to guess. Pick another one.", "The two new passwords don't match.", "Their username", "This call is full.", "Time zone", "Today", "Translate captions", "Twik language", "Type DELETE (in capitals) to confirm.", "Type DELETE to confirm", "Type a message", "Type a message or paste a link", "Type your current password.", "Type your email first.", "Unblock", "Unmute", "Unsend", "Upload failed, please try again.", "Uploading picture...", "Uploading... please wait.", "Use letters and at least one number in your password.", "Username", "Username must be at least 2 characters.", "Usernames, separated by commas", "Video", "Video call", "Video is too big (max 50 MB).", "View all {n} comments", "Violence or danger", "Voice call", "Voice message", "Waiting for video...", "Wallpaper saved ✓", "Watching", "Welcome back! Enter your details.", "Who can see this?", "Who can watch?", "Why are you reporting this?", "Write a caption...", "Write something first.", "Write your bio (150 letters max)", "Year", "Yesterday", "You can't message this person.", "You haven't blocked anyone.", "You must be at least 13 to use Twik.", "You're all caught up ✓", "You're offline. Showing what was saved.", "Your birthday", "Your current password is wrong.", "Your name (like Owen)", "Your note", "Your password needs at least 8 characters.", "Your password shouldn't be your email.", "Your password shouldn't contain your username.", "Your story", "Your story · disappears in about {n}h", "declined the call", "followers", "following", "more", "posts", "twik", "typing…", "← Back", "← Back to groups", "▶ Reel", "✕ Close", "🎂 Birthdays today · tap to tag", "🎬 Reels", "🏠 Home", "👁 Seen by", "👥 Groups", "🔒 This account is private. Follow to see their photos and reels.", "🗑 Delete story", "Notifications", "Push notifications", "Privacy", "Show activity status", "Read receipts", "If you turn these off, you will not see other people's activity or read receipts either.", "Help", "Report a problem", "Terms of Service", "Privacy Policy", "Tell us what went wrong", "Send", "Thanks! We got your message.", "No messages yet", "Posting…", "Posting your reel…", "Sharing to your story…", "Shared ✓", "Couldn't post", "Retry", "Spark", "No spark yet. Both of you message each other today to start one.", "days in a row with", "Message each other every day to keep it going.", "You today", "today", "Ends in", "send a message!", "Spark with", "Start a new jar", "Pebble jar", "You and @", "drop one memory each day. The jar stays sealed until the day you pick, then you open it together.", "In 1 month", "In 3 months", "Next New Year", "In 1 year", "Start our jar", "Sealed until", "days to go", "pebbles", "You", "You dropped a pebble today. Come back tomorrow!", "has not dropped today yet.", "Write a memory, a wish, a joke... only you two will read it when the jar opens.", "Drop a pebble", "Write something or add a photo.", "Pebble dropped!", "Your jar is ready!", "This jar was empty", "Open the jar", "started a pebble jar with you", "dropped a pebble in your jar", "Check your email", "Send the code again", "Use a different email", "Verify", "Type the whole code from your email.", "That code is wrong or has expired. Try again or ask for a new one.", "Something went wrong. Please try again.", "Sent! Check your inbox (and your spam folder).", "Type your username.", "Wrong username or password.", "Type the email of your account, then tap Forgot password again.", "Log in with email instead", "Log in with username instead", "Moments", "Circle", "Orbit", "Your pebble colour", "best spark", "jar", "jars", "Twik since", "Private"];
       const I18N_PACKS = {"fr":{"Home":"Accueil","Reels":"Reels","Chats":"Discussions","Me":"Moi","Settings":"Paramètres","Search":"Rechercher","Search people":"Rechercher des personnes","Find people":"Trouver des gens","Explore":"Explorer","Followers":"Abonnés","Following":"Abonnements","followers":"abonnés","following":"abonnements","posts":"publications","Edit profile":"Modifier le profil","Follow":"Suivre","Log in":"Se connecter","Log out":"Se déconnecter","Sign up":"S'inscrire","Create account":"Créer un compte","Username":"Nom d'utilisateur","Email":"E-mail","Close":"Fermer","Cancel":"Annuler","Save":"Enregistrer","Saved":"Enregistrés","Send":"Envoyer","Share":"Partager","Post":"Publier","Message":"Message","Messages":"Messages","Comments":"Commentaires","Add a comment...":"Ajouter un commentaire...","Like":"J'aime","More":"Plus","← Back":"← Retour","Next":"Suivant","Previous":"Précédent","Notifications":"Notifications","Security":"Sécurité","Change password":"Changer le mot de passe","Blocked accounts":"Comptes bloqués","Log out of all devices":"Se déconnecter partout","Delete my account":"Supprimer mon compte","Loading...":"Chargement...","Type a message":"Écrire un message","Send message":"Envoyer le message","Your story":"Votre story","New story":"Nouvelle story","Groups":"Groupes","Photos":"Photos","People":"Personnes","Requests":"Demandes","Bio":"Bio","Name":"Nom","Caption (optional)":"Légende (facultatif)","Write a caption...":"Écrivez une légende...","Search by username":"Rechercher par nom d'utilisateur","Follow requests":"Demandes d'abonnement","Follow someone":"Suivre quelqu'un","Their username":"Leur nom d'utilisateur","Welcome back! Enter your details.":"Bon retour ! Entrez vos informations.","New here? Create an account":"Nouveau ici ? Créez un compte","Already have an account? Log in":"Déjà un compte ? Connectez-vous","Unblock":"Débloquer","Delete":"Supprimer","Report account":"Signaler le compte","Seen":"Vu","Copy text":"Copier le texte","Language and translations":"Langue et traductions","Twik language":"Langue de Twik","Set language":"Choisir la langue","Reels translations":"Traductions des Reels","Preferred languages":"Langues préférées","Translate captions":"Traduire les légendes","Everyone":"Tout le monde","Friends":"Amis","POST":"PUBLICATION","STORY":"STORY","REEL":"REEL","LIVE":"DIRECT","New reel":"Nouveau reel","New post":"Nouvelle publication","Go live":"Passer en direct","End live":"Terminer le direct","Discard":"Abandonner","Live now":"En direct","Choose from gallery":"Choisir dans la galerie","Tap to take a photo, hold to record":"Touchez pour photographier, maintenez pour filmer","Tap to start or stop recording":"Touchez pour démarrer ou arrêter","Say something about this...":"Dites quelque chose...","Camera not available. You can choose from your gallery.":"Caméra indisponible. Choisissez dans la galerie.","Who can watch?":"Qui peut regarder ?","Watching":"Spectateurs","Say something...":"Dites quelque chose..."},"es":{"Home":"Inicio","Reels":"Reels","Chats":"Chats","Me":"Yo","Settings":"Ajustes","Search":"Buscar","Search people":"Buscar personas","Find people":"Encontrar gente","Explore":"Explorar","Followers":"Seguidores","Following":"Siguiendo","followers":"seguidores","following":"siguiendo","posts":"publicaciones","Edit profile":"Editar perfil","Follow":"Seguir","Log in":"Iniciar sesión","Log out":"Cerrar sesión","Sign up":"Registrarse","Create account":"Crear cuenta","Username":"Nombre de usuario","Email":"Correo electrónico","Close":"Cerrar","Cancel":"Cancelar","Save":"Guardar","Saved":"Guardados","Send":"Enviar","Share":"Compartir","Post":"Publicar","Message":"Mensaje","Messages":"Mensajes","Comments":"Comentarios","Add a comment...":"Añade un comentario...","Like":"Me gusta","More":"Más","← Back":"← Atrás","Next":"Siguiente","Previous":"Anterior","Notifications":"Notificaciones","Security":"Seguridad","Change password":"Cambiar contraseña","Blocked accounts":"Cuentas bloqueadas","Log out of all devices":"Cerrar sesión en todos los dispositivos","Delete my account":"Eliminar mi cuenta","Loading...":"Cargando...","Type a message":"Escribe un mensaje","Send message":"Enviar mensaje","Your story":"Tu historia","New story":"Nueva historia","Groups":"Grupos","Photos":"Fotos","People":"Personas","Requests":"Solicitudes","Bio":"Biografía","Name":"Nombre","Caption (optional)":"Descripción (opcional)","Write a caption...":"Escribe una descripción...","Search by username":"Buscar por nombre de usuario","Follow requests":"Solicitudes de seguimiento","Follow someone":"Seguir a alguien","Their username":"Su nombre de usuario","Welcome back! Enter your details.":"¡Bienvenido de nuevo! Introduce tus datos.","New here? Create an account":"¿Nuevo aquí? Crea una cuenta","Already have an account? Log in":"¿Ya tienes cuenta? Inicia sesión","Unblock":"Desbloquear","Delete":"Eliminar","Report account":"Denunciar cuenta","Seen":"Visto","Copy text":"Copiar texto","Language and translations":"Idioma y traducciones","Twik language":"Idioma de Twik","Set language":"Elegir idioma","Reels translations":"Traducciones de Reels","Preferred languages":"Idiomas preferidos","Translate captions":"Traducir descripciones","Everyone":"Todos","Friends":"Amigos","POST":"PUBLICAR","STORY":"HISTORIA","REEL":"REEL","LIVE":"EN VIVO","New reel":"Nuevo reel","New post":"Nueva publicación","Go live":"Iniciar directo","End live":"Terminar directo","Discard":"Descartar","Live now":"En vivo ahora","Choose from gallery":"Elegir de la galería","Tap to take a photo, hold to record":"Toca para foto, mantén para grabar","Tap to start or stop recording":"Toca para iniciar o detener","Say something about this...":"Di algo sobre esto...","Camera not available. You can choose from your gallery.":"Cámara no disponible. Elige de la galería.","Who can watch?":"¿Quién puede verlo?","Watching":"Viendo","Say something...":"Di algo..."},"rw":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Njye","Settings":"Igenamiterere","Search":"Shakisha","Search people":"Shakisha abantu","Find people":"Shaka abantu","Explore":"Sura","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ibyashyizweho","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'ukoresha","Email":"Imeri","Close":"Funga","Cancel":"Bireke","Save":"Bika","Saved":"Ibyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Shyiraho","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ibitekerezo","Add a comment...":"Tanga igitekerezo...","Like":"Kunda","More":"Ibindi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ibibanziriza","Notifications":"Imenyesha","Security":"Umutekano","Change password":"Hindura ijambobanga","Blocked accounts":"Konti zafunzwe","Log out of all devices":"Sohoka ku bikoresho byose","Delete my account":"Siba konti yanjye","Loading...":"Birimo gufunguka...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshya","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ibisabwa","Bio":"Ibikuranga","Name":"Izina","Caption (optional)":"Amagambo asobanura (si ubishaka)","Write a caption...":"Andika amagambo asobanura...","Search by username":"Shakisha ukoresheje izina","Follow requests":"Ibisabwa byo gukurikira","Follow someone":"Kurikira umuntu","Their username":"Izina ry'ukoresha rye","Welcome back! Enter your details.":"Murakaza neza! Andika amakuru yawe.","New here? Create an account":"Uri mushya? Fungura konti","Already have an account? Log in":"Ufite konti? Injira","Unblock":"Fungura","Delete":"Siba","Report account":"Tanga ikirego kuri konti","Seen":"Byarebwe","Copy text":"Koporora inyandiko","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Humura amagambo asobanura","Everyone":"Bose","Friends":"Inshuti","POST":"IBYASHYIZWEHO","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshya","New post":"Igishya","Go live":"Tangira live","End live":"Soza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamo muri galeri","Tap to take a photo, hold to record":"Kanda ufate ifoto, ukomeze ufate video","Tap to start or stop recording":"Kanda utangire cyangwa uhagarike","Say something about this...":"Vuga ikintu kuri ibi...","Camera not available. You can choose from your gallery.":"Kamera ntibonetse. Hitamo muri galeri.","Who can watch?":"Ni nde ushobora kureba?","Watching":"Barareba","Say something...":"Vuga ikintu..."},"sw":{"Home":"Mwanzo","Reels":"Reels","Chats":"Mazungumzo","Me":"Mimi","Settings":"Mipangilio","Search":"Tafuta","Search people":"Tafuta watu","Find people":"Tafuta watu","Explore":"Gundua","Followers":"Wafuasi","Following":"Unaowafuata","followers":"wafuasi","following":"unaowafuata","posts":"machapisho","Edit profile":"Hariri wasifu","Follow":"Fuata","Log in":"Ingia","Log out":"Toka","Sign up":"Jisajili","Create account":"Fungua akaunti","Username":"Jina la mtumiaji","Email":"Barua pepe","Close":"Funga","Cancel":"Ghairi","Save":"Hifadhi","Saved":"Zilizohifadhiwa","Send":"Tuma","Share":"Shiriki","Post":"Chapisha","Message":"Ujumbe","Messages":"Ujumbe","Comments":"Maoni","Add a comment...":"Ongeza maoni...","Like":"Penda","More":"Zaidi","← Back":"← Rudi","Next":"Inayofuata","Previous":"Iliyopita","Notifications":"Arifa","Security":"Usalama","Change password":"Badilisha nenosiri","Blocked accounts":"Akaunti zilizozuiwa","Log out of all devices":"Toka kwenye vifaa vyote","Delete my account":"Futa akaunti yangu","Loading...":"Inapakia...","Type a message":"Andika ujumbe","Send message":"Tuma ujumbe","Your story":"Hadithi yako","New story":"Hadithi mpya","Groups":"Vikundi","Photos":"Picha","People":"Watu","Requests":"Maombi","Bio":"Wasifu","Name":"Jina","Caption (optional)":"Maelezo (si lazima)","Write a caption...":"Andika maelezo...","Search by username":"Tafuta kwa jina la mtumiaji","Follow requests":"Maombi ya kufuata","Follow someone":"Mfuate mtu","Their username":"Jina lake la mtumiaji","Welcome back! Enter your details.":"Karibu tena! Weka taarifa zako.","New here? Create an account":"Mgeni? Fungua akaunti","Already have an account? Log in":"Una akaunti? Ingia","Unblock":"Ondoa kizuizi","Delete":"Futa","Report account":"Ripoti akaunti","Seen":"Imeonekana","Copy text":"Nakili maandishi","Language and translations":"Lugha na tafsiri","Twik language":"Lugha ya Twik","Set language":"Chagua lugha","Reels translations":"Tafsiri za Reels","Preferred languages":"Lugha unazopendelea","Translate captions":"Tafsiri maelezo","Everyone":"Kila mtu","Friends":"Marafiki","POST":"CHAPISHO","STORY":"HADITHI","REEL":"REEL","LIVE":"MOJA KWA MOJA","New reel":"Reel mpya","New post":"Chapisho jipya","Go live":"Anza live","End live":"Maliza live","Discard":"Tupa","Live now":"Moja kwa moja sasa","Choose from gallery":"Chagua kutoka ghala","Tap to take a photo, hold to record":"Gusa kupiga picha, shikilia kurekodi","Tap to start or stop recording":"Gusa kuanza au kusimamisha","Say something about this...":"Sema kitu kuhusu hili...","Camera not available. You can choose from your gallery.":"Kamera haipatikani. Chagua kutoka ghala.","Who can watch?":"Nani anaweza kutazama?","Watching":"Wanaotazama","Say something...":"Sema kitu..."},"rn":{"Home":"Ahabanza","Reels":"Reels","Chats":"Ubutumwa","Me":"Jewe","Settings":"Amagenamiterere","Search":"Rondera","Search people":"Rondera abantu","Find people":"Shakira abantu","Explore":"Raba","Followers":"Abakurikira","Following":"Abo ukurikira","followers":"abakurikira","following":"abo ukurikira","posts":"ivyatangajwe","Edit profile":"Hindura umwirondoro","Follow":"Kurikira","Log in":"Injira","Log out":"Sohoka","Sign up":"Iyandikishe","Create account":"Fungura konti","Username":"Izina ry'umukoresha","Email":"Imeyili","Close":"Funga","Cancel":"Reka","Save":"Bika","Saved":"Vyabitswe","Send":"Ohereza","Share":"Sangiza","Post":"Tangaza","Message":"Ubutumwa","Messages":"Ubutumwa","Comments":"Ivyiyumviro","Add a comment...":"Tanga ivyiyumviro...","Like":"Kunda","More":"Vyinshi","← Back":"← Subira inyuma","Next":"Ibikurikira","Previous":"Ivyabanje","Notifications":"Amatangazo","Security":"Umutekano","Change password":"Hindura ijambo ry'ibanga","Blocked accounts":"Konti zifunzwe","Log out of all devices":"Sohoka kuri vyose","Delete my account":"Futa konti yanje","Loading...":"Biriko biraza...","Type a message":"Andika ubutumwa","Send message":"Ohereza ubutumwa","Your story":"Inkuru yawe","New story":"Inkuru nshasha","Groups":"Amatsinda","Photos":"Amafoto","People":"Abantu","Requests":"Ivyasabwe","Bio":"Ivyerekeye jewe","Name":"Izina","Caption (optional)":"Amajambo asigura (si ngombwa)","Write a caption...":"Andika amajambo asigura...","Search by username":"Rondera ukoresheje izina","Follow requests":"Ivyasabwe vyo kukurikira","Welcome back! Enter your details.":"Karabaye! Andika amakuru yawe.","New here? Create an account":"Uri mushasha? Fungura konti","Already have an account? Log in":"Usanzwe ufise konti? Injira","Unblock":"Fungura","Delete":"Futa","Report account":"Tanga akarego kuri konti","Seen":"Vyarabonetse","Copy text":"Kopa amajambo","Language and translations":"Ururimi n'ubusobanuro","Twik language":"Ururimi rwa Twik","Set language":"Hitamwo ururimi","Reels translations":"Ubusobanuro bwa Reels","Preferred languages":"Indimi ukunda","Translate captions":"Sobanura amajambo asigura","Everyone":"Bose","Friends":"Inshuti","POST":"IVYATANGAJWE","STORY":"INKURU","REEL":"REEL","LIVE":"LIVE","New reel":"Reel nshasha","New post":"Igitangazwa gishasha","Go live":"Tangura live","End live":"Rangiza live","Discard":"Reka","Live now":"Live ubu","Choose from gallery":"Hitamwo muri galeri","Say something...":"Vuga ikintu...","Watching":"Barabona","Who can watch?":"Ni nde ashobora kubona?","Create a reel":"Kora reel","Refresh":"Subiramwo","Call":"Hamagara","Voice call":"Guhamagara mu majwi","Video call":"Guhamagara mu mashusho","Calling…":"Biriko biraraza…","Ringing…":"Biriko biraraba…","Connecting…":"Biriko biraraba…","Incoming voice call":"Hari akuhamagaye mu majwi","Incoming video call":"Hari akuhamagaye mu mashusho","Incoming group call":"Hari itsinda ribahamagaye","Accept":"Emera","Decline":"Anka","Mute":"Zimya","Unmute":"Vyura","Camera off":"Zimya kamera","Camera on":"Rahura kamera","Flip":"Hindura","End call":"Rangiza guhamagara","Call ended":"Guhamagara kurarangiye","No answer":"Nta wavyishuye","declined the call":"yanse guhamagara","This call is full.":"Uguhamagara kuzuye.","Could not use the microphone or camera.":"Ntivyashobotse gukoresha mikoro canke kamera.","Group call":"Guhamagara mu itsinda","Join":"Injira","Chat theme":"Ishusho y'ubutumwa","Choose a wallpaper":"Hitamwo ishusho","Default":"Isanzwe","Wallpaper saved ✓":"Ishusho yabitswe ✓","Midnight":"Ijoro","Aurora":"Umuco","Sunset":"Izuba rirenga","Ocean":"Inyanja","Forest":"Ishamba","Candy":"Bombo","Neon":"Neon","Ember":"Amakara","Lavender":"Lavande","Mint":"Mint","Rose":"Roza","Mono":"Umukara n'umweru","Add a group picture":"Shiramwo ifoto y'itsinda","Group picture":"Ifoto y'itsinda","Change group picture":"Hindura ifoto y'itsinda","Birthday":"Isabukuru","Your birthday":"Isabukuru yawe","Month":"Ukwezi","Day":"Umusi","Year":"Umwaka","You must be at least 13 to use Twik.":"Ugomba kuba ufise nibura imyaka 13 kugira ukoreshe Twik.","Please choose your birthday.":"Hitamwo isabukuru yawe.","Forgot password?":"Wibagiwe ijambo ry'ibanga?","Reset link sent. Check your email.":"Ihuza ryoherejwe. Raba imeyili yawe.","Hold to record":"Fata ukanze kugira ufate amajwi","Voice message":"Ubutumwa mu majwi","Active now":"Ariho ubu","Edit caption":"Hindura amajambo asigura","Today":"Uyu musi","Yesterday":"Ejo hashize","Terms":"Amategeko","About Twik":"Ivyerekeye Twik","Sound":"Ijwi","Time zone":"Isaha y'akarere"}};
       const I18N = { lang: "en", dict: {}, loading: false };
       const lsGet = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -6840,6 +6932,7 @@
         $("bdM").value = keep[0] || ""; $("bdD").value = keep[1] || ""; $("bdY").value = keep[2] || "";
       }
       $("forgotBtn").addEventListener("click", async () => {
+        if (loginByUser) { loginByUser = false; applyLoginBy(); showMsg(trW("Type the email of your account, then tap Forgot password again.")); $("email").focus(); return; }
         const email = $("email").value.trim();
         if (!EMAIL_OK.test(email)) { showMsg(trW("Type your email first.")); return; }
         showMsg("...");
