@@ -2048,7 +2048,7 @@ app.post("/api/jar/drop", requireUser, limiter("jdr", 20, 60000), safe(async (re
   res.json({ ok: true, jar: sum });
 }));
 
-const ACCENTS = ["#e2725b", "#ec4899", "#a855f7", "#f59e0b", "#14b8a6", "#3b82f6", "#22c55e", "#ef4444", "#38bdf8"];
+const ACCENTS = ["#ec4899", "#a855f7", "#f59e0b", "#14b8a6", "#3b82f6", "#22c55e", "#ef4444", "#38bdf8"];
 const settingsCache = new Map();
 async function getSettings(uid) {
   const c = settingsCache.get(uid);
