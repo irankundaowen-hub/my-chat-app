@@ -1175,6 +1175,24 @@
     .swatches { display: flex; flex-wrap: wrap; gap: 12px; margin: 6px 0 10px; }
     .swatches button { width: 42px; height: 38px; padding: 0; margin: 0; border: 3px solid transparent !important; border-radius: 52% 48% 50% 14% / 50% 50% 50% 14% !important; min-width: 0; }
     .swatches button.on { border-color: #fff !important; box-shadow: 0 0 16px rgba(255,255,255,0.35); }
+
+    /* ===== v35: chats ===== */
+    .convos li.convo { padding: 12px 14px 12px 12px; margin: 0 0 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 28px 28px 28px 8px; gap: 13px; align-items: center; transition: transform .15s, background .2s; }
+    .convos li.convo:nth-child(even) { border-radius: 28px 28px 8px 28px; }
+    .convos li.convo:active { transform: scale(0.98); background: var(--surface2); }
+    .convos li.convo .avatar { border-radius: 52% 48% 50% 14% / 50% 50% 50% 14%; border: none; box-shadow: 0 0 0 2px #a855f7; }
+    .convos li.convo:nth-child(even) .avatar { box-shadow: 0 0 0 2px #ec4899; }
+    .convos li.convo.unread { background: linear-gradient(90deg, rgba(168,85,247,0.22), rgba(236,72,153,0.08) 60%, var(--surface)); border-color: rgba(168,85,247,0.5); }
+    .convos li.convo.unread .cDot { width: 13px; height: 13px; box-shadow: 0 0 12px rgba(236,72,153,0.9); border-radius: 50% 50% 50% 20%; }
+    .cName { font-family: "Outfit", sans-serif; font-weight: 600; font-size: 16.5px; }
+    .cTabs button.on { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .cTabs button.on::after { content: ""; display: block; height: 3px; margin-top: 3px; border-radius: 3px; background: var(--grad); }
+    .nAv, .convo .avatar.nAv { border-radius: 52% 48% 50% 14% / 50% 50% 50% 14% !important; }
+    form.igBar { border-radius: 30px 30px 30px 8px !important; background: var(--surface) !important; border: 1px solid var(--line) !important; box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+    form.igBar:focus-within { border-color: rgba(168,85,247,0.7) !important; box-shadow: 0 0 0 3px rgba(168,85,247,0.2), 0 8px 28px rgba(0,0,0,0.5); }
+    .cCamBtn { background: var(--grad) !important; border-radius: 50% 50% 50% 18% !important; }
+    form.igBar #cSend { background: var(--grad) !important; color: #fff !important; border-radius: 50% 50% 50% 18% !important; padding: 8px 16px !important; }
+    #cMessages { background-image: radial-gradient(rgba(168,85,247,0.10) 1.5px, transparent 1.6px), radial-gradient(rgba(236,72,153,0.07) 1.5px, transparent 1.6px); background-size: 46px 46px, 46px 46px; background-position: 0 0, 23px 23px; }
   </style>
 </head>
 <body>
@@ -1303,7 +1321,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 35</p>
+        <p class="hint" data-notr>Twik Chat · Version 36</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
