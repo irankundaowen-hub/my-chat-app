@@ -1193,6 +1193,22 @@
     .cCamBtn { background: var(--grad) !important; border-radius: 50% 50% 50% 18% !important; }
     form.igBar #cSend { background: var(--grad) !important; color: #fff !important; border-radius: 50% 50% 50% 18% !important; padding: 8px 16px !important; }
     #cMessages { background-image: radial-gradient(rgba(168,85,247,0.10) 1.5px, transparent 1.6px), radial-gradient(rgba(236,72,153,0.07) 1.5px, transparent 1.6px); background-size: 46px 46px, 46px 46px; background-position: 0 0, 23px 23px; }
+
+    /* ===== v39: Pebble room (chat inside) ===== */
+    .thHead.ig { background: linear-gradient(120deg, rgba(168,85,247,0.20), rgba(236,72,153,0.10) 55%, var(--surface)); border: 1px solid var(--line); border-radius: 30px 30px 30px 8px; padding: 6px 8px; margin: 2px 0 8px; }
+    #cpAv .sAv, #cpAv img { border-radius: 52% 48% 50% 14% / 50% 50% 50% 14%; box-shadow: 0 0 0 2px #a855f7; border: none; }
+    .cpTxt b { font-family: "Outfit", sans-serif; font-weight: 700; font-size: 17px; }
+    .cpStat { font-size: 12px; font-weight: 600; }
+    .thHead.ig .ico2 { background: rgba(255,255,255,0.07) !important; border-radius: 16px 16px 16px 5px !important; width: 38px !important; height: 36px; margin-left: 3px; }
+    .thHead.ig .ico2 svg { width: 21px; height: 21px; }
+    #cMessages { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cg fill='none' stroke-width='2'%3E%3Cpath d='M30 40c14-14 34-8 36 8s-14 28-30 22-14-20-6-30z' stroke='%23a855f7' opacity='.16'/%3E%3Cpath d='M140 30c12-8 28 0 26 14s-18 20-28 14-8-20 2-28z' stroke='%23ec4899' opacity='.14'/%3E%3Cpath d='M90 120c14-12 36-4 34 14s-20 26-34 18-10-24 0-32z' stroke='%23f59e0b' opacity='.12'/%3E%3Cpath d='M170 150c10-6 24 2 22 14s-16 16-24 10-6-18 2-24z' stroke='%23a855f7' opacity='.14'/%3E%3Cpath d='M20 170c10-8 26-2 24 12s-16 18-24 12-6-16 0-24z' stroke='%23ec4899' opacity='.12'/%3E%3C/g%3E%3C/svg%3E") !important; background-size: 220px 220px !important; }
+    #cMessages:empty::before { content: "🪨 No pebbles yet. Say hi!"; display: block; text-align: center; margin: 40% auto 0; color: var(--muted); font-weight: 600; padding: 12px 18px; width: max-content; background: rgba(255,255,255,0.06); border-radius: 22px 22px 22px 6px; }
+    .daySep { background: rgba(168,85,247,0.16) !important; color: #e4d3ff !important; border: 1px solid rgba(168,85,247,0.35); border-radius: 16px 16px 16px 4px !important; font-weight: 700; padding: 4px 14px !important; letter-spacing: 0.4px; }
+    .msg:not(.mine):not(.stk):not(.gifm):not(.callLog) { background: #17141f; border: 1px solid rgba(168,85,247,0.28); border-radius: 24px 24px 24px 5px; }
+    .msg.mine { border-radius: 24px 24px 5px 24px; }
+    .tdots { background: #17141f; border: 1px solid rgba(168,85,247,0.28); border-radius: 20px 20px 20px 5px; }
+    .tdots i { border-radius: 50% 50% 50% 18%; background: var(--grad); }
+    form.igBar #cInput::placeholder { color: #9a8fb5; font-style: italic; }
   </style>
 </head>
 <body>
@@ -1321,7 +1337,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 36</p>
+        <p class="hint" data-notr>Twik Chat · Version 39</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1509,7 +1525,7 @@
         </div>
         <form id="cForm" class="igBar">
           <label class="cCamBtn" aria-label="Camera"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-2.500h6L17 8h3v11H4z"/><circle cx="12" cy="13.500" r="3.200"/></svg><input id="cCam" type="file" accept="image/*,video/*" capture hidden /></label>
-          <input id="cInput" type="text" placeholder="Message..." autocomplete="off" maxlength="4000" />
+          <input id="cInput" type="text" placeholder="Drop a pebble…" autocomplete="off" maxlength="4000" />
           <span class="cTools" id="cTools">
             <button id="cMic" class="cTool" type="button" aria-label="Voice message"><svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
             <label class="cTool" aria-label="Gallery"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="1.800"/><path d="M4 18l5-5 4 4 3-3 4 4"/></svg><input id="cFile" type="file" accept="image/*,video/*" hidden /></label>
