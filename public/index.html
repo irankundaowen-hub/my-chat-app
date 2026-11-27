@@ -1230,9 +1230,48 @@
     .cTabs button, .cTabs button#cTabReq { flex: 1; border-radius: 20px 20px 20px 5px !important; padding: 8px 4px !important; font-size: 14.5px !important; font-family: "Outfit", sans-serif !important; font-weight: 700; color: var(--muted); background: none; -webkit-background-clip: border-box; }
     .cTabs button.on { background: var(--grad) !important; color: #fff !important; -webkit-background-clip: border-box !important; background-clip: border-box !important; box-shadow: 0 4px 16px rgba(236,72,153,0.35); }
     .cTabs button.on::after { display: none; }
+
+    /* ===== v43: Twik opening screen (same as the app) ===== */
+    #boot { position: fixed; inset: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px;
+      background: radial-gradient(90% 50% at 0% 0%, rgba(168,85,247,0.38), transparent 70%), radial-gradient(90% 55% at 100% 100%, rgba(245,158,11,0.26), transparent 70%), #07050d; transition: opacity .4s; }
+    #boot.out { opacity: 0; pointer-events: none; }
+    #boot img { width: 120px; height: 120px; border-radius: 30px 30px 30px 9px; box-shadow: 0 14px 50px rgba(236,72,153,0.55); animation: bootPulse 2s ease-in-out infinite; }
+    @keyframes bootPulse { 50% { transform: scale(1.06); } }
+    .bootName { margin: 20px 0 4px; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #a855f7, #ec4899 55%, #f59e0b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    #bootMsg { color: #cfc4e6; font-size: 15px; min-height: 22px; }
+    .bootDots { display: flex; gap: 10px; margin-top: 18px; }
+    .bootDots i { width: 14px; height: 14px; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 50% 50% 50% 18%; animation: bootB 1s ease-in-out infinite; }
+    .bootDots i:nth-child(2) { animation-delay: .15s; } .bootDots i:nth-child(3) { animation-delay: .3s; }
+    @keyframes bootB { 50% { transform: translateY(-12px); } }
   </style>
 </head>
 <body>
+  <div id="boot" aria-hidden="true">
+    <img src="/icon-192.png" alt="" />
+    <div class="bootName">Twik Chat</div>
+    <div id="bootMsg">Opening Twik…</div>
+    <div class="bootDots"><i></i><i></i><i></i></div>
+  </div>
+  <script>
+    (function () {
+      var t0 = Date.now(), done = false, msg = document.getElementById("bootMsg"), boot = document.getElementById("boot");
+      var iv = setInterval(function () {
+        var s = (Date.now() - t0) / 1000;
+        msg.textContent = s > 25 ? "Still waking up, thanks for waiting…" : s > 6 ? "Waking up the server…" : "Opening Twik…";
+      }, 1000);
+      window.__hideBoot = function () {
+        if (done) return; done = true; clearInterval(iv);
+        boot.classList.add("out"); setTimeout(function () { if (boot.parentNode) boot.parentNode.removeChild(boot); }, 450);
+      };
+      var f = window.fetch;
+      if (f) window.fetch = function (u) {
+        var p = f.apply(this, arguments);
+        if (!done && String(u && u.url || u).indexOf("/api/") >= 0) p.then(window.__hideBoot, window.__hideBoot);
+        return p;
+      };
+      setTimeout(window.__hideBoot, 45000);
+    })();
+  </script>
   <header class="topbar">
     <div class="brandBox"><img class="logoSm" src="/logo.svg" alt="" /><span class="brand">twik</span></div>
     <span class="topRight"><span id="who"></span><button id="bellBtn" class="iconBtn" type="button" aria-label="Notifications" hidden><svg viewBox="0 0 24 24"><path d="M6 17V11a6 6 0 0 1 12 0v6l1.500 2h-15z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg><span id="bellBadge" class="badge" hidden>0</span></button><button id="searchBtn" class="iconBtn" type="button" aria-label="Search people" hidden><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></button></span>
@@ -1358,7 +1397,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 42</p>
+        <p class="hint" data-notr>Twik Chat · Version 43</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -7090,6 +7129,7 @@
       } else {
         $("authBox").hidden = false;
         setMode(false);
+        if (window.__hideBoot) window.__hideBoot();
       }
     })();
   </script>
