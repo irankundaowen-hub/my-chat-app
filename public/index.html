@@ -1275,6 +1275,9 @@
     #mkZl { font-size: 13.5px; min-width: 34px; text-align: center; }
     #mkZr { width: 150px; accent-color: #ec4899; margin: 0; padding: 0; background: none; border: none; height: 24px; }
     .mkStage { touch-action: none; }
+
+    /* v46: no "Reel" label over the photo/video card */
+    .post .reelTag { display: none !important; }
   </style>
 </head>
 <body>
@@ -1429,7 +1432,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 45</p>
+        <p class="hint" data-notr>Twik Chat · Version 46</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
