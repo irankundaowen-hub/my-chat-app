@@ -1243,6 +1243,38 @@
     .bootDots i { width: 14px; height: 14px; background: linear-gradient(135deg, #a855f7, #ec4899); border-radius: 50% 50% 50% 18%; animation: bootB 1s ease-in-out infinite; }
     .bootDots i:nth-child(2) { animation-delay: .15s; } .bootDots i:nth-child(3) { animation-delay: .3s; }
     @keyframes bootB { 50% { transform: translateY(-12px); } }
+
+    /* ===== v44: Home, Twik style (moment cards) ===== */
+    .dayCard { position: relative; margin: 2px 12px 14px; padding: 14px 16px 14px; border-radius: 30px 30px 30px 8px; border: 1px solid rgba(245,158,11,0.35);
+      background: radial-gradient(120% 140% at 100% 0%, rgba(245,158,11,0.22), transparent 60%), linear-gradient(120deg, rgba(168,85,247,0.22), rgba(236,72,153,0.10)), var(--surface); }
+    .dayCard[hidden] { display: none; }
+    .dcTop { font-size: 11.5px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; color: #fbbf24; }
+    .dcQ { font-family: "Outfit", sans-serif; font-size: 19px; font-weight: 700; line-height: 1.25; margin: 6px 28px 12px 0; }
+    .dcGo { background: var(--grad); color: #fff; border: none; border-radius: 20px 20px 20px 6px; padding: 9px 20px; font-weight: 800; font-size: 14.5px; }
+    .dcX { position: absolute; top: 8px; right: 10px; background: none !important; border: none; color: var(--muted); font-size: 15px; padding: 6px; }
+    .post { position: relative; padding: 0 !important; border-radius: 36px 36px 36px 10px; background: var(--surface); border-color: rgba(168,85,247,0.22); margin-bottom: 22px; }
+    .post .pmedia { border-radius: 0 !important; aspect-ratio: 4 / 5; max-height: 68vh; }
+    .post .phead { position: absolute; top: 12px; left: 12px; right: 12px; z-index: 6; padding: 0 !important; pointer-events: none; }
+    .post .phead > * { pointer-events: auto; }
+    .post .phead .rowText { background: rgba(10,6,20,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 5px 15px 5px 5px; border-radius: 24px 24px 24px 7px; font-size: 14.5px; gap: 8px; }
+    .post .phead .pmore, .post .phead .pdel { background: rgba(10,6,20,0.55) !important; backdrop-filter: blur(10px); border-radius: 16px 16px 16px 5px !important; padding: 7px 12px !important; color: #fff; font-size: 16px; line-height: 1; }
+    .post .pact { position: relative; z-index: 6; margin: -28px 14px 0; padding: 7px 12px; gap: 6px; justify-content: space-between; background: rgba(22,15,38,0.93); backdrop-filter: blur(12px);
+      border: 1px solid rgba(168,85,247,0.4); border-radius: 28px 28px 28px 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .post .pact button { background: none !important; width: auto; height: auto; padding: 4px 10px; border-radius: 14px; }
+    .post .pact .push { margin-left: auto; }
+    .post .pcount { display: inline-block; margin: 12px 14px 0; padding: 3px 13px; font-size: 13px; border-radius: 14px 14px 14px 4px; background: rgba(236,72,153,0.16); color: #ffd1e6; }
+    .post .pcap { margin: 10px 14px 6px; padding: 11px 15px; background: rgba(255,255,255,0.06); border-radius: 22px 22px 22px 6px; }
+    .post .pcap strong { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .post .ptime { padding: 0 20px 14px; font-size: 12px; color: var(--muted); }
+    .post .pviewall { margin: 0 14px; }
+    .post .pcom { padding: 0 14px 14px; }
+
+    /* ===== v45: camera zoom ===== */
+    #mkZoom { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-radius: 20px 20px 20px 6px; background: rgba(10,6,20,0.55); backdrop-filter: blur(10px); z-index: 7; }
+    #mkZoom[hidden] { display: none; }
+    #mkZl { font-size: 13.5px; min-width: 34px; text-align: center; }
+    #mkZr { width: 150px; accent-color: #ec4899; margin: 0; padding: 0; background: none; border: none; height: 24px; }
+    .mkStage { touch-action: none; }
   </style>
 </head>
 <body>
@@ -1397,7 +1429,7 @@
         <button class="wide" id="stTerms" type="button">Terms of Service</button>
         <button class="wide" id="stPriv" type="button">Privacy Policy</button>
         <h3>About Twik</h3>
-        <p class="hint" data-notr>Twik Chat · Version 43</p>
+        <p class="hint" data-notr>Twik Chat · Version 45</p>
         <p class="hint" id="timeCheck" data-notr></p>
         <button class="wide" id="logout" type="button" style="margin-top:20px">Log out</button>
         <button class="wide danger" id="delAcct" type="button">Delete my account</button>
@@ -1644,6 +1676,12 @@
     <div id="pbScroll">
       <div id="liveStrip" class="liveStrip" hidden></div>
       <div id="storyStrip" class="storyStrip"></div>
+      <div id="dayCard" class="dayCard" hidden>
+        <button id="dcX" class="dcX" type="button" aria-label="Hide">✕</button>
+        <div class="dcTop">🪨 Today's pebble</div>
+        <div id="dcQ" class="dcQ"></div>
+        <button id="dcGo" class="dcGo" type="button">Share a moment</button>
+      </div>
       <div id="pbFeed"></div>
     </div>
   </div>
@@ -1706,6 +1744,7 @@
         <span id="mkRec" hidden></span>
       </div>
       <button id="mkAud" type="button" hidden><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.500"/><path d="M3 20c0-3.500 3-6 6-6s6 2.500 6 6"/></svg><b id="mkAudTxt">Everyone</b> ⌄</button>
+      <div id="mkZoom" hidden><b id="mkZl">1×</b><input id="mkZr" type="range" min="1" max="4" step="0.1" value="1" aria-label="Zoom" /></div>
       <div id="mkTip" data-notr></div>
     </div>
     <div class="mkBar">
@@ -5598,18 +5637,20 @@
         $("mkShut").classList.toggle("live", m === "live");
         $("mkGal").style.visibility = m === "live" ? "hidden" : "visible";
         mkStartStream();
+        mkZoomUi();
       }
       async function mkStartStream() {
         mkStopStream();
         const my = ++mk.token;
         $("mkNone").hidden = true;
         const wantAudio = mk.mode !== "post";
-        const base = { facingMode: mk.facing, width: { ideal: 1280 }, height: { ideal: 1920 } };
-        let st = null;
-        try { st = await navigator.mediaDevices.getUserMedia({ video: base, audio: wantAudio }); }
-        catch (e) {
-          if (wantAudio) { try { st = await navigator.mediaDevices.getUserMedia({ video: base, audio: false }); } catch (e2) {} }
-        }
+        const portrait = window.innerHeight >= window.innerWidth;
+        const hd = { facingMode: mk.facing, width: { ideal: portrait ? 1080 : 1920 }, height: { ideal: portrait ? 1920 : 1080 }, frameRate: { ideal: 30 } };
+        const plain = { facingMode: mk.facing };
+        const aud = wantAudio ? { echoCancellation: true, noiseSuppression: true } : false;
+        const tryGet = async (v, a) => { try { return await navigator.mediaDevices.getUserMedia({ video: v, audio: a }); } catch (e) { return null; } };
+        let st = (await tryGet(hd, aud)) || (await tryGet(plain, aud));
+        if (!st && wantAudio) st = (await tryGet(hd, false)) || (await tryGet(plain, false));
         if (my !== mk.token) { if (st) st.getTracks().forEach((t) => t.stop()); return; }
         if (!st) { $("mkNone").hidden = false; $("mkFlash").hidden = true; return; }
         mk.stream = st;
@@ -5621,7 +5662,45 @@
         const caps = tr0 && tr0.getCapabilities ? tr0.getCapabilities() : {};
         $("mkFlash").hidden = !caps.torch;
         $("mkFlash").classList.remove("on");
+        mkZoomInit(caps);
       }
+      // ----- zoom (pinch or slider). Real camera zoom when the phone has it, otherwise digital zoom for photos -----
+      const MZ = { hw: false, min: 1, max: 4, cur: 1, pts: {}, d0: 0, z0: 1 };
+      function mkZoomInit(caps) {
+        MZ.cur = 1; $("mkVid").style.scale = "";
+        const z = caps && caps.zoom;
+        MZ.hw = !!(z && z.max > z.min);
+        MZ.min = MZ.hw ? z.min : 1;
+        MZ.max = MZ.hw ? Math.min(z.max, 10) : 4;
+        const r = $("mkZr"); r.min = MZ.min; r.max = MZ.max; r.step = "0.1"; r.value = MZ.min;
+        MZ.cur = MZ.min; mkZoomUi();
+      }
+      function mkZoomUi() {
+        const ok = MZ.hw || mk.mode === "post";
+        $("mkZoom").hidden = !ok || !mk.stream;
+        $("mkZl").textContent = (Math.round(MZ.cur * 10) / 10) + "×";
+        $("mkZr").value = MZ.cur;
+      }
+      function mkSetZoom(z) {
+        z = Math.max(MZ.min, Math.min(MZ.max, z));
+        MZ.cur = z;
+        if (MZ.hw) {
+          const t = mk.stream && mk.stream.getVideoTracks()[0];
+          if (t) t.applyConstraints({ advanced: [{ zoom: z }] }).catch(() => {});
+        } else {
+          $("mkVid").style.scale = z > 1.01 ? String(z) : "";
+        }
+        mkZoomUi();
+      }
+      $("mkZr").addEventListener("input", () => mkSetZoom(parseFloat($("mkZr").value)));
+      (function () {
+        const st = document.querySelector(".mkStage");
+        const dist = () => { const k = Object.keys(MZ.pts); if (k.length < 2) return 0; const a = MZ.pts[k[0]], b = MZ.pts[k[1]]; return Math.hypot(a.x - b.x, a.y - b.y); };
+        st.addEventListener("pointerdown", (e) => { if (e.target.closest("button,input")) return; MZ.pts[e.pointerId] = { x: e.clientX, y: e.clientY }; if (Object.keys(MZ.pts).length === 2) { MZ.d0 = dist(); MZ.z0 = MZ.cur; } });
+        st.addEventListener("pointermove", (e) => { if (!MZ.pts[e.pointerId]) return; MZ.pts[e.pointerId] = { x: e.clientX, y: e.clientY }; if (Object.keys(MZ.pts).length === 2 && MZ.d0 && !$("mkZoom").hidden) mkSetZoom(MZ.z0 * dist() / MZ.d0); });
+        const up = (e) => { delete MZ.pts[e.pointerId]; };
+        st.addEventListener("pointerup", up); st.addEventListener("pointercancel", up); st.addEventListener("pointerleave", up);
+      })();
       $("mkX").addEventListener("click", mkClose);
       $("mkFlip").addEventListener("click", () => { if (mk.rec || mk.isLive) return; mk.facing = mk.facing === "user" ? "environment" : "user"; mkStartStream(); });
       $("mkFlash").addEventListener("click", async () => {
@@ -5641,15 +5720,25 @@
         $("mkFile").value = "";
         if (f) mkAfter(f);
       });
-      function mkPhoto() {
+      async function mkPhoto() {
         const v = $("mkVid");
         if (!mk.stream || !v.videoWidth) { toast("Camera not available"); return; }
+        if (window.ImageCapture && mk.facing === "environment" && MZ.cur < 1.05) {
+          try {
+            const ic = new ImageCapture(mk.stream.getVideoTracks()[0]);
+            const blob = await ic.takePhoto();
+            if (blob && blob.size > 2000) { mkAfter(new File([blob], "photo.jpg", { type: blob.type || "image/jpeg" })); return; }
+          } catch (e) { /* fall back below */ }
+        }
+        const z = MZ.hw ? 1 : Math.max(1, MZ.cur);
+        const sw = v.videoWidth / z, sh = v.videoHeight / z, sx = (v.videoWidth - sw) / 2, sy = (v.videoHeight - sh) / 2;
         const c = document.createElement("canvas");
-        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.width = Math.round(sw); c.height = Math.round(sh);
         const x = c.getContext("2d");
+        x.imageSmoothingQuality = "high";
         if (mk.facing === "user") { x.translate(c.width, 0); x.scale(-1, 1); }
-        x.drawImage(v, 0, 0);
-        c.toBlob((blob) => { if (blob) mkAfter(new File([blob], "photo.jpg", { type: "image/jpeg" })); }, "image/jpeg", 0.9);
+        x.drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        c.toBlob((blob) => { if (blob) mkAfter(new File([blob], "photo.jpg", { type: "image/jpeg" })); }, "image/jpeg", 0.95);
       }
       function mkStartRec(maxSec) {
         if (!mk.stream) { toast("Camera not available"); return; }
@@ -5657,7 +5746,7 @@
         const types = ["video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"];
         const mime = types.find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
         let rec;
-        try { rec = new MediaRecorder(mk.stream, mime ? { mimeType: mime } : {}); } catch (e) { toast("Recording is not supported on this phone. Choose from your gallery."); return; }
+        try { rec = new MediaRecorder(mk.stream, Object.assign(mime ? { mimeType: mime } : {}, { videoBitsPerSecond: 4000000 })); } catch (e) { toast("Recording is not supported on this phone. Choose from your gallery."); return; }
         mk.chunks = [];
         rec.ondataavailable = (e) => { if (e.data && e.data.size) mk.chunks.push(e.data); };
         rec.onstop = () => {
@@ -6696,7 +6785,7 @@
       }
       async function callMedia(video) {
         try {
-          CALL.local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: video ? { facingMode: CALL.facing, width: { ideal: 640 }, height: { ideal: 480 } } : false });
+          CALL.local = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true }, video: video ? { facingMode: CALL.facing, width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 24 } } : false });
         } catch (e) { toast("Could not use the microphone or camera."); return false; }
         $("clSelf").srcObject = CALL.local;
         $("clSelf").hidden = !video;
@@ -7120,6 +7209,17 @@
       setInterval(syncClock, 10 * 60 * 1000);
 
       if ("serviceWorker" in navigator) { window.addEventListener("load", () => { navigator.serviceWorker.register("/sw.js").catch(() => {}); }); }
+
+      // ---------- Today's pebble: a daily prompt card on Home ----------
+      (function () {
+        const Q = ["Show us something that made you smile today 😊", "What does your view look like right now?", "Show your favourite snack or meal today 🍽️", "A tiny thing you are proud of today?", "Show us the colour of your day 🎨", "Who or what made your day better?", "Your music right now: what's playing? 🎧", "Show us a place you love near you 📍", "What are you learning at the moment?", "Your outfit of the day, no pressure 😎", "Something old you found again?", "Show us your workspace or your corner ✨", "Pick a pebble: show us one thing you picked up today 🪨", "Your best laugh this week: tell us 😂"];
+        const day = new Date().toISOString().slice(0, 10), n = Math.floor(Date.now() / 86400000);
+        let hidden = false; try { hidden = localStorage.getItem("twik_daycard") === day; } catch (e) {}
+        $("dcQ").textContent = Q[n % Q.length];
+        $("dayCard").hidden = hidden;
+        $("dcX").onclick = () => { $("dayCard").hidden = true; try { localStorage.setItem("twik_daycard", day); } catch (e) {} };
+        $("dcGo").onclick = () => { $("mkBtn").click(); };
+      })();
 
       // ---------- Start: are we already logged in? ----------
       const { data } = await sb.auth.getSession();
